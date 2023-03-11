@@ -9,10 +9,6 @@
 -- User options --
 local SRSAuto = {}
 
-package.path  = package.path..";.\\LuaSocket\\?.lua;"
-require("url") -- defines socket.url, which socket.http looks for
-http = require("http")
-
 SRSAuto.SERVER_SRS_HOST_AUTO = false -- if set to true SRS will set the SERVER_SRS_HOST for you! - Currently disabled
 SRSAuto.SERVER_SRS_PORT = "5002" --  SRS Server default is 5002 TCP & UDP
 SRSAuto.SERVER_SRS_HOST = "127.0.0.1" -- overridden if SRS_HOST_AUTO is true -- set to your PUBLIC ipv4 address
@@ -55,6 +51,9 @@ SRSAuto.JSON = JSON
 
 local socket = require("socket")
 -- local DcsWeb = require('DcsWeb')
+
+require("url") -- defines socket.url, which socket.http looks for
+http = require("http") -- socket.http
 
 SRSAuto.UDPSendSocket = socket.udp()
 SRSAuto.UDPSendSocket:settimeout(0)
