@@ -896,10 +896,11 @@ function SR.exportRadioUH60L(_data)
         -- radio volume * ics master volume * ics switch
         fm1Volume = GetDevice(0):get_argument_value(604) * GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(403)
         fm1Freq = fm1Device:get_frequency()
+        ARC201FM1Freq = get_param_handle("ARC201FM1param"):get()
     end
 
     _data.radios[2].name = "AN/ARC-201 (1)"
-    _data.radios[2].freq = fm1Freq
+    _data.radios[2].freq = ARC201FM1Freq--fm1Freq
     _data.radios[2].modulation = 1
     _data.radios[2].volume = fm1Volume
     _data.radios[2].freqMin = 30e6
@@ -943,7 +944,7 @@ function SR.exportRadioUH60L(_data)
     if arc186Power and isDCPower then
         -- radio volume * ics master volume * ics switch
         arc186Volume = GetDevice(0):get_argument_value(410) * GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(405)
-        arc186Freq = arc186Device:get_frequency()
+        arc186Freq = get_param_handle("ARC186param"):get() --arc186Device:get_frequency()
         arc186SecFreq = 121.5e6
     end
     
@@ -968,10 +969,11 @@ function SR.exportRadioUH60L(_data)
         -- radio volume * ics master volume * ics switch
         fm2Volume = GetDevice(0):get_argument_value(704) * GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(406)
         fm2Freq = fm2Device:get_frequency()
+        ARC201FM2Freq = get_param_handle("ARC201FM2param"):get()
     end
 
     _data.radios[5].name = "AN/ARC-201 (2)"
-    _data.radios[5].freq = fm2Freq
+    _data.radios[5].freq = ARC201FM2Freq--fm2Freq
     _data.radios[5].modulation = 1
     _data.radios[5].volume = fm2Volume
     _data.radios[5].freqMin = 30e6
@@ -987,9 +989,11 @@ function SR.exportRadioUH60L(_data)
     _data.radios[6].volume = GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(407)
     _data.radios[6].freqMin = 2e6
     _data.radios[6].freqMax = 29.9999e6
-    _data.radios[6].volMode = 0
-    _data.radios[6].freqMode = 0
-    _data.radios[6].rtMode = 0
+    _data.radios[6].volMode = 1
+    _data.radios[6].freqMode = 1
+	_data.radios[6].encKey = 1 
+    _data.radios[6].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting --ANDR0ID Added
+    _data.radios[6].rtMode = 1 
 
     -- Only select radio if power to ICS panel
     local radioXMTSelectorValue = _data.selected or 0
