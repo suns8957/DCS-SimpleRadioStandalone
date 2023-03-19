@@ -52,6 +52,9 @@ SRSAuto.JSON = JSON
 local socket = require("socket")
 -- local DcsWeb = require('DcsWeb')
 
+require("url") -- defines socket.url, which socket.http looks for
+http = require("http") -- socket.http
+
 SRSAuto.UDPSendSocket = socket.udp()
 SRSAuto.UDPSendSocket:settimeout(0)
 
@@ -118,8 +121,9 @@ local _lastSent = 0
 SRSAuto.onMissionLoadBegin = function()
 
 	if SRSAuto.SERVER_SRS_HOST_AUTO then
-		-- SRSAuto.SERVER_SRS_HOST = DcsWeb.get_data('dcs:whatsmyip')
-		-- SRSAuto.log("SET IP automatically to "..SRSAuto.SERVER_SRS_HOST)
+		local T, code, headers, status = socket.http.request("https://ipv4.icanhazip.com")
+		SRSAuto.SERVER_SRS_HOST = T
+		SRSAuto.log("SET IP automatically to "..SRSAuto.SERVER_SRS_HOST)
 	end
 
 end
