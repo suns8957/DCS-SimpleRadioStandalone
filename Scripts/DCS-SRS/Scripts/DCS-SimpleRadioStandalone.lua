@@ -1417,9 +1417,7 @@ function exportRadioHercules(_data)
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
     _data.radios[1].volume = 1.0
-    _data.radios[1].volMode = 0
-    _data.radios[1].freqMode = 0
-    _data.radios[1].rtMode = 0
+    _data.radios[1].volMode = 1 -- Overlay control
 
     -- AN/ARC-164(V) Radio
     -- Use the Pilot's volume for any station other
@@ -1456,7 +1454,7 @@ function exportRadioHercules(_data)
     _data.radios[3].freqMax = 151.975e6
     _data.radios[3].volMode = 1
     _data.radios[3].freqMode = 1
-    _data.radios[3].expansion = true
+    _data.radios[3].expansion = false
 
     -- VHF FM - 30-87.975MHz
     _data.radios[4].name = "AN/ARC-186(V) FM"
@@ -1468,7 +1466,7 @@ function exportRadioHercules(_data)
     _data.radios[4].freqMax = 87.975e6
     _data.radios[4].volMode = 1
     _data.radios[4].freqMode = 1
-    _data.radios[4].expansion = true
+    _data.radios[4].expansion = false
 
     _data.intercomHotMic = true
 
