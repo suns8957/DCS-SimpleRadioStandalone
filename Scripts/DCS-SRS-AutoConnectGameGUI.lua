@@ -119,19 +119,18 @@ end
 local _lastSent = 0
 
 SRSAuto.onMissionLoadBegin = function()
-    if SRSAuto.SERVER_SRS_HOST_AUTO then
-	local ipLookupUrl = "https://ipv4.icanhazip.com"
-	
-	local T, code, headers, status = socket.http.request(ipLookupUrl)
-		
-	if T = nil or c < 200 or c >= 300 then
-	   if T = nil then T = "" end
-	   SRSAuto.log("Failed to lookup IP from "..ipLookupUrl..". Http Status: " .. code .. " Body: " .. T)
-	else
-	    SRSAuto.SERVER_SRS_HOST = T
-            SRSAuto.log("SET IP automatically to "..SRSAuto.SERVER_SRS_HOST)
+	if SRSAuto.SERVER_SRS_HOST_AUTO then
+		local ipLookupUrl = "https://ipv4.icanhazip.com"
+		local T, code, headers, status = socket.http.request(ipLookupUrl)
+
+		if T == nil or code < 200 or code >= 300 then
+		   if T == nil then T = "" end
+		   SRSAuto.log("Failed to lookup IP from "..ipLookupUrl..". Http Status: " .. code)
+		else
+		    SRSAuto.SERVER_SRS_HOST = T
+		    SRSAuto.log("SET IP automatically to "..SRSAuto.SERVER_SRS_HOST)
+		end
 	end
-    end
 end
 
 SRSAuto.onSimulationFrame = function()
