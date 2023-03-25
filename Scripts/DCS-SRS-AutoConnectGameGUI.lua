@@ -123,8 +123,8 @@ SRSAuto.onMissionLoadBegin = function()
 		local ipLookupUrl = "https://ipv4.icanhazip.com"
 		local T, code, headers, status = socket.http.request(ipLookupUrl)
 
-		if T == nil or code < 200 or code >= 300 then
-		   if T == nil then T = "" end
+		if T == nil or code == nil or code < 200 or code >= 300 then
+		   if code == nil then code = "??" end
 		   SRSAuto.log("Failed to lookup IP from "..ipLookupUrl..". Http Status: " .. code)
 		else
 		    SRSAuto.SERVER_SRS_HOST = T
