@@ -898,6 +898,10 @@ function SR.exportRadioUH60L(_data)
         fm1Freq = fm1Device:get_frequency()
         ARC201FM1Freq = get_param_handle("ARC201FM1param"):get()
     end
+	
+    if not (fm1Power and isDCPower) then
+        ARC201FM1Freq = 0
+    end
 
     _data.radios[2].name = "AN/ARC-201 (1)"
     _data.radios[2].freq = ARC201FM1Freq--fm1Freq
@@ -947,6 +951,11 @@ function SR.exportRadioUH60L(_data)
         arc186Freq = get_param_handle("ARC186param"):get() --arc186Device:get_frequency()
         arc186SecFreq = 121.5e6
     end
+	
+    if not (arc186Power and isDCPower) then
+        arc186Freq = 0
+	arc186SecFreq = 0
+    end
     
     _data.radios[4].name = "AN/ARC-186(V)"
     _data.radios[4].freq = arc186Freq
@@ -970,6 +979,10 @@ function SR.exportRadioUH60L(_data)
         fm2Volume = GetDevice(0):get_argument_value(704) * GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(406)
         fm2Freq = fm2Device:get_frequency()
         ARC201FM2Freq = get_param_handle("ARC201FM2param"):get()
+    end
+	
+    if not (fm2Power and isDCPower) then
+        ARC201FM2Freq = 0
     end
 
     _data.radios[5].name = "AN/ARC-201 (2)"
