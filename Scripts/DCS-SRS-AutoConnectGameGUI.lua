@@ -135,8 +135,8 @@ SRSAuto.onMissionLoadBegin = function()
 	end)
 	
 	if not _status then
-        SRSAuto.log('ERROR: ' .. _result)
-    end
+		SRSAuto.log('ERROR: ' .. _result)
+	end
 end
 
 SRSAuto.onSimulationFrame = function()
