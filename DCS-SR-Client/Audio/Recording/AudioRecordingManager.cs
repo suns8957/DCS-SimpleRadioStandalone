@@ -102,26 +102,23 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Recording
 
                 Thread.Sleep(500);
 
-                if (GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RecordAudio))
+                // if we're recording audio, check to see if any mixdown queue has data. if so,
+                // start recording. if we're not recording, just run this thread doing nothing.
+                for (int i = 0; i < MAX_RADIOS; i++)
                 {
-                    // if we're recording audio, check to see if any mixdown queue has data. if so,
-                    // start recording. if we're not recording, just run this thread doing nothing.
-                    for (int i = 0; i < MAX_RADIOS; i++)
+                    if ((_playerRawQueues[i].Count > 0) || (_clientRawQueues[i].Count > 0))
                     {
-                        if ((_playerRawQueues[i].Count > 0) || (_clientRawQueues[i].Count > 0))
+                        for (int j = 0; j < MAX_RADIOS; j++)
                         {
-                            for (int j = 0; j < MAX_RADIOS; j++)
-                            {
-                                _clientFullQueues[j].StartRecording(tickTime);
-                                _playerFullQueues[j].StartRecording(tickTime);
-                            }
-                            isRecording = true;
-                            break;
+                            _clientFullQueues[j].StartRecording(tickTime);
+                            _playerFullQueues[j].StartRecording(tickTime);
                         }
+                        isRecording = true;
+                        break;
                     }
                 }
+                
             }
-
             _logger.Info("Transmission recording started.");
 
             // record audio. pull samples from the raw queues and hydrate them in the full queues.
@@ -238,6 +235,13 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Recording
 
         public void Start()
         {
+            if (!GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RecordAudio))
+            {
+                _processThreadDone = true;
+                _logger.Info("Transmission recording disabled");
+                return;
+            }
+
             _logger.Info("Transmission recording waiting for audio.");
 
             // clear out existing queue lists and rebuild them from scratch. queues include
