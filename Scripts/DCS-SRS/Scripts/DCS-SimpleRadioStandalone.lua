@@ -1,4 +1,4 @@
--- Version 2.0.8.4
+-- Version 2.0.8.5
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -133,7 +133,7 @@ function SR.exporter()
     local _data = LoGetSelfData()
 
     -- REMOVE
-    -- SR.log(SR.debugDump(_data).."\n\n")
+ --   SR.log(SR.debugDump(_data).."\n\n")
 
     if _data ~= nil and not SR.fc3[_data.Name] then
         -- check for death / eject -- call below returns a number when ejected - ignore FC3
@@ -898,7 +898,7 @@ function SR.exportRadioUH60L(_data)
         fm1Freq = fm1Device:get_frequency()
         ARC201FM1Freq = get_param_handle("ARC201FM1param"):get()
     end
-	
+    
     if not (fm1Power and isDCPower) then
         ARC201FM1Freq = 0
     end
@@ -951,10 +951,10 @@ function SR.exportRadioUH60L(_data)
         arc186Freq = get_param_handle("ARC186param"):get() --arc186Device:get_frequency()
         arc186SecFreq = 121.5e6
     end
-	
+    
     if not (arc186Power and isDCPower) then
         arc186Freq = 0
-	arc186SecFreq = 0
+    arc186SecFreq = 0
     end
     
     _data.radios[4].name = "AN/ARC-186(V)"
@@ -980,7 +980,7 @@ function SR.exportRadioUH60L(_data)
         fm2Freq = fm2Device:get_frequency()
         ARC201FM2Freq = get_param_handle("ARC201FM2param"):get()
     end
-	
+    
     if not (fm2Power and isDCPower) then
         ARC201FM2Freq = 0
     end
@@ -1004,7 +1004,7 @@ function SR.exportRadioUH60L(_data)
     _data.radios[6].freqMax = 29.9999e6
     _data.radios[6].volMode = 1
     _data.radios[6].freqMode = 1
-	_data.radios[6].encKey = 1 
+    _data.radios[6].encKey = 1 
     _data.radios[6].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting --ANDR0ID Added
     _data.radios[6].rtMode = 1 
 
@@ -1531,6 +1531,43 @@ function SR.exportRadioF15C(_data)
     return _data
 end
 
+function SR.exportRadioF15ESE(_data)
+
+    _data.radios[1].name = "Intercom"
+    _data.radios[1].freq = 100.0
+    _data.radios[1].modulation = 2 --Special intercom modulation
+    _data.radios[1].volume =  1.0
+    _data.radios[4].volMode = 0
+ 
+
+    _data.radios[2].name = "AN/ARC-164 UHF-1"
+    _data.radios[2].freq = SR.getRadioFrequency(7)
+    _data.radios[2].modulation = SR.getRadioModulation(7)
+
+
+    _data.radios[3].name = "AN/ARC-164 UHF-2"
+    _data.radios[3].freq = SR.getRadioFrequency(8)
+    _data.radios[3].modulation = SR.getRadioModulation(8)
+
+
+    local _seat = SR.lastKnownSeat
+
+    if _seat == 0 then
+       
+        _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.1, 1.0 }, false)
+        _data.radios[3].volume = SR.getRadioVolume(0, 283, { 0.1, 1.0 }, false)
+    else
+        _data.radios[2].volume = SR.getRadioVolume(0, 1307, { 0.1, 1.0 }, false)
+        _data.radios[3].volume = SR.getRadioVolume(0, 1308, { 0.1, 1.0 }, false)
+
+    end
+
+
+    _data.control = 0;
+    _data.selected = 1
+
+    return _data
+end
 
 
 function SR.exportRadioUH1H(_data)
@@ -1699,6 +1736,23 @@ end
 function SR.exportRadioSA342(_data)
     _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
 
+    -- Check for version
+    local _newVersion = false
+    local _uhfId = 31
+    local _fmId = 28
+
+    pcall(function() 
+
+        local temp = SR.getRadioFrequency(30, 500)
+
+        if temp ~= nil then
+            _newVersion = true
+            _fmId = 27
+            _uhfId = 30
+        end
+    end)
+
+
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
@@ -1747,7 +1801,7 @@ function SR.exportRadioSA342(_data)
     _data.radios[3].name = "UHF TRA 6031"
 
     -- deal with odd radio tune & rounding issue... BUG you cannot set frequency 243.000 ever again
-    local freq = SR.getRadioFrequency(31, 500)
+    local freq = SR.getRadioFrequency(_uhfId, 500)
     freq = (math.floor(freq / 1000) * 1000)
 
     _data.radios[3].freq = freq
@@ -1760,7 +1814,7 @@ function SR.exportRadioSA342(_data)
     _data.radios[3].rtMode = 1
 
     _data.radios[4].name = "TRC 9600 PR4G"
-    _data.radios[4].freq = SR.getRadioFrequency(28)
+    _data.radios[4].freq = SR.getRadioFrequency(_fmId)
     _data.radios[4].modulation = 1
     _data.radios[4].volume = SR.getRadioVolume(0, fm1Volume, { 0.0, 1.0 }, false)
 
@@ -3579,8 +3633,13 @@ function SR.exportRadioFW190(_data)
     _data.radios[2].name = "FuG 16ZY"
     _data.radios[2].freq = SR.getRadioFrequency(15)
     _data.radios[2].modulation = 0
-    _data.radios[2].volMode = 1
-    _data.radios[2].volume = 1.0  --SR.getRadioVolume(0, 83,{0.0,1.0},true) Volume knob is not behaving..
+
+    local _volRaw = GetDevice(0):get_argument_value(83)
+    if _volRaw >= 0 and _volRaw <= 0.25 then
+        _data.radios[2].volume = (1.0 - SR.getRadioVolume(0, 83,{0,0.5},true)) + 0.5 -- Volume knob is not behaving..
+    else
+        _data.radios[2].volume = ((1.0 - SR.getRadioVolume(0, 83,{0,0.5},true)) - 0.5) * -1.0 -- ABS
+    end
 
     _data.selected = 1
 
@@ -4352,7 +4411,7 @@ function SR.exportRadioF1CE(_data)
     end
 
     if SR.getSelectorPosition(282,0.5) == 1 then
-        _data.radios[2].channel = SR.getNonStandardSpinner(283, {[0.750]= "1",[0.800]= "2",[0.850]= "3",[0.900]= "4",[0.950]= "5",[0.000]= "6", [0.050]= "7",[0.100]= "8",[0.150]= "9",[0.200]= "10",[0.250]= "11",[0.300]= "12",[0.350]= "13",[0.400]= "14",[0.450]= "15",[0.500]= "16",[0.550]= "17",[0.600]= "18",[0.650]= "19",[0.700]= "20"},0.05,3)
+        _data.radios[2].channel = SR.getNonStandardSpinner(283, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
     end
 
     _data.radios[3].name = "UHF TRAP-137B"
@@ -4360,7 +4419,7 @@ function SR.exportRadioF1CE(_data)
     _data.radios[3].modulation = 0
     _data.radios[3].volume = SR.getRadioVolume(0, 314,{0.0,1.0},false)
     _data.radios[3].volMode = 0
-    _data.radios[3].channel = SR.getNonStandardSpinner(348, {[0.750]= "1",[0.800]= "2",[0.850]= "3",[0.900]= "4",[0.950]= "5",[0.000]= "6", [0.050]= "7",[0.100]= "8",[0.150]= "9",[0.200]= "10",[0.250]= "11",[0.300]= "12",[0.350]= "13",[0.400]= "14",[0.450]= "15",[0.500]= "16",[0.550]= "17",[0.600]= "18",[0.650]= "19",[0.700]= "20"},0.05,3)
+    _data.radios[3].channel = SR.getNonStandardSpinner(348, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
 
     _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
 
@@ -5169,6 +5228,7 @@ SR.exporters["MB-339APAN"] = SR.exportRadioMB339A
 SR.exporters["Hawk"] = SR.exportRadioHawk
 SR.exporters["Christen Eagle II"] = SR.exportRadioEagleII
 SR.exporters["M-2000C"] = SR.exportRadioM2000C
+SR.exporters["M-2000D"] = SR.exportRadioM2000C
 SR.exporters["Mirage-F1CE"] = SR.exportRadioF1CE  
 SR.exporters["Mirage-F1EE"]   = SR.exportRadioF1CE
 --SR.exporters["Mirage-F1BE"]   = SR.exportRadioF1
@@ -5189,6 +5249,7 @@ SR.exporters["VSN_F4C"] = SR.exportRadioVSNF4
 SR.exporters["VSN_F4B"] = SR.exportRadioVSNF4
 SR.exporters["Hercules"] = SR.exportRadioHercules
 SR.exporters["F-15C"] = SR.exportRadioF15C
+SR.exporters["F-15ESE"] = SR.exportRadioF15ESE
 SR.exporters["MiG-29A"] = SR.exportRadioMiG29
 SR.exporters["MiG-29S"] = SR.exportRadioMiG29
 SR.exporters["MiG-29G"] = SR.exportRadioMiG29
@@ -5306,4 +5367,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.0.8.4")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.0.8.5")
