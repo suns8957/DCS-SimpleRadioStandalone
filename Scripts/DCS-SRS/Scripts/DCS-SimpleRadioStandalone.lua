@@ -1421,7 +1421,7 @@ function SR.exportRadioVSNF4(_data)
     return _data
 end
 
-function exportRadioHercules(_data)
+function SR.exportRadioHercules(_data)
     _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = true, desc = "" }
     _data.iff = {status=0,mode1=0,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
