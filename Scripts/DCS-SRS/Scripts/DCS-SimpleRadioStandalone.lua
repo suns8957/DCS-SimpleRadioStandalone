@@ -1734,7 +1734,7 @@ function SR.exportRadioUH1H(_data)
 end
 
 function SR.exportRadioSA342(_data)
-    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
+    _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
 
     -- Check for version
     local _newVersion = false
@@ -1867,6 +1867,45 @@ function SR.exportRadioSA342(_data)
     end
 
     _data.intercomHotMic = true
+
+    
+    -- HANDLE TRANSPONDER
+    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+
+
+    local iffPower =  SR.getButtonPosition(246)
+
+    local iffIdent =  SR.getButtonPosition(240) -- -1 is off 0 or more is on
+
+    if iffPower > 0 then
+        _data.iff.status = 1 -- NORMAL
+
+        if iffIdent == 1 then
+            _data.iff.status = 2 -- IDENT (BLINKY THING)
+        end
+    end
+
+    local mode1On =  SR.getButtonPosition(248)
+    _data.iff.mode1 = SR.round(SR.getSelectorPosition(234,0.1), 0.1)*10+SR.round(SR.getSelectorPosition(235,0.1), 0.1)
+
+    if mode1On == 0 then
+        _data.iff.mode1 = -1
+    end
+
+    local mode3On =  SR.getButtonPosition(250)
+    _data.iff.mode3 = SR.round(SR.getSelectorPosition(236,0.1), 0.1) * 1000 + SR.round(SR.getSelectorPosition(237,0.1), 0.1) * 100 + SR.round(SR.getSelectorPosition(238,0.1), 0.1)* 10 + SR.round(SR.getSelectorPosition(239,0.1), 0.1)
+
+    if mode3On == 0 then
+        _data.iff.mode3 = -1
+    end
+
+    local mode4On =  SR.getButtonPosition(251)
+
+    if mode4On ~= 0 then
+        _data.iff.mode4 = true
+    else
+        _data.iff.mode4 = false
+    end
 
     return _data
 end
@@ -4916,8 +4955,8 @@ function SR.exportRadioAJS37(_data)
     _data.radios[3].name = "FR 24"
     _data.radios[3].freq = SR.getRadioFrequency(31)
     _data.radios[3].modulation = SR.getRadioModulation(31)
-    _data.radios[3].volume = 1.0-- SR.getRadioVolume(0, 3112,{0.00001,1.0},false) volume not working yet
-    _data.radios[3].volMode = 1
+    _data.radios[3].volume = SR.getRadioVolume(0, 385,{0.0, 1.0},false)
+    _data.radios[3].volMode = 0
 
     -- Expansion Radio - Server Side Controlled
     _data.radios[4].name = "AN/ARC-164 UHF"
