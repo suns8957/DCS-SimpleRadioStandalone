@@ -87,8 +87,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
 
             foreach (var fileAndPath in files)
             {
-                //TODO test this
-                if (Path.GetExtension(fileAndPath).ToLowerInvariant() == "txt")
+                if (Path.GetExtension(fileAndPath).ToLowerInvariant() == ".txt")
                 {
                     var name = Path.GetFileNameWithoutExtension(fileAndPath);
 
