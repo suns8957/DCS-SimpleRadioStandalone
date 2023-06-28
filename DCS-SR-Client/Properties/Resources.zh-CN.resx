@@ -345,19 +345,19 @@ DCS游戏内SRS浮窗</value>
     <value>扬声器和麦克风音量放大</value>
   </data>
   <data name="HelpP2L1" xml:space="preserve">
-    <value>请先进行音频测试，</value>
+    <value>请先进行音频测试,</value>
   </data>
   <data name="HelpP2L2" xml:space="preserve">
     <value>在通用页确认你的麦克风和扬声器都已配置正确。</value>
   </data>
   <data name="HelpP2L3" xml:space="preserve">
-    <value>扬声器放大功能可用于抵消因限幅和无线电音效等功能造成你听到别人说话的音量减小。 如果你不得不把放大开得很高，可能是由于其他Windows声音太大。麦克风音量默认开启自动调整，不需要专门设置。</value>
+    <value>扬声器放大功能可用于抵消因限幅和无线电音效等功能造成你听到别人说话的音量减小。如果你不得不把放大开得很高，可能是由于其他Windows声音太大。 麦克风音量默认开启自动调整，不需要专门设置。</value>
   </data>
   <data name="HelpP3" xml:space="preserve">
     <value>使用遇到问题</value>
   </data>
   <data name="HelpP3L1" xml:space="preserve">
-    <value>如果遇到任何SRS使用问题，请来专用的Discord频道获取帮助：</value>
+    <value>如果遇到任何SRS使用问题，请来专用的Discord频道获取帮助:</value>
   </data>
   <data name="HelpP3L2" xml:space="preserve">
     <value>链接在此</value>

@@ -118,22 +118,22 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CreateStartMenuShortcut" xml:space="preserve">
-    <value>Create Start menu shortcut</value>
+    <value>创建开始菜单快捷方式</value>
   </data>
   <data name="dcsPathButton" xml:space="preserve">
-    <value>Locate</value>
+    <value>浏览</value>
   </data>
   <data name="InstallButton" xml:space="preserve">
-    <value>Install / Update DCS-SRS</value>
+    <value>安装 / 更新 DCS-SRS</value>
   </data>
   <data name="InstallingButton" xml:space="preserve">
     <value>Installing...</value>
   </data>
   <data name="InstallScriptsCheckbox" xml:space="preserve">
-    <value>Install DCS Client Scripts - Only required for SRS Client NOT Server Only Installs</value>
+    <value>安装DCS客户端脚本 - 只有SRS客户端需要，仅开服不需要</value>
   </data>
   <data name="intro" xml:space="preserve">
-    <value>SimpleRadio Standalone Installer -</value>
+    <value>简单无线电独立版 (SRS) 安装程序 -</value>
   </data>
   <data name="MsgBoxChange" xml:space="preserve">
     <value>Change Installer Settings?</value>
@@ -216,24 +216,26 @@ Containing folder left just in case you want favourites or frequencies</value>
     <value>Uninstalling SRS</value>
   </data>
   <data name="RemoveButton" xml:space="preserve">
-    <value>Remove DCS-SRS</value>
+    <value>卸载 DCS-SRS</value>
   </data>
   <data name="ServerNote" xml:space="preserve">
-    <value>Please Note: Server installs will need to manually install the DCS-SRS-AutoConnectGameGUI.lua - found in the SRS Install Location in the Scripts folder. Installation instructions are in the file.</value>
+    <value>请注意: 服务器使用需手动安装 DCS-SRS-AutoConnectGameGUI.lua。
+此文件可在SRS安装目录中的Scripts文件夹内找到，内含安装说明。
+自带的更新功能目前只能更新到英文版，中文版请安装好后看SRS内置的帮助页。</value>
   </data>
   <data name="srPathButton" xml:space="preserve">
-    <value>Locate</value>
+    <value>浏览</value>
   </data>
   <data name="step2" xml:space="preserve">
-    <value>Step 1: Pick Install Location</value>
+    <value>第一步: 选择SRS安装位置</value>
   </data>
   <data name="step3" xml:space="preserve">
-    <value>Step 2: Locate Saved Games Folder - Not DCS</value>
+    <value>第二步: 找到“保存的游戏”文件夹 - 非DCS</value>
   </data>
   <data name="step4" xml:space="preserve">
-    <value>Step 3: Install Or Remove DCS-SRS</value>
+    <value>第三步: 安装或卸载 DCS-SRS</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>DCS-SRS Installer</value>
+    <value>DCS-SRS 安装程序</value>
   </data>
 </root>
