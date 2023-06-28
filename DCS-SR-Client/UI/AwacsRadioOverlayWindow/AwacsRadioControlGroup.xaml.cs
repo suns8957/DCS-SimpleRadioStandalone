@@ -300,8 +300,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                 RadioId > dcsPlayerRadioInfo.radios.Length - 1)
             {
                 RadioActive.Fill = new SolidColorBrush(Colors.Red);
-                RadioLabel.Text = "No Radio";
-                RadioFrequency.Text = "Unknown";
+                RadioLabel.Text = Properties.Resources.OverlayNoRadio;
+                RadioFrequency.Text = Properties.Resources.ValueUnknown;
 
                 RadioMetaData.Text = "";
 
@@ -350,8 +350,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                 if (currentRadio == null || currentRadio.modulation == RadioInformation.Modulation.DISABLED) // disabled
                 {
                     RadioActive.Fill = new SolidColorBrush(Colors.Red);
-                    RadioLabel.Text = "No Radio";
-                    RadioFrequency.Text = "Unknown";
+                    RadioLabel.Text = Properties.Resources.OverlayNoRadio;
+                    RadioFrequency.Text = Properties.Resources.ValueUnknown;
                     RadioMetaData.Text = "";
 
 
@@ -366,19 +366,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                 }
                 if (currentRadio.modulation == RadioInformation.Modulation.INTERCOM) //intercom
                 {
-                    RadioFrequency.Text = "INTERCOM";
+                    RadioFrequency.Text = Properties.Resources.OverlayIntercom;
                     RadioMetaData.Text = "";
                 }
                 else if (currentRadio.modulation == RadioInformation.Modulation.MIDS) //MIDS
                 {
-                    RadioFrequency.Text = "MIDS";
+                    RadioFrequency.Text = Properties.Resources.OverlayMIDS;
                     if (currentRadio.channel >= 0)
                     {
-                        RadioMetaData.Text = " CHN " + currentRadio.channel;
+                        RadioMetaData.Text = " " + Client.Properties.Resources.OverlayChannelPrefix + " " + currentRadio.channel;
                     }
                     else
                     {
-                        RadioMetaData.Text = " OFF";
+                        RadioMetaData.Text = " " + Properties.Resources.ValueOFF;
                     }
   
                 }
@@ -526,7 +526,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                     EncryptionKeySpinner.IsEnabled = false;
                     EncryptionButton.IsEnabled = false;
                     EncryptionButton.Visibility = Visibility.Hidden;
-                    EncryptionButton.Content = "Enable";
+                    EncryptionButton.Content = Properties.Resources.BtnEnable;
 
                     EncryptionTab.Visibility = Visibility.Collapsed;
                 }
@@ -538,7 +538,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
                     //disallow encryption toggle
                     EncryptionButton.IsEnabled = false;
-                    EncryptionButton.Content = "Enable";
+                    EncryptionButton.Content = Properties.Resources.BtnEnable;
                     EncryptionButton.Visibility = Visibility.Visible;
                     EncryptionTab.Visibility = Visibility.Visible;
                 }
@@ -551,11 +551,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
                     if (currentRadio.enc)
                     {
-                        EncryptionButton.Content = "Disable";
+                        EncryptionButton.Content = Properties.Resources.BtnDisable;
                     }
                     else
                     {
-                        EncryptionButton.Content = "Enable";
+                        EncryptionButton.Content = Properties.Resources.BtnEnable;
                     }
                     EncryptionTab.Visibility = Visibility.Visible;
                 }
@@ -566,7 +566,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                 EncryptionKeySpinner.IsEnabled = false;
                 EncryptionButton.IsEnabled = false;
                 EncryptionButton.Visibility = Visibility.Hidden;
-                EncryptionButton.Content = "Enable";
+                EncryptionButton.Content = Properties.Resources.BtnEnable;
                 EncryptionTab.Visibility = Visibility.Collapsed;
             }
         }
@@ -645,11 +645,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
                     if (currentRadio.enc)
                     {
-                        EncryptionButton.Content = "Enable";
+                        EncryptionButton.Content = Properties.Resources.BtnEnable;
                     }
                     else
                     {
-                        EncryptionButton.Content = "Disable";
+                        EncryptionButton.Content = Properties.Resources.BtnDisable;
                     }
                 }
             }
