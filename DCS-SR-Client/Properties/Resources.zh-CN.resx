@@ -323,8 +323,8 @@
   <data name="HelpLocalizationNotes" xml:space="preserve">
     <value>本SRS汉化版由小猫蛋卷经原作者授权后制作，汉化相关的问题请联系蛋卷。如遇到SRS本身的问题需向原作者反馈BUG，也可以找我帮忙翻译代提交。
 
-SRS版本更新后，蛋卷会跟进汉化版更新，请留意相关发布页面。
 在正式的多语言支持做好之前，自动更新功能会更新到英文版。
+蛋卷会随之跟进汉化版更新，请留意 CatATC.cn 上的发布页面。
 </value>
   </data>
   <data name="HelpP1" xml:space="preserve">
@@ -785,6 +785,9 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   </data>
   <data name="OverlaySimulTransON" xml:space="preserve">
     <value>多频道发送 开</value>
+  </data>
+  <data name="OverlaySimulTransST" xml:space="preserve">
+    <value>多频</value>
   </data>
   <data name="OverlayTransponder" xml:space="preserve">
     <value>应答机</value>

@@ -774,6 +774,9 @@ By keeping this enabled I can judge the usage of SRS, and which versions are sti
   <data name="OverlaySimulTransON" xml:space="preserve">
     <value>Simul. Transmission ON</value>
   </data>
+  <data name="OverlaySimulTransST" xml:space="preserve">
+    <value>ST</value>
+  </data>
   <data name="OverlayTransponder" xml:space="preserve">
     <value>TRANSPONDER</value>
   </data>

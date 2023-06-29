@@ -1978,6 +1978,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ST.
+        /// </summary>
+        public static string OverlaySimulTransST {
+            get {
+                return ResourceManager.GetString("OverlaySimulTransST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to TRANSPONDER.
         /// </summary>
         public static string OverlayTransponder {
