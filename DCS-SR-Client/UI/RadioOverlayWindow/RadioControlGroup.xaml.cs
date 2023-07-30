@@ -308,6 +308,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
                     {
                         RadioFrequency.Text += "FM";
                     }
+                    else if (currentRadio.modulation == RadioInformation.Modulation.SINCGARS)
+                    {
+                        RadioFrequency.Text += "SG";
+                    }
                     else if (currentRadio.modulation == RadioInformation.Modulation.HAVEQUICK)
                     {
                         RadioFrequency.Text += "HQ";

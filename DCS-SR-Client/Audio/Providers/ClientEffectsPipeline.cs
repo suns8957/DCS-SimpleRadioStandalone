@@ -135,6 +135,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 && !lastTransmission.NoAudioEffects
                 && (lastTransmission.Modulation == RadioInformation.Modulation.AM
                     || lastTransmission.Modulation == RadioInformation.Modulation.FM
+                    || lastTransmission.Modulation == RadioInformation.Modulation.SINCGARS
                     || lastTransmission.Modulation == RadioInformation.Modulation.HAVEQUICK)
                 && irlRadioRXInterference)
             {
@@ -161,7 +162,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
 
                         process = false;
                     }
-                    else if (lastTransmission.Modulation == RadioInformation.Modulation.FM)
+                    else if (lastTransmission.Modulation == RadioInformation.Modulation.FM || lastTransmission.Modulation == RadioInformation.Modulation.SINCGARS)
                     {
                         //FM picketing / picket fencing - pick one transmission at random
                         //TODO improve this to pick the stronger frequency?
@@ -290,7 +291,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                     }
                 }
 
-                if (modulation == RadioInformation.Modulation.FM
+                if ((modulation == RadioInformation.Modulation.FM || modulation == RadioInformation.Modulation.SINCGARS)
                     && effectProvider.NATOTone.Loaded
                     && natoToneEnabled)
                 {
@@ -396,7 +397,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                         }
                     }
                 }
-                else if (modulation == RadioInformation.Modulation.FM)
+                else if (modulation == RadioInformation.Modulation.FM || modulation == RadioInformation.Modulation.SINCGARS)
                 {
                     if (effectProvider.FMNoise.Loaded)
                     {

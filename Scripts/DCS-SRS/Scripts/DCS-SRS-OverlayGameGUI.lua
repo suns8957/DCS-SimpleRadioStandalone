@@ -274,6 +274,8 @@ function srsOverlay.updateRadio()
                         fullMessage = fullMessage.." AM"
                      elseif _radio.modulation == 1 then
                         fullMessage = fullMessage.." FM"
+                     elseif _radio.modulation == 7 then
+                        fullMessage = fullMessage.." SG"
                      elseif _radio.modulation == 4 then
                         fullMessage = fullMessage.." HQ"
                      end

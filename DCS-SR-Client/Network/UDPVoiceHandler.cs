@@ -650,7 +650,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
 
             var currentRadio = _clientStateSingleton.DcsPlayerRadioInfo.radios[_clientStateSingleton.DcsPlayerRadioInfo.selected];
 
-            if (currentRadio.modulation == RadioInformation.Modulation.FM 
+            if (currentRadio.modulation == RadioInformation.Modulation.FM
+                || currentRadio.modulation == RadioInformation.Modulation.SINCGARS
                 || currentRadio.modulation == RadioInformation.Modulation.AM 
                 || currentRadio.modulation == RadioInformation.Modulation.MIDS 
                 || currentRadio.modulation == RadioInformation.Modulation.HAVEQUICK)
@@ -667,7 +668,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                 for (int i = 1; i < 11; i++)
                 {
                     var radio = _clientStateSingleton.DcsPlayerRadioInfo.radios[i];
-                    if ( (radio.modulation == RadioInformation.Modulation.FM || radio.modulation == RadioInformation.Modulation.AM )&& radio.simul &&
+                    if ( (radio.modulation == RadioInformation.Modulation.FM || radio.modulation == RadioInformation.Modulation.SINCGARS || radio.modulation == RadioInformation.Modulation.AM )&& radio.simul &&
                         i != _clientStateSingleton.DcsPlayerRadioInfo.selected)
                     {
                         transmitting.Add(i);

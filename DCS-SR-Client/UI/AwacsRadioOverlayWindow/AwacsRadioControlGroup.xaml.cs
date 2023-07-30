@@ -401,6 +401,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                     {
                         RadioMetaData.Text = "FM";
                     }
+                    else if (currentRadio.modulation == RadioInformation.Modulation.SINCGARS)
+                    {
+                        RadioMetaData.Text = "SG";
+                    }
                     else if (currentRadio.modulation == RadioInformation.Modulation.HAVEQUICK)
                     {
                         RadioMetaData.Text = "HQ";
