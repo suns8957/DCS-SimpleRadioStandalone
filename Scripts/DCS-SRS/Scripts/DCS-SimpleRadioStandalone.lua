@@ -95,6 +95,23 @@ SR.fc3["Su-33"] = true
 SR.fc3["Su-25"] = true
 SR.fc3["Su-25T"] = true
 
+--[[ Reading special options.
+   option: dot separated 'path' to your option under the plugins field,
+   ie 'DCS-SRS.srsAutoLaunchEnabled', or 'SA342.HOT_MIC'
+--]]
+SR.specialOptions = {}
+function SR.getSpecialOption(option)
+    if not SR.specialOptions[option] then
+        local options = require('optionsEditor')
+        -- If the option doesn't exist, a nil value is returned.
+        -- Memoize into a subtable to avoid entering that code again,
+        -- since options.getOption ends up doing a disk access.
+        SR.specialOptions[option] = { value = options.getOption('plugins.'..option) }
+    end
+    
+    return SR.specialOptions[option].value
+end
+
 -- Function to load mods' SRS plugin script
 function SR.LoadModsPlugins()
     local mode, errmsg
@@ -1870,12 +1887,11 @@ function SR.exportRadioSA342(_data)
         _data.control = 0; -- OVERLAY Controls
     end
 
-    _data.intercomHotMic = true
+     -- The option reads 'disable HOT_MIC', true means off.
+     _data.intercomHotMic = not SR.getSpecialOption('SA342.HOT_MIC')
 
-    
     -- HANDLE TRANSPONDER
     _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
-
 
     local iffPower =  SR.getButtonPosition(246)
 
@@ -2352,7 +2368,7 @@ end
 --for A10C
 function SR.exportRadioA10C(_data)
 
-    _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = false, desc = "Using cockpit PTT (HOTAS Mic Switch) requires use of VoIP bindings." }
 
     -- Check if player is in a new aircraft
     if _lastUnitId ~= _data.unitId then
@@ -2453,35 +2469,35 @@ function SR.exportRadioA10C(_data)
     -- Mic Switch Radio Select and Transmit - by Dyram
     -- Check Mic Switch position (UP: 751 1.0, DOWN: 751 -1.0, FWD: 752 1.0, AFT: 752 -1.0)
     -- ED broke this as part of the VoIP work
-    -- if SR.getButtonPosition(752) == 1 then
-    --     -- Mic Switch FWD pressed
-    --     -- Check Intercom panel Rotary Selector Dial (0: INT, 1: FM, 2: VHF, 3: HF, 4: "")
-    --     if SR.getSelectorPosition(239, 0.1) == 2 then
-    --         -- Intercom panel set to VHF
-    --         _data.selected = 1 -- radios[2] VHF AM
-    --         _data.ptt = true
-    --     elseif SR.getSelectorPosition(239, 0.1) == 0 then
-    --         -- Intercom panel set to INT
-    --         -- Intercom not functional, but select it anyway to be proper
-    --         _data.selected = 0 -- radios[1] Intercom
-    --     else
-    --         _data.selected = -1
-    --     end
-    -- elseif SR.getButtonPosition(751) == -1 then
-    --     -- Mic Switch DOWN pressed
-    --     _data.selected = 2 -- radios[3] UHF
-    --     _data.ptt = true
-    -- elseif SR.getButtonPosition(752) == -1 then
-    --     -- Mic Switch AFT pressed
-    --     _data.selected = 3 -- radios[4] VHF FM
-    --     _data.ptt = true
-    -- else
-    --     -- Mic Switch released
-    --     _data.selected = -1
-    --     _data.ptt = false
-    -- end
+    if SR.getButtonPosition(752) == 1 then
+        -- Mic Switch FWD pressed
+        -- Check Intercom panel Rotary Selector Dial (0: INT, 1: FM, 2: VHF, 3: HF, 4: "")
+        if SR.getSelectorPosition(239, 0.1) == 2 then
+            -- Intercom panel set to VHF
+            _data.selected = 1 -- radios[2] VHF AM
+            _data.ptt = true
+        elseif SR.getSelectorPosition(239, 0.1) == 0 then
+            -- Intercom panel set to INT
+            -- Intercom not functional, but select it anyway to be proper
+            _data.selected = 0 -- radios[1] Intercom
+        else
+            _data.selected = -1
+        end
+    elseif SR.getButtonPosition(751) == -1 then
+        -- Mic Switch DOWN pressed
+        _data.selected = 2 -- radios[3] UHF
+        _data.ptt = true
+    elseif SR.getButtonPosition(752) == -1 then
+        -- Mic Switch AFT pressed
+        _data.selected = 3 -- radios[4] VHF FM
+        _data.ptt = true
+    else
+        -- Mic Switch released
+        _data.selected = -1
+        _data.ptt = false
+    end
 
-    _data.control = 0 -- Overlay  
+    _data.control = 1 -- Overlay  
 
     -- Handle transponder
 
@@ -2551,7 +2567,7 @@ _a10c2.encKey = 1
 
 function SR.exportRadioA10C2(_data)
 
-    _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = false, desc = "Using cockpit PTT (HOTAS Mic Switch) requires use of VoIP bindings." }
 
     -- Check if player is in a new aircraft
     if _lastUnitId ~= _data.unitId then
@@ -2689,7 +2705,38 @@ function SR.exportRadioA10C2(_data)
         end
     end
 
-    _data.control = 0 -- Overlay  
+ -- Mic Switch Radio Select and Transmit - by Dyram
+    -- Check Mic Switch position (UP: 751 1.0, DOWN: 751 -1.0, FWD: 752 1.0, AFT: 752 -1.0)
+    -- ED broke this as part of the VoIP work
+    if SR.getButtonPosition(752) == 1 then
+        -- Mic Switch FWD pressed
+        -- Check Intercom panel Rotary Selector Dial (0: INT, 1: FM, 2: VHF, 3: HF, 4: "")
+        if SR.getSelectorPosition(239, 0.1) == 2 then
+            -- Intercom panel set to VHF
+            _data.selected = 1 -- radios[2] VHF AM
+            _data.ptt = true
+        elseif SR.getSelectorPosition(239, 0.1) == 0 then
+            -- Intercom panel set to INT
+            -- Intercom not functional, but select it anyway to be proper
+            _data.selected = 0 -- radios[1] Intercom
+        else
+            _data.selected = -1
+        end
+    elseif SR.getButtonPosition(751) == -1 then
+        -- Mic Switch DOWN pressed
+        _data.selected = 2 -- radios[3] UHF
+        _data.ptt = true
+    elseif SR.getButtonPosition(752) == -1 then
+        -- Mic Switch AFT pressed
+        _data.selected = 3 -- radios[4] VHF FM
+        _data.ptt = true
+    else
+        -- Mic Switch released
+        _data.selected = -1
+        _data.ptt = false
+    end
+
+    _data.control = 1 -- Overlay  
 
     -- Handle transponder
 
