@@ -100,7 +100,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
 
         public static void ShowUpdateAvailableDialog(string branch, Version version, string url, bool beta)
         {
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
             _logger.Warn($"New {branch} version available on GitHub: {version}");
 
             var result = MessageBox.Show($"{Properties.Resources.MsgBoxUpdate1} {branch} {Properties.Resources.MsgBoxUpdate2} {version} {Properties.Resources.MsgBoxUpdate3}\n\n{Properties.Resources.MsgBoxUpdate4}",
