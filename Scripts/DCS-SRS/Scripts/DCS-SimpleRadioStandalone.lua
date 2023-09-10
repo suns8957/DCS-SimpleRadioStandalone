@@ -891,12 +891,14 @@ function SR.exportRadioUH60L(_data)
     local fm1Power = GetDevice(0):get_argument_value(601) > 0.01
     local fm1Volume = 0
     local fm1Freq = 0
+    local fm1Modulation = 1
 
     if fm1Power and isDCPower then
         -- radio volume * ics master volume * ics switch
         fm1Volume = GetDevice(0):get_argument_value(604) * GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(403)
         fm1Freq = fm1Device:get_frequency()
         ARC201FM1Freq = get_param_handle("ARC201FM1param"):get()
+        fm1Modulation = get_param_handle("ARC201_FM1_MODULATION"):get()
     end
     
     if not (fm1Power and isDCPower) then
@@ -904,11 +906,11 @@ function SR.exportRadioUH60L(_data)
     end
 
     _data.radios[2].name = "AN/ARC-201 (1)"
-    _data.radios[2].freq = ARC201FM1Freq--fm1Freq
-    _data.radios[2].modulation = 1
+    _data.radios[2].freq = ARC201FM1Freq --fm1Freq
+    _data.radios[2].modulation = fm1Modulation
     _data.radios[2].volume = fm1Volume
-    _data.radios[2].freqMin = 30e6
-    _data.radios[2].freqMax = 87.975e6
+    _data.radios[2].freqMin = 29.990e6
+    _data.radios[2].freqMax = 87.985e6
     _data.radios[2].volMode = 0
     _data.radios[2].freqMode = 0
     _data.radios[2].rtMode = 0
@@ -973,12 +975,14 @@ function SR.exportRadioUH60L(_data)
     local fm2Power = GetDevice(0):get_argument_value(701) > 0.01
     local fm2Volume = 0
     local fm2Freq = 0
+    local fm2Modulation = 1
 
     if fm2Power and isDCPower then
         -- radio volume * ics master volume * ics switch
         fm2Volume = GetDevice(0):get_argument_value(704) * GetDevice(0):get_argument_value(401) * GetDevice(0):get_argument_value(406)
         fm2Freq = fm2Device:get_frequency()
         ARC201FM2Freq = get_param_handle("ARC201FM2param"):get()
+        fm2Modulation = get_param_handle("ARC201_FM2_MODULATION"):get()
     end
     
     if not (fm2Power and isDCPower) then
@@ -986,11 +990,11 @@ function SR.exportRadioUH60L(_data)
     end
 
     _data.radios[5].name = "AN/ARC-201 (2)"
-    _data.radios[5].freq = ARC201FM2Freq--fm2Freq
-    _data.radios[5].modulation = 1
+    _data.radios[5].freq = ARC201FM2Freq --fm2Freq
+    _data.radios[5].modulation = fm2Modulation
     _data.radios[5].volume = fm2Volume
-    _data.radios[5].freqMin = 30e6
-    _data.radios[5].freqMax = 87.975e6
+    _data.radios[5].freqMin = 29.990e6
+    _data.radios[5].freqMax = 87.985e6
     _data.radios[5].volMode = 0
     _data.radios[5].freqMode = 0
     _data.radios[5].rtMode = 0
