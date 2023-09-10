@@ -95,6 +95,23 @@ SR.fc3["Su-33"] = true
 SR.fc3["Su-25"] = true
 SR.fc3["Su-25T"] = true
 
+--[[ Reading special options.
+   option: dot separated 'path' to your option under the plugins field,
+   ie 'DCS-SRS.srsAutoLaunchEnabled', or 'SA342.HOT_MIC'
+--]]
+SR.specialOptions = {}
+function SR.getSpecialOption(option)
+    if not SR.specialOptions[option] then
+        local options = require('optionsEditor')
+        -- If the option doesn't exist, a nil value is returned.
+        -- Memoize into a subtable to avoid entering that code again,
+        -- since options.getOption ends up doing a disk access.
+        SR.specialOptions[option] = { value = options.getOption('plugins.'..option) }
+    end
+    
+    return SR.specialOptions[option].value
+end
+
 -- Function to load mods' SRS plugin script
 function SR.LoadModsPlugins()
     local mode, errmsg
@@ -1866,12 +1883,11 @@ function SR.exportRadioSA342(_data)
         _data.control = 0; -- OVERLAY Controls
     end
 
-    _data.intercomHotMic = true
+     -- The option reads 'disable HOT_MIC', true means off.
+     _data.intercomHotMic = not SR.getSpecialOption('SA342.HOT_MIC')
 
-    
     -- HANDLE TRANSPONDER
     _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
-
 
     local iffPower =  SR.getButtonPosition(246)
 
