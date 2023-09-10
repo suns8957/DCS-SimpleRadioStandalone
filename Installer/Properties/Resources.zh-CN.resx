@@ -118,122 +118,124 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CreateStartMenuShortcut" xml:space="preserve">
-    <value>Create Start menu shortcut</value>
+    <value>创建开始菜单快捷方式</value>
   </data>
   <data name="dcsPathButton" xml:space="preserve">
-    <value>Locate</value>
+    <value>浏览</value>
   </data>
   <data name="InstallButton" xml:space="preserve">
-    <value>Install / Update DCS-SRS</value>
+    <value>安装 / 更新 DCS-SRS</value>
   </data>
   <data name="InstallingButton" xml:space="preserve">
-    <value>Installing...</value>
+    <value>正在安装...</value>
   </data>
   <data name="InstallScriptsCheckbox" xml:space="preserve">
-    <value>Install DCS Client Scripts - Only required for SRS Client NOT Server Only Installs</value>
+    <value>安装DCS客户端脚本 - 只有SRS客户端需要，仅开服不需要</value>
   </data>
   <data name="intro" xml:space="preserve">
-    <value>SimpleRadio Standalone Installer -</value>
+    <value>简单无线电独立版 (SRS) 安装程序 -</value>
   </data>
   <data name="MsgBoxChange" xml:space="preserve">
-    <value>Change Installer Settings?</value>
+    <value>更改安装设置？</value>
   </data>
   <data name="MsgBoxChangeText" xml:space="preserve">
-    <value>Do you want to make changes? 
+    <value>你想要更改设置吗？
 
-Yes - Pause install and make changes
+是 - 暂停安装以进行修改
 
-No - Run with previous install path and install scripts as default. 
+否 - 以先前的安装路径和脚本作为默认
 
-If unsure - hit Yes!</value>
+如果不确定，猛击“是”！</value>
   </data>
   <data name="MsgBoxDCS" xml:space="preserve">
-    <value>Please Close DCS</value>
+    <value>请先退出DCS</value>
   </data>
   <data name="MsgBoxDCSText" xml:space="preserve">
-    <value>DCS must now be closed before continuing the install or uninstall!
+    <value>安装或卸载只有在DCS关闭时才能进行！
 
-Close DCS and please try again.</value>
+退出DCS后重试</value>
   </data>
   <data name="MsgBoxExtracted" xml:space="preserve">
-    <value>Please Extract Installation zip</value>
+    <value>请先解压</value>
   </data>
   <data name="MsgBoxExtracted2" xml:space="preserve">
-    <value>Not Unzipped</value>
+    <value>没有解压</value>
   </data>
   <data name="MsgBoxExtractedText" xml:space="preserve">
-    <value>Please extract the entire installation zip into a folder and then run the installer from the extracted folder.
+    <value>请解压整个安装压缩包至一个文件夹，再从文件夹内运行Installer。
 
-Do not run the installer from the zip as it wont work!</value>
+不要在压缩包里运行Installer，跑 不 起 来！</value>
   </data>
   <data name="MsgBoxExtractedText2" xml:space="preserve">
-    <value>Install files not found - Unable to install! 
+    <value>未找到安装所需文件，无法安装。
 
-Make sure you extract all the files in the zip then run the Installer</value>
+在运行Installer之前，请确保你解压了整个压缩包。</value>
   </data>
   <data name="MsgBoxFolder" xml:space="preserve">
-    <value>SR Standalone Installer</value>
+    <value>SRS安装程序</value>
   </data>
   <data name="MsgBoxFolderText" xml:space="preserve">
-    <value>Unable to find DCS Folder in Saved Games!
+    <value>在保存的游戏中找不到DCS文件夹！
 
-Please check the path to the "Saved Games" folder
+请确认你的“保存的游戏 (Saved Games)”路径正确
 
-Make sure you are selecting the "Saved Games" folder - NOT the DCS folder inside "Saved Games" and NOT the DCS installation directory</value>
+你要选择的是”保存的游戏“文件夹本身，不是里面的DCS文件夹，也不是DCS的安装位置。</value>
   </data>
   <data name="MsgBoxInstallError" xml:space="preserve">
-    <value>Installation Error</value>
+    <value>安装程序错误</value>
   </data>
   <data name="MsgBoxInstallErrorText" xml:space="preserve">
-    <value>Error with installation - please post your installer-log.txt on the SRS Discord for Support</value>
+    <value>安装出错，请把你的”installer-log.txt“文件发到SRS的Discord频道以获取帮助</value>
   </data>
   <data name="MsgBoxInstallSuccessText" xml:space="preserve">
-    <value>Installation / Update Completed Successfully!
-Installed DCS Scripts to:
+    <value>安装 / 更新成功完成！
+DCS脚本已安装至:
 </value>
   </data>
   <data name="MsgBoxInstallSuccessText2" xml:space="preserve">
-    <value>Installation / Update Completed Successfully!</value>
+    <value>安装 / 更新成功完成！</value>
   </data>
   <data name="MsgBoxInstallTitle" xml:space="preserve">
-    <value>SR Standalone Installer</value>
+    <value>SRS安装程序</value>
   </data>
   <data name="MsgBoxRemovedText" xml:space="preserve">
-    <value>SR Standalone Removed Successfully!
+    <value>SRS成功卸载！
 
-Containing folder left just in case you want favourites or frequencies</value>
+器文件夹内的配置文件已保留，方便日后取用。</value>
   </data>
   <data name="MsgBoxRemovedText2" xml:space="preserve">
-    <value>Removed SRS Successfully!</value>
+    <value>SRS成功卸载！</value>
   </data>
   <data name="MsgBoxUninstallError" xml:space="preserve">
-    <value>Error with Uninstaller</value>
+    <value>卸载程序错误</value>
   </data>
   <data name="MsgBoxUninstallErrorText" xml:space="preserve">
-    <value>Error with uninstaller - please post your installer-log.txt on the SRS Discord for Support</value>
+    <value>卸载出错，请把你的”installer-log.txt“文件发到SRS的Discord频道以获取帮助</value>
   </data>
   <data name="MsgBoxUninstalling" xml:space="preserve">
-    <value>Uninstalling SRS</value>
+    <value>正在卸载SRS</value>
   </data>
   <data name="RemoveButton" xml:space="preserve">
-    <value>Remove DCS-SRS</value>
+    <value>卸载 DCS-SRS</value>
   </data>
   <data name="ServerNote" xml:space="preserve">
-    <value>Please Note: Server installs will need to manually install the DCS-SRS-AutoConnectGameGUI.lua - found in the SRS Install Location in the Scripts folder. Installation instructions are in the file.</value>
+    <value>请注意: 服务器使用需手动安装 DCS-SRS-AutoConnectGameGUI.lua。
+此文件可在SRS安装目录中的Scripts文件夹内找到，内含安装说明。
+自带的更新功能目前只能更新到英文版，中文版请安装好后看SRS内置的帮助页。</value>
   </data>
   <data name="srPathButton" xml:space="preserve">
-    <value>Locate</value>
+    <value>浏览</value>
   </data>
   <data name="step2" xml:space="preserve">
-    <value>Step 1: Pick Install Location</value>
+    <value>第一步: 选择SRS安装位置</value>
   </data>
   <data name="step3" xml:space="preserve">
-    <value>Step 2: Locate Saved Games Folder - Not DCS</value>
+    <value>第二步: 找到“保存的游戏”文件夹 - 非DCS</value>
   </data>
   <data name="step4" xml:space="preserve">
-    <value>Step 3: Install Or Remove DCS-SRS</value>
+    <value>第三步: 安装或卸载 DCS-SRS</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>DCS-SRS Installer</value>
+    <value>DCS-SRS 安装程序</value>
   </data>
 </root>
