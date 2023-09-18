@@ -1713,6 +1713,7 @@ function SR.exportRadioF15C(_data)
 end
 
 function SR.exportRadioF15ESE(_data)
+    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
 
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
@@ -1734,13 +1735,22 @@ function SR.exportRadioF15ESE(_data)
     local _seat = SR.lastKnownSeat
 
     if _seat == 0 then
-       
+
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.1, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 283, { 0.1, 1.0 }, false)
+
+        -- https://github.com/DCSSKUNKWORKS/dcs-bios/blob/master/Scripts/DCS-BIOS/lib/F-15E.lua#L657C7-L657C7
+        if SR.getButtonPosition(509) ~= 0.5 then
+            _data.intercomHotMic = true
+        end
     else
         _data.radios[2].volume = SR.getRadioVolume(0, 1307, { 0.1, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 1308, { 0.1, 1.0 }, false)
 
+        -- https://github.com/DCSSKUNKWORKS/dcs-bios/blob/master/Scripts/DCS-BIOS/lib/F-15E.lua#L1040
+        if SR.getButtonPosition(1427) ~= 0.5 then
+            _data.intercomHotMic = true
+        end
     end
 
 
