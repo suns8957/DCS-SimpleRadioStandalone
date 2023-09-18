@@ -1739,7 +1739,6 @@ function SR.exportRadioF15ESE(_data)
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.1, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 283, { 0.1, 1.0 }, false)
 
-        -- https://github.com/DCSSKUNKWORKS/dcs-bios/blob/master/Scripts/DCS-BIOS/lib/F-15E.lua#L657C7-L657C7
         if SR.getButtonPosition(509) ~= 0.5 then
             _data.intercomHotMic = true
         end
@@ -1747,7 +1746,6 @@ function SR.exportRadioF15ESE(_data)
         _data.radios[2].volume = SR.getRadioVolume(0, 1307, { 0.1, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 1308, { 0.1, 1.0 }, false)
 
-        -- https://github.com/DCSSKUNKWORKS/dcs-bios/blob/master/Scripts/DCS-BIOS/lib/F-15E.lua#L1040
         if SR.getButtonPosition(1427) ~= 0.5 then
             _data.intercomHotMic = true
         end
