@@ -1752,7 +1752,8 @@ function SR.exportRadioF15ESE(_data)
     end
 
 
-    _data.control = 0;
+    -- required for hot mic
+    _data.control = 1 -- full radio
     _data.selected = 1
 
     return _data
