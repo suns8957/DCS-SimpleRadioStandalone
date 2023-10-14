@@ -4577,8 +4577,11 @@ function SR.exportRadioM2000C(_data)
 
     local iffIdent =  SR.getButtonPosition(383) -- -1 is off 0 or more is on
 
-    -- No power switch - always on
-    _data.iff.status = 1 -- NORMAL
+    -- Power switch
+    local masterIFF = SR.getSelectorPosition(392, 0.25)
+    if masterIFF >= 2 then
+        _data.iff.status = 1 -- NORMAL
+    end
 
     if iffIdent == 1 then
         _data.iff.status = 2 -- IDENT (BLINKY THING)
