@@ -4639,9 +4639,8 @@ function SR.exportRadioM2000C(_data)
         _data.iff.mode3 = 7700
     end
 
-    local mode4On =  SR.round(SR.getButtonPosition(598),0.1)*10
-
-    if mode4On == 2 then
+    local mode4On = SR.getButtonPosition(390)
+    if mode4On == 1 then
         _data.iff.mode4 = true
     else
         _data.iff.mode4 = false
