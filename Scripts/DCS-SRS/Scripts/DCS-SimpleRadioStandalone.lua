@@ -4634,7 +4634,7 @@ function SR.exportRadioM2000C(_data)
 
     if mode3On == 0 then
         _data.iff.mode3 = -1
-    elseif iffPower == 4 then
+    elseif masterIFF == 3 then
         -- EMERG SETTING 7770
         _data.iff.mode3 = 7700
     end
