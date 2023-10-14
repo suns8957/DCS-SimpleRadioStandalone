@@ -4603,7 +4603,7 @@ function SR.exportRadioM2000C(_data)
 
     _data.iff.mode1 = mode1Digit1+mode1Digit2
 
-    if mode1On ~= 0 then
+    if mode1On == 0 then
         _data.iff.mode1 = -1
     end
 
@@ -4632,7 +4632,7 @@ function SR.exportRadioM2000C(_data)
 
     _data.iff.mode3 = mode3Digit1+mode3Digit2+mode3Digit3+mode3Digit4
 
-    if mode3On ~= 0 then
+    if mode3On == 0 then
         _data.iff.mode3 = -1
     elseif iffPower == 4 then
         -- EMERG SETTING 7770
