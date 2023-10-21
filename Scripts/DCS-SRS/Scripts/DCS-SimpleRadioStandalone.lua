@@ -4575,12 +4575,16 @@ function SR.exportRadioM2000C(_data)
     _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
 
 
-    local iffIdent =  SR.getButtonPosition(383) -- -1 is off 0 or more is on
 
-    -- No power switch - always on
-    _data.iff.status = 1 -- NORMAL
+    -- Power switch
+    local masterIFF = SR.getSelectorPosition(392, 0.25)
+    if masterIFF >= 2 then
+        _data.iff.status = 1 -- NORMAL
+    end
 
-    if iffIdent == 1 then
+    --IFF IDENT/MIC blinking
+    local iffIdent =  SR.getButtonPosition(383) -- -1 is MIC, 0 is OUT(OFF), 1 is IDENT
+    if iffIdent == 1 or (iffIdent == -1 and (GREEN_ptt or RED_ptt)) then
         _data.iff.status = 2 -- IDENT (BLINKY THING)
     end
 
@@ -4599,7 +4603,7 @@ function SR.exportRadioM2000C(_data)
 
     _data.iff.mode1 = mode1Digit1+mode1Digit2
 
-    if mode1On ~= 0 then
+    if mode1On == 0 then
         _data.iff.mode1 = -1
     end
 
@@ -4628,16 +4632,15 @@ function SR.exportRadioM2000C(_data)
 
     _data.iff.mode3 = mode3Digit1+mode3Digit2+mode3Digit3+mode3Digit4
 
-    if mode3On ~= 0 then
+    if mode3On == 0 then
         _data.iff.mode3 = -1
-    elseif iffPower == 4 then
+    elseif masterIFF == 3 then
         -- EMERG SETTING 7770
         _data.iff.mode3 = 7700
     end
 
-    local mode4On =  SR.round(SR.getButtonPosition(598),0.1)*10
-
-    if mode4On == 2 then
+    local mode4On = SR.getButtonPosition(390)
+    if mode4On == 1 then
         _data.iff.mode4 = true
     else
         _data.iff.mode4 = false
