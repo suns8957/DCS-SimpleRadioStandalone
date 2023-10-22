@@ -201,7 +201,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
 
                         clientTransmissionLength = transmission.PCMMonoAudio.Length;
                     }
-
                 }
             }
 
