@@ -142,9 +142,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 if (transmissions.Count > 1)
                 {
                     //All AM is wrecked if more than one transmission
-                    //For HQ - only if more than TWO transmissions
-                    if (lastTransmission.Modulation == RadioInformation.Modulation.AM && amCollisionEffect.Loaded
-                    || lastTransmission.Modulation == RadioInformation.Modulation.HAVEQUICK && transmissions.Count > 2)
+                    //For HQ - only if more than TWO transmissions and its totally fucked
+                    if (lastTransmission.Modulation == RadioInformation.Modulation.HAVEQUICK && transmissions.Count > 2 && amCollisionEffect.Loaded)
                     {
                         //replace the buffer with our own
                         int outIndex = 0;
@@ -161,6 +160,31 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                         }
 
                         process = false;
+                    }
+                    else if (lastTransmission.Modulation == RadioInformation.Modulation.AM && amCollisionEffect.Loaded)
+                    {
+                        //AM https://www.youtube.com/watch?v=yHRDjhkrDbo
+                        //Heterodyne tone AND audio from multiple transmitters in a horrible mess
+
+              
+                        //process here first
+                        tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, lastTransmission);
+                        process = false;
+
+                        //apply heterodyne tone to the mixdown
+                        //replace the buffer with our own
+                        int outIndex = 0;
+                        while (outIndex < clientTransmissionLength)
+                        {
+                            var amByte = this.amCollisionEffect.AudioEffectFloat[amEffectPosition++];
+
+                            tempBuffer[outIndex++] += ((amByte * amCollisionVol) * lastTransmission.Volume);
+
+                            if (amEffectPosition == amCollisionEffect.AudioEffectFloat.Length)
+                            {
+                                amEffectPosition = 0;
+                            }
+                        }
                     }
                     else if (lastTransmission.Modulation == RadioInformation.Modulation.FM || lastTransmission.Modulation == RadioInformation.Modulation.SINCGARS)
                     {
