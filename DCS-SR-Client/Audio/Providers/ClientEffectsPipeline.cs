@@ -165,6 +165,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                     {
                         //AM https://www.youtube.com/watch?v=yHRDjhkrDbo
                         //Heterodyne tone AND audio from multiple transmitters in a horrible mess
+                        //TODO improve this
 
               
                         //process here first
