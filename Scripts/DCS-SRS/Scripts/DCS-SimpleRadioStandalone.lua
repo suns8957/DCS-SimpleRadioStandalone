@@ -606,7 +606,7 @@ _ah64.cipher = {
 
 
 function SR.exportRadioAH64D(_data)
-    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "Recommended: Always Allow SRS Hotkeys - OFF. Bind Intercom Select & PTT, Radio PTT and DCS RTS up down" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "Recommended: Always Allow SRS Hotkeys - OFF. Bind Intercom Select & PTT, Radio PTT and DCS RTS up down" }
 
 -- 17 is the pilot (back seat)
 -- 18 is the gunner (front seat)
@@ -695,6 +695,8 @@ function SR.exportRadioAH64D(_data)
 -- ["Radio_UHF"] = UHF,
 -- ["Net_Standby_UHF"] = ,
 -- } 
+
+
 
     -- Check if player is in a new aircraft
     if _lastUnitId ~= _data.unitId then
@@ -880,6 +882,25 @@ function SR.exportRadioAH64D(_data)
 
     _data.control = 1
     _data.radios[3].encMode = 2 -- Mode 2 is set by aircraft
+
+      --CYCLIC_RTS_SW_LEFT 573 CPG 531 PLT
+    local _pttButtonId = 573
+    if SR.lastKnownSeat == 0 then
+        _pttButtonId = 531
+    end
+
+    local _pilotPTT = SR.getButtonPosition(_pttButtonId)
+    if _pilotPTT >= 0.5 then
+
+        _data.intercomHotMic = false
+        -- intercom
+        _data.selected = 0
+        _data.ptt = true
+
+    elseif _pilotPTT <= -0.5 then
+        _data.ptt = true
+    end
+
     
     return _data
 
@@ -3829,7 +3850,7 @@ end
 
 function SR.exportRadioP47(_data)
 
-    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "Only one radio by default" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "Only one radio by default" }
 
     _data.radios[2].name = "SCR522"
     _data.radios[2].freq = SR.getRadioFrequency(23)
@@ -3839,11 +3860,11 @@ function SR.exportRadioP47(_data)
     _data.selected = 1
 
     --Cant find the button in the cockpit?
-    -- if (SR.getButtonPosition(44)) > 0.5 then
-    --     _data.ptt = true
-    -- else
-    --     _data.ptt = false
-    -- end
+    if (SR.getButtonPosition(44)) > 0.5 then
+        _data.ptt = true
+    else
+        _data.ptt = false
+    end
 
     -- Expansion Radio - Server Side Controlled
     _data.radios[3].name = "AN/ARC-186(V)"
@@ -3926,12 +3947,18 @@ function SR.exportRadioFW190(_data)
 end
 
 function SR.exportRadioBF109(_data)
-    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
     
     _data.radios[2].name = "FuG 16ZY"
     _data.radios[2].freq = SR.getRadioFrequency(14)
     _data.radios[2].modulation = 0
     _data.radios[2].volume = SR.getRadioVolume(0, 130, { 0.0, 1.0 }, false)
+
+    if (SR.getButtonPosition(150)) > 0.5 then
+        _data.ptt = true
+    else
+        _data.ptt = false
+    end
 
     _data.selected = 1
 
