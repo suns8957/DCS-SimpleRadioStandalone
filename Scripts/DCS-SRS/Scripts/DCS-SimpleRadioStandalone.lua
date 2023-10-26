@@ -1734,6 +1734,7 @@ function SR.exportRadioF15C(_data)
 end
 
 function SR.exportRadioF15ESE(_data)
+    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
 
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
@@ -1755,17 +1756,24 @@ function SR.exportRadioF15ESE(_data)
     local _seat = SR.lastKnownSeat
 
     if _seat == 0 then
-       
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 283, { 0.0, 1.0 }, false)
+
+        if SR.getButtonPosition(509) >= 0.5 then
+            _data.intercomHotMic = true
+        end
     else
         _data.radios[2].volume = SR.getRadioVolume(0, 1307, { 0.0, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 1308, { 0.0, 1.0 }, false)
 
+        if SR.getButtonPosition(1427) >= 0.5 then
+            _data.intercomHotMic = true
+        end
     end
 
 
-    _data.control = 0;
+    -- required for hot mic
+    _data.control = 1 -- full radio
     _data.selected = 1
 
     return _data
