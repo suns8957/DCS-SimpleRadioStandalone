@@ -473,16 +473,22 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                                                         .LineOfSightLoss, // Loss of 1.0 or greater is total loss
                                                 PacketNumber = udpVoicePacket.PacketNumber,
                                                 OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
-                                                IsSecondary = destinationRadio.ReceivingState.IsSecondary
+                                                IsSecondary = destinationRadio.ReceivingState.IsSecondary,
+
                                             };
 
                                             var transmitterName = "";
-                                            if (_serverSettings.GetSettingAsBool(ServerSettingsKeys.SHOW_TRANSMITTER_NAME)
-                                                && _globalSettings.GetClientSettingBool(GlobalSettingsKeys.ShowTransmitterName)
-                                                && _clients.TryGetValue(udpVoicePacket.Guid, out var transmittingClient))
-
+                                            if (_clients.TryGetValue(udpVoicePacket.Guid, out var transmittingClient))
                                             {
-                                                transmitterName = transmittingClient.Name;
+                                                if (_serverSettings.GetSettingAsBool(ServerSettingsKeys
+                                                        .SHOW_TRANSMITTER_NAME)
+                                                    && _globalSettings.GetClientSettingBool(GlobalSettingsKeys
+                                                        .ShowTransmitterName))
+                                                {
+                                                    transmitterName = transmittingClient.Name;
+                                                }
+
+                                                audio.Ambient = transmittingClient.RadioInfo.ambient;
                                             }
 
                                             var newRadioReceivingState =  new RadioReceivingState
@@ -1019,6 +1025,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                             PacketNumber = _packetNumber,
                             ReceiveTime = DateTime.Now.Ticks,
                             OriginalClientGuid = _guid,
+                            Ambient = _clientStateSingleton.DcsPlayerRadioInfo.ambient
                         };
 
                         return send;

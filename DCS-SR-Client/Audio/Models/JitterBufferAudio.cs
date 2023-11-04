@@ -23,5 +23,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio
         public string Guid { get; set; }
         public string OriginalClientGuid { get; set; }
         public short Encryption { get; set; }
+
+        public Ambient Ambient { get; set; }
     }
 }

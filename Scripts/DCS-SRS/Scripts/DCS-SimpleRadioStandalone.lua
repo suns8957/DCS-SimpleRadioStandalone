@@ -182,7 +182,7 @@ function SR.exporter()
             },
             control = 0, -- HOTAS
         }
-
+        _update.ambient = {vol = 1.0, pitch = 1.0, abType = 'jet' }
         _update.name = _data.UnitName
         _update.unit = _data.Name
         _update.unitId = LoGetPlayerPlaneId()
@@ -250,6 +250,8 @@ function SR.exporter()
             _update.control = 0;
             _update.selected = 1
             _update.iff = {status=0,mode1=0,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
+
+            _update.ambient = {vol = 1.0, pitch = 1.0, abType = 'jet' }
         end
 
         _lastUnitId = _update.unitId
@@ -258,6 +260,7 @@ function SR.exporter()
         --Ground Commander or spectator
         _update = {
             name = "Unknown",
+            ambient = {vol = 1.0, pitch = 1.0, abType = '' },
             unit = "CA",
             selected = 1,
             ptt = false,
@@ -1939,6 +1942,18 @@ function SR.exportRadioUH1H(_data)
         _data.iff.mode4 = false
     end
 
+    -- TODO
+    local _doorLeft = SR.getButtonPosition(420)
+
+    SR.JSON:encode(SR.getButtonPosition(420))
+
+    _data.ambient = {vol = SR.round(SR.getAmbientVolumeEngine() *  SR.getButtonPosition(420),0.01), 
+                    pitch = 1.0, 
+                    abType = 'uh1' 
+    }
+
+      SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
+
     return _data
 
 end
@@ -2743,7 +2758,12 @@ function SR.exportRadioA10C(_data)
         _data.iff.mode4 = false
     end
 
-    -- SR.log("IFF STATUS"..SR.JSON:encode(_data.iff).."\n\n")
+    _data.ambient = {vol = SR.round(SR.getAmbientVolumeEngine() *  SR.getButtonPosition(7),0.01), 
+                    pitch = 1.0, 
+                    abType = 'jet' 
+    }
+
+    SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
     return _data
 end
 
@@ -5401,6 +5421,29 @@ function SR.getNonStandardSpinner(_deviceId, _range, _step, _round)
     return _res
 
 end
+
+function SR.getAmbientVolumeEngine()
+
+    local _res = 0
+    
+    pcall(function()
+    
+        local engine = LoGetEngineInfo()
+
+        --{"EngineStart":{"left":0,"right":0},"FuelConsumption":{"left":1797.9623832703,"right":1795.5901498795},"HydraulicPressure":{"left":0,"right":0},"RPM":{"left":97.268943786621,"right":97.269966125488},"Temperature":{"left":746.81764087677,"right":745.09023532867},"fuel_external":0,"fuel_internal":0.99688786268234}
+        --SR.log(JSON:encode(engine))
+        if engine.RPM and engine.RPM.left > 1 then
+            _res = engine.RPM.left 
+        end
+
+        if engine.RPM and engine.RPM.right > 1 then
+            _res = engine.RPM.right
+        end
+    end )
+
+    return SR.round(_res,1)
+end
+
 
 function SR.getRadioFrequency(_deviceId, _roundTo, _ignoreIsOn)
     local _device = GetDevice(_deviceId)

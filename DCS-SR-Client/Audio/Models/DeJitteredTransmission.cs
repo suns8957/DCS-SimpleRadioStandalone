@@ -13,7 +13,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Models
         public int ReceivedRadio { get; set; }
 
         public RadioInformation.Modulation Modulation { get; internal set; }
-
         public bool Decryptable { get; internal set; }
         public short Encryption { get; internal set; }
 
@@ -30,5 +29,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Models
         public string Guid { get; set; }
 
         public string OriginalClientGuid { get; set; }
+        public Ambient Ambient { get; set; }
     }
 }
