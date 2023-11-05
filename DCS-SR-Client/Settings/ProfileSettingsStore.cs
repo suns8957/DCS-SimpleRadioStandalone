@@ -68,6 +68,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
         IntercomTransmissionStartSelection,
         IntercomTransmissionEndSelection,
         AMCollisionVolume,
+        AmbientCockpitNoiseEffect,
+        AmbientCockpitNoiseEffectVolume,
     }
 
     public class ProfileSettingsStore
@@ -136,6 +138,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {ProfileSettingsKeys.AMCollisionVolume.ToString(), "1.0"},
 
             {ProfileSettingsKeys.RotaryStyleIncrement.ToString(), "false"},
+
+            {ProfileSettingsKeys.AmbientCockpitNoiseEffect.ToString(), "true"},
+            {ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString(), "1.0"},
         };
 
 

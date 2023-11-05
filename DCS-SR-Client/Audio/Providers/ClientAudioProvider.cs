@@ -13,6 +13,7 @@ using NLog;
 using static Ciribob.DCS.SimpleRadio.Standalone.Common.RadioInformation;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Recording;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using System.Collections.Generic;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 {
@@ -25,6 +26,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
         private OpusDecoder _decoder;
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly CachedAudioEffectProvider audioEffectProvider = CachedAudioEffectProvider.Instance;
 
         private bool passThrough;
        // private readonly WaveFileWriter waveWriter;
@@ -115,6 +118,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
             {
                 //adjust for LOS + Distance + Volume
                 AdjustVolumeForLoss(audio);
+
+                //Add cockpit effect
+                AddCockpitAmbientAudio(audio);
             }
             else
             {
@@ -202,6 +208,43 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
             }
 
             //timer.Stop();
+        }
+
+        //progress
+        private readonly Dictionary<string, int> ambientEffectProgress =
+            new Dictionary<string, int>();
+
+        private void AddCockpitAmbientAudio(ClientAudio clientAudio)
+        {
+            var effect = audioEffectProvider.GetAmbientEffect(clientAudio.Ambient.abType);
+
+            var vol = clientAudio.Ambient.vol;
+
+            if (effect.Loaded)
+            {
+                var effectLength = effect.AudioEffectFloat.Length;
+
+                int progress = ambientEffectProgress[clientAudio.Ambient.abType];
+
+                var audio = clientAudio.PcmAudioFloat;
+                for (var i = 0; i < audio.Length; i++)
+                {
+                    var audioFloat = audio[i];
+
+                    audioFloat += (effect.AudioEffectFloat[progress] * vol);
+
+                    audio[i] = audioFloat;
+
+                    progress++;
+
+                    if (progress >= effectLength)
+                    {
+                        progress = 0;
+                    }
+                }
+
+                ambientEffectProgress[clientAudio.Ambient.abType] = progress;
+            }
         }
 
         private void AdjustVolumeForLoss(ClientAudio clientAudio)

@@ -61,7 +61,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
 
         private readonly SyncedServerSettings serverSettings;
 
-
         public ClientEffectsPipeline()
         {
             profileSettings = Settings.GlobalSettingsStore.Instance.ProfileSettingsStore;
@@ -77,7 +76,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
             _lowPassFilter = BiQuadFilter.LowPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 4130, 2.0f);
             RefreshSettings();
 
-            amCollisionEffect = CachedAudioEffectProvider.Instance.AMCollision;
+            amCollisionEffect = effectProvider.AMCollision;
            
         }
 
@@ -277,7 +276,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 outputIndex++;
             }
         }
-
 
         private void AddRadioEffect(float[] buffer, int count, int offset, RadioInformation.Modulation modulation, double freq)
         {

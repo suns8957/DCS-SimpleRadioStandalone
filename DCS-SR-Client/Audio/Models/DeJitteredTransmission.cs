@@ -29,6 +29,5 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Models
         public string Guid { get; set; }
 
         public string OriginalClientGuid { get; set; }
-        public Ambient Ambient { get; set; }
     }
 }
