@@ -72,7 +72,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
         public Ambient ambient = new Ambient()
         {
             vol = 1.0f,
-            pitch = 1.0f,
+         //   pitch = 1.0f,
             abType = ""
         };
 
@@ -101,7 +101,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
             ambient = new Ambient()
             {
                 vol = 1.0f,
-                pitch = 1.0f,
+              //  pitch = 1.0f,
                 abType = ""
             };
             ptt = false;
@@ -359,7 +359,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
     public class Ambient
     {
         public float vol = 1.0f;
-        public float pitch = 1.0f;
+      //  public float pitch = 1.0f;
         public string abType = "";
 
         public override bool Equals(object obj)
@@ -380,17 +380,23 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
                 return false;
             }
 
-            if (pitch != compare.pitch)
-            {
-                return false;
-            }
+            // if (pitch != compare.pitch)
+            // {
+            //     return false;
+            // }
 
             return true;
         }
 
         public Ambient Copy()
         {
-            return new Ambient() { vol = vol, abType = abType, pitch = pitch} ;
+            return new Ambient()
+            {
+                vol = vol, 
+                abType = abType, 
+                //pitch = pitch
+
+            } ;
         }
     }
 }
