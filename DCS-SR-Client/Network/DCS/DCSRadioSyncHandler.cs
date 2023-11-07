@@ -236,7 +236,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
 
             //round volume to nearest 10% to reduce messages?
             //TODO move this out to be like position so its a special small update?
-            playerRadioInfo.ambient.vol = (float)(Math.Round(playerRadioInfo.ambient.vol / 10f, MidpointRounding.AwayFromZero) * 10.0f);
+            //TODO check this
+            playerRadioInfo.ambient.vol = playerRadioInfo.ambient.vol; // (float)(Math.Round(playerRadioInfo.ambient.vol / 10f, MidpointRounding.AwayFromZero) * 10.0f);
 
             if (_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AlwaysAllowHotasControls))
             {

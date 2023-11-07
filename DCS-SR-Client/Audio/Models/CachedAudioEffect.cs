@@ -64,7 +64,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
         public CachedAudioEffect(AudioEffectTypes audioEffect): this(audioEffect, audioEffect.ToString() + ".wav", AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\"+ audioEffect.ToString() + ".wav") { }
 
-        public CachedAudioEffect(AudioEffectTypes audioEffect, string fileName): this(audioEffect, audioEffect.ToString() + ".wav", AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\Ambient\\" + audioEffect.ToString() + ".wav") { }
+        public CachedAudioEffect(AudioEffectTypes audioEffect, string fileName): this(audioEffect, fileName + ".wav", AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\Ambient\\" + fileName.ToString() + ".wav") { }
 
         public CachedAudioEffect(AudioEffectTypes audioEffect, string fileName, string path)
         {

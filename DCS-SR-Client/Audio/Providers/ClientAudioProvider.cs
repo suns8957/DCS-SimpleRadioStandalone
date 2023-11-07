@@ -29,8 +29,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
         private readonly CachedAudioEffectProvider audioEffectProvider = CachedAudioEffectProvider.Instance;
 
-        private bool passThrough;
-       // private readonly WaveFileWriter waveWriter;
+        private bool passThrough; 
+        
+       // private WaveFileWriter waveWriter;
+
+        //progress
+        private readonly Dictionary<string, int> ambientEffectProgress =
+            new Dictionary<string, int>();
+
+
         public ClientAudioProvider(bool passThrough = false)
         {
             this.passThrough = passThrough;
@@ -49,7 +56,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
                 }
                 
             }
-           // waveWriter = new NAudio.Wave.WaveFileWriter($@"C:\\temp\\output{RandomFloat()}.wav", new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 1));
+          //  waveWriter = new NAudio.Wave.WaveFileWriter($@"C:\\temp\\output{RandomFloat()}.wav", new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 1));
             
             _decoder = OpusDecoder.Create(AudioManager.OUTPUT_SAMPLE_RATE, 1);
             _decoder.ForwardErrorCorrection = false;
@@ -210,30 +217,32 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
             //timer.Stop();
         }
 
-        //progress
-        private readonly Dictionary<string, int> ambientEffectProgress =
-            new Dictionary<string, int>();
+       
 
         private void AddCockpitAmbientAudio(ClientAudio clientAudio)
         {
             var effect = audioEffectProvider.GetAmbientEffect(clientAudio.Ambient.abType);
 
+            //todo normalise ambient on the way in
+            //limit vol values to 0 -> 1.5
             var vol = clientAudio.Ambient.vol;
 
             if (effect.Loaded)
             {
                 var effectLength = effect.AudioEffectFloat.Length;
 
-                int progress = ambientEffectProgress[clientAudio.Ambient.abType];
+                if (!ambientEffectProgress.TryGetValue(clientAudio.Ambient.abType, out int progress))
+                {
+                    progress = 0;
+                    ambientEffectProgress[clientAudio.Ambient.abType] = 0;
+                }
 
                 var audio = clientAudio.PcmAudioFloat;
                 for (var i = 0; i < audio.Length; i++)
                 {
-                    var audioFloat = audio[i];
+                    audio[i] += (effect.AudioEffectFloat[progress] * vol);
 
-                    audioFloat += (effect.AudioEffectFloat[progress] * vol);
-
-                    audio[i] = audioFloat;
+                    //waveWriter?.WriteSample(audio[i]);
 
                     progress++;
 
@@ -241,8 +250,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
                     {
                         progress = 0;
                     }
+
                 }
 
+                
                 ambientEffectProgress[clientAudio.Ambient.abType] = progress;
             }
         }
@@ -301,9 +312,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
         //destructor to clear up opus
         ~ClientAudioProvider()
         {
-            // waveWriter.Flush();
-            // waveWriter.Dispose();
-            _decoder?.Dispose();
+            // waveWriter?.Flush();
+            // waveWriter?.Dispose();
+            // waveWriter = null;
+            // _decoder?.Dispose();
             _decoder = null;
         }
 

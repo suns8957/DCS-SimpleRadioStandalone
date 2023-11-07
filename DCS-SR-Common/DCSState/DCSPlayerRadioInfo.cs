@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Media.Media3D;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 using Newtonsoft.Json;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common
 {

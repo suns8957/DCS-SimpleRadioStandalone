@@ -264,13 +264,16 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
         //TODO unload ever?
         public CachedAudioEffect GetAmbientEffect(string name)
         {
-            if (_ambientAudioEffects.TryGetValue(name.ToLowerInvariant(), out CachedAudioEffect effect))
+            name = name.ToLowerInvariant();
+            if (_ambientAudioEffects.TryGetValue(name, out CachedAudioEffect effect))
             {
                 return effect;
             }
 
             effect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AMBIENT_COCKPIT,
-                $"{name.ToLowerInvariant()}.wav");
+                name);
+
+            _ambientAudioEffects[name] = effect;
 
             return effect;
         }

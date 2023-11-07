@@ -60,7 +60,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
         private bool irlRadioRXInterference = false;
 
         private readonly SyncedServerSettings serverSettings;
-
+        
         public ClientEffectsPipeline()
         {
             profileSettings = Settings.GlobalSettingsStore.Instance.ProfileSettingsStore;
@@ -276,6 +276,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 outputIndex++;
             }
         }
+
 
         private void AddRadioEffect(float[] buffer, int count, int offset, RadioInformation.Modulation modulation, double freq)
         {
