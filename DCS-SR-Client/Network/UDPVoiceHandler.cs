@@ -830,7 +830,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                  && radioInfo.selected != 0 
                  && !_ptt 
                  && !radioInfo.ptt
-                 && radioInfo.control == DCSPlayerRadioInfo.RadioSwitchControls.IN_COCKPIT)
+                 //remote restriction on hotmic
+              //   && radioInfo.control == DCSPlayerRadioInfo.RadioSwitchControls.IN_COCKPIT
+                 )
                 || _intercomPtt)
             {
                 if (radioInfo.radios[0].modulation == RadioInformation.Modulation.INTERCOM)

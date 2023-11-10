@@ -100,7 +100,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false"},
 
             {ProfileSettingsKeys.RadioEncryptionEffects.ToString(), "true"},
-            {ProfileSettingsKeys.NATOTone.ToString(), "false"},
+            {ProfileSettingsKeys.NATOTone.ToString(), "true"},
             {ProfileSettingsKeys.HAVEQUICKTone.ToString(), "true"},
 
             {ProfileSettingsKeys.RadioRxEffects_Start.ToString(), "true"},
@@ -140,7 +140,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {ProfileSettingsKeys.RotaryStyleIncrement.ToString(), "false"},
 
             {ProfileSettingsKeys.AmbientCockpitNoiseEffect.ToString(), "true"},
-            {ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString(), "1.0"},
+            {ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString(), "1.0"}, //relative volume as the incoming volume is variable
         };
 
 

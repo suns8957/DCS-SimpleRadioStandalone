@@ -124,6 +124,24 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable Ambient Cockpit Effects.
+        /// </summary>
+        public static string AmbientEffectToggle {
+            get {
+                return ResourceManager.GetString("AmbientEffectToggle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ambient Cockpit Effect Volume.
+        /// </summary>
+        public static string AmbientEffectVolume {
+            get {
+                return ResourceManager.GetString("AmbientEffectVolume", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         public static System.Drawing.Icon audio_headset {

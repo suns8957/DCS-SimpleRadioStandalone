@@ -1,4 +1,4 @@
--- Version 2.0.8.8
+-- Version 2.0.9.0
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -1860,8 +1860,6 @@ function SR.exportRadioHercules(_data)
     _data.radios[4].freqMode = 1
     _data.radios[4].expansion = false
 
-    _data.intercomHotMic = true
-
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
         _data.ambient = {vol = 0.2,  abType = 'hercules' }
@@ -1975,14 +1973,6 @@ function SR.exportRadioF15ESE(_data)
     -- required for hot mic
     _data.control = 1 -- full radio
     _data.selected = 1
-
-    if SR.getAmbientVolumeEngine()  > 10 then
-        -- engine on
-        _data.ambient = {vol = 0.2,  abType = 'f15' }
-    else
-        -- engine off
-        _data.ambient = {vol = 0, abType = 'f15' }
-    end
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
@@ -2172,7 +2162,7 @@ function SR.exportRadioUH1H(_data)
             _data.ambient = {vol = 0.2,  abType = 'uh1' }
         else
             -- engine on and door open
-            _data.ambient = {vol = 0.4, abType = 'uh1' }
+            _data.ambient = {vol = 0.35, abType = 'uh1' }
         end
     else
         -- engine off
@@ -2517,7 +2507,7 @@ function SR.exportRadioMI8(_data)
         local _doorRight = SR.getButtonPosition(215)
 
         if _doorLeft > 0.2 or _doorRight > 0.2 then 
-            _data.ambient = {vol = 0.3,  abType = 'mi8' }
+            _data.ambient = {vol = 0.35,  abType = 'mi8' }
         else
             _data.ambient = {vol = 0.2,  abType = 'mi8' }
         end 
@@ -2663,7 +2653,7 @@ function SR.exportRadioMI24P(_data)
         local _doorRight = SR.getButtonPosition(849)
 
         if _doorLeft > 0.2 or _doorRight > 0.2 then 
-            _data.ambient = {vol = 0.3,  abType = 'mi24' }
+            _data.ambient = {vol = 0.35,  abType = 'mi24' }
         else
             _data.ambient = {vol = 0.2,  abType = 'mi24' }
         end 
@@ -6526,4 +6516,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.0.8.8")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.0.9.0")

@@ -900,6 +900,26 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             HFEffectVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume)
                                     / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
             HFEffectVolume.IsEnabled = true;
+
+
+            AmbientCockpitEffectToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect);
+
+            AmbientCockpitEffectVolume.IsEnabled = false;
+            AmbientCockpitEffectVolume.ValueChanged += (sender, e) =>
+            {
+                if (AmbientCockpitEffectVolume.IsEnabled)
+                {
+                    var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture);
+
+                    var vol = orig * (e.NewValue / 100);
+
+                    _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume, (float)vol);
+                }
+
+            };
+            AmbientCockpitEffectVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume)
+                                         / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
+            AmbientCockpitEffectVolume.IsEnabled = true;
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -2111,5 +2131,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
                 _globalSettings.SetClientSetting(GlobalSettingsKeys.VOXMinimumDB, (double)e.NewValue);
         }
 
+        private void AmbientCockpitEffectToggle_OnClick(object sender, RoutedEventArgs e)
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect, (bool)AmbientCockpitEffectToggle.IsChecked);
+        }
     }
 }
