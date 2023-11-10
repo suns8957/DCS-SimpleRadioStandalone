@@ -308,6 +308,12 @@
   <data name="FMEffectVolume" xml:space="preserve">
     <value>FM Effect Volume</value>
   </data>
+  <data name="AmbientEffectToggle" xml:space="preserve">
+    <value>Enable Ambient Cockpit Effects</value>
+  </data>
+  <data name="AmbientEffectVolume" xml:space="preserve">
+    <value>Ambient Cockpit Effect Volume</value>
+  </data>
   <data name="GameConnectionStatusLabel" xml:space="preserve">
     <value>Game</value>
   </data>

@@ -1946,6 +1946,7 @@
                                         <RowDefinition />
                                         <RowDefinition />
                                         <RowDefinition />
+                                        <RowDefinition />
                                     </Grid.RowDefinitions>
 
 
@@ -2501,6 +2502,70 @@
                                         </Grid>
 
                                     </StackPanel>
+
+                                    <Label Grid.Row="17"
+                                           Grid.Column="0"
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"
+                                           Content="{x:Static p:Resources.AmbientEffectToggle}" />
+
+                                    <ToggleButton Name="AmbientCockpitEffectToggle"
+                                                  Grid.Row="17"
+                                                  Grid.Column="1"
+                                                  HorizontalContentAlignment="Center"
+                                                  VerticalContentAlignment="Center"
+                                                  Click="AmbientCockpitEffectToggle_OnClick">
+                                        <ToggleButton.Style>
+                                            <Style TargetType="{x:Type ToggleButton}">
+                                                <Setter Property="Content" Value="{x:Static p:Resources.ValueON}" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter Property="Content" Value="{x:Static p:Resources.ValueON}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="False">
+                                                        <Setter Property="Content" Value="{x:Static p:Resources.ValueOFF}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                    </ToggleButton>
+
+
+                                    <Label Grid.Row="18"
+                                               Grid.Column="0"
+                                               HorizontalContentAlignment="Center"
+                                               VerticalContentAlignment="Center"
+                                               Content="{x:Static p:Resources.AmbientEffectVolume}" />
+
+                                        <StackPanel Grid.Row="18"
+                                                    Grid.Column="1" Margin="10">
+
+                                            <Slider x:Name="AmbientCockpitEffectVolume"
+                                                    TickPlacement="BottomRight"
+                                                    SmallChange="5"
+                                                    LargeChange="10"
+                                                    IsSnapToTickEnabled="True"
+                                                    TickFrequency="10"
+                                                    VerticalAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Maximum="200"
+                                                    Value="100"
+                                                    Minimum="0"
+                                                    IsEnabled="False" />
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Label Grid.Column="0" FontSize="10" Content="{x:Static p:Resources.EffectVolume0}" HorizontalAlignment="Left" />
+                                                <Label Grid.Column="1" FontSize="10" Content="{x:Static p:Resources.EffectVolume100}"
+                                                       HorizontalAlignment="Center" />
+                                                <Label Grid.Column="2" FontSize="10" Content="{x:Static p:Resources.EffectVolume200}"
+                                                       HorizontalAlignment="Right" />
+                                            </Grid>
+
+                                        </StackPanel>
 
                                 </Grid>
                             </GroupBox>
