@@ -60,8 +60,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
         private bool irlRadioRXInterference = false;
 
         private readonly SyncedServerSettings serverSettings;
-
-
+        
         public ClientEffectsPipeline()
         {
             profileSettings = Settings.GlobalSettingsStore.Instance.ProfileSettingsStore;
@@ -77,7 +76,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
             _lowPassFilter = BiQuadFilter.LowPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 4130, 2.0f);
             RefreshSettings();
 
-            amCollisionEffect = CachedAudioEffectProvider.Instance.AMCollision;
+            amCollisionEffect = effectProvider.AMCollision;
            
         }
 
