@@ -182,7 +182,7 @@ function SR.exporter()
             },
             control = 0, -- HOTAS
         }
-        _update.ambient = {vol = 1.0, pitch = 1.0, abType = 'jet' }
+        _update.ambient = {vol = 0.0, abType = '' }
         _update.name = _data.UnitName
         _update.unit = _data.Name
         _update.unitId = LoGetPlayerPlaneId()
@@ -251,7 +251,7 @@ function SR.exporter()
             _update.selected = 1
             _update.iff = {status=0,mode1=0,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
 
-            _update.ambient = {vol = 1.0, pitch = 1.0, abType = 'jet' }
+            _update.ambient = {vol = 0.2, abType = 'jet' }
         end
 
         _lastUnitId = _update.unitId
@@ -260,7 +260,7 @@ function SR.exporter()
         --Ground Commander or spectator
         _update = {
             name = "Unknown",
-            ambient = {vol = 1.0, pitch = 1.0, abType = '' },
+            ambient = {vol = 0.0, abType = ''},
             unit = "CA",
             selected = 1,
             ptt = false,
@@ -470,6 +470,22 @@ function SR.exportRadioA10A(_data)
     _data.control = 0;
     _data.selected = 1
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.15 then 
+            _data.ambient = {vol = 0.3,  abType = 'a10' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'a10' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'a10' }
+    end
+
     return _data
 end
 
@@ -514,6 +530,22 @@ function SR.exportRadioMiG29(_data)
     _data.control = 0;
     _data.selected = 1
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.15 then 
+            _data.ambient = {vol = 0.3,  abType = 'mig29' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mig29' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mig29' }
+    end
+
     return _data
 end
 
@@ -554,6 +586,22 @@ function SR.exportRadioSU25(_data)
 
     _data.control = 0;
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.15 then 
+            _data.ambient = {vol = 0.3,  abType = 'su25' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'su25' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'su25' }
+    end
 
     return _data
 end
@@ -597,6 +645,22 @@ function SR.exportRadioSU27(_data)
 
     _data.control = 0;
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'su27' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'su27' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'su27' }
+    end
 
     return _data
 end
@@ -904,7 +968,31 @@ function SR.exportRadioAH64D(_data)
         _data.ptt = true
     end
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'ah64' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'ah64' }
+    end
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(795)
+        local _doorRight = SR.getButtonPosition(798)
+
+        if _doorLeft > 0.3 or _doorRight > 0.3 then 
+            _data.ambient = {vol = 0.35,  abType = 'ah64' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'ah64' }
+        end 
     
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'ah64' }
+    end
+
     return _data
 
 end
@@ -1064,6 +1152,14 @@ function SR.exportRadioUH60L(_data)
     _data.intercomHotMic = GetDevice(0):get_argument_value(402) > 0
     _data.ptt = GetDevice(0):get_argument_value(82) > 0
     _data.control = 1; -- full radio HOTAS control
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'uh60' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'uh60' }
+    end
     
     return _data
 end
@@ -1223,7 +1319,15 @@ function SR.exportRadioSH60B(_data)
     _data.intercomHotMic = GetDevice(0):get_argument_value(402) > 0
     _data.ptt = GetDevice(0):get_argument_value(82) > 0
     _data.control = 1; -- full radio HOTAS control
-    
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'uh60' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'uh60' }
+    end
+
     return _data
 end
 
@@ -1296,6 +1400,23 @@ function SR.exportRadioA4E(_data)
     _data.control = 0;
     _data.selected = 1
 
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(26)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'A4' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'A4' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'A4' }
+    end
+
     return _data
 end
 
@@ -1340,6 +1461,22 @@ function SR.exportRadioSK60(_data)
 
     _data.control = 0;
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(38)
+
+        if _door < 0.9 then 
+            _data.ambient = {vol = 0.3,  abType = 'sk60' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'sk60' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'sk60' }
+    end
 
     return _data
 
@@ -1445,6 +1582,14 @@ function SR.exportRadioT45(_data)
     end
 
     _data.control = 1; -- full radio HOTAS control
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'jet' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'jet' }
+    end
     
     return _data
 end
@@ -1502,14 +1647,19 @@ function SR.exportRadioPUCARA(_data)
     
     end
    
-    
-    
-  
     _data.control = 1 -- Hotas Controls radio
     
     
      _data.control = 0;
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'jet' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'jet' }
+    end
      
     return _data
 end
@@ -1589,6 +1739,22 @@ function SR.exportRadioA29B(_data)
     _data.control = 0 -- Hotas Controls radio
     _data.selected = 1
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(26)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'a29' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'a29' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'a29' }
+    end
+
     return _data
 end
 
@@ -1622,6 +1788,14 @@ function SR.exportRadioVSNF4(_data)
 
     _data.control = 0;
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'jet' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'jet' }
+    end
 
     return _data
 end
@@ -1688,6 +1862,14 @@ function SR.exportRadioHercules(_data)
 
     _data.intercomHotMic = true
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'hercules' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'hercules' }
+    end
+
     return _data;
 end
 
@@ -1733,6 +1915,22 @@ function SR.exportRadioF15C(_data)
     _data.control = 0;
     _data.selected = 1
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'f15' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f15' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f15' }
+    end
+
     return _data
 end
 
@@ -1774,10 +1972,33 @@ function SR.exportRadioF15ESE(_data)
         end
     end
 
-
     -- required for hot mic
     _data.control = 1 -- full radio
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'f15' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f15' }
+    end
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(38)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'f15' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f15' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f15' }
+    end
 
     return _data
 end
@@ -1942,17 +2163,24 @@ function SR.exportRadioUH1H(_data)
         _data.iff.mode4 = false
     end
 
-    -- TODO
     local _doorLeft = SR.getButtonPosition(420)
 
-    SR.JSON:encode(SR.getButtonPosition(420))
+    -- engine on
+    if SR.getAmbientVolumeEngine()  > 10 then
+        if _doorLeft >= 0 and _doorLeft < 0.5 then
+            -- engine on and door closed
+            _data.ambient = {vol = 0.2,  abType = 'uh1' }
+        else
+            -- engine on and door open
+            _data.ambient = {vol = 0.4, abType = 'uh1' }
+        end
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'uh1' }
+    end
 
-    _data.ambient = {vol = SR.round(SR.getAmbientVolumeEngine() *  SR.getButtonPosition(420),0.01), 
-                    pitch = 1.0, 
-                    abType = 'uh1' 
-    }
 
-      SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
+    -- SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
 
     return _data
 
@@ -2131,6 +2359,14 @@ function SR.exportRadioSA342(_data)
         _data.iff.mode4 = false
     end
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'sa342' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'sa342' }
+    end
+
     return _data
 end
 
@@ -2182,6 +2418,22 @@ function SR.exportRadioKA50(_data)
     end
 
     _data.control = 1;
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(38)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'ka50' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'ka50' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'ka50' }
+    end
 
     return _data
 
@@ -2256,6 +2508,24 @@ function SR.exportRadioMI8(_data)
     end
 
     _data.control = 1; -- full radio
+
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(216)
+        local _doorRight = SR.getButtonPosition(215)
+
+        if _doorLeft > 0.2 or _doorRight > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'mi8' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mi8' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mi8' }
+    end
 
     return _data
 
@@ -2386,6 +2656,23 @@ function SR.exportRadioMI24P(_data)
     
     _data.control = 1;
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(9)
+        local _doorRight = SR.getButtonPosition(849)
+
+        if _doorLeft > 0.2 or _doorRight > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'mi24' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mi24' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mi24' }
+    end
+
     return _data
 
 end
@@ -2444,7 +2731,22 @@ function SR.exportRadioL39(_data)
 
     _data.control = 1; -- full radio - for expansion radios - DCS controls must be disabled
 
-    _data.control = 1; -- full radio
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(139)
+        local _doorRight = SR.getButtonPosition(140)
+
+        if _doorLeft > 0.2 or _doorRight > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'l39' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'l39' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mi24' }
+    end
 
     return _data
 end
@@ -2508,6 +2810,14 @@ function SR.exportRadioEagleII(_data)
 
     _data.control = 0; -- HOTAS
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'ChristenEagle' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'ChristenEagle' }
+    end
+
     return _data
 end
 
@@ -2565,6 +2875,14 @@ function SR.exportRadioYak52(_data)
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     _data.control = 1; -- full radio - for expansion radios - DCS controls must be disabled
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'yak52' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'yak52' }
+    end
 
     return _data
 end
@@ -2758,12 +3076,24 @@ function SR.exportRadioA10C(_data)
         _data.iff.mode4 = false
     end
 
-    _data.ambient = {vol = SR.round(SR.getAmbientVolumeEngine() *  SR.getButtonPosition(7),0.01), 
-                    pitch = 1.0, 
-                    abType = 'jet' 
-    }
 
-    SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(7)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.3,  abType = 'a10' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'a10' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'a10' }
+    end
+
+    -- SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
     return _data
 end
 
@@ -3000,6 +3330,22 @@ function SR.exportRadioA10C2(_data)
         _data.iff.mode4 = true
     else
         _data.iff.mode4 = false
+    end
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(7)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.3,  abType = 'a10' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'a10' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'a10' }
     end
 
     -- SR.log("IFF STATUS"..SR.JSON:encode(_data.iff).."\n\n")
@@ -3340,6 +3686,22 @@ end
         end
     end
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.5 then 
+            _data.ambient = {vol = 0.3,  abType = 'fa18' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'fa18' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'fa18' }
+    end
+
     return _data
 end
 
@@ -3496,6 +3858,22 @@ function SR.exportRadioF16C(_data)
 
     -- SR.log("IFF STATUS"..SR.JSON:encode(_data.iff).."\n\n")
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(7)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.3,  abType = 'f16' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f16' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f16' }
+    end
+
     return _data
 end
 
@@ -3558,6 +3936,22 @@ function SR.exportRadioF86Sabre(_data)
 
     _data.control = 0; -- Hotas Controls
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.3,  abType = 'f86' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f86' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f86' }
+    end
+
     return _data;
 end
 
@@ -3607,6 +4001,22 @@ function SR.exportRadioMIG15(_data)
 
     _data.control = 0; -- Hotas Controls radio
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(225)
+
+        if _door > 0.3 then 
+            _data.ambient = {vol = 0.3,  abType = 'mig15' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mig15' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mig15' }
+    end
+
     return _data;
 end
 
@@ -3648,6 +4058,22 @@ function SR.exportRadioMIG19(_data)
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     _data.control = 0; -- Hotas Controls radio
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(433)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.3,  abType = 'mig19' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mig19' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mig19' }
+    end
 
     return _data;
 end
@@ -3698,6 +4124,22 @@ function SR.exportRadioMIG21(_data)
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     _data.control = 0; -- hotas radio
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(1)
+
+        if _door > 0.15 then 
+            _data.ambient = {vol = 0.3,  abType = 'mig21' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mig21' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mig21' }
+    end
 
     return _data;
 end
@@ -3824,6 +4266,22 @@ function SR.exportRadioF5E(_data)
         _data.iff.mode4 = false
     end
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.3,  abType = 'f5' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f5' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f5' }
+    end
+
     return _data;
 end
 
@@ -3871,6 +4329,22 @@ function SR.exportRadioP51(_data)
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     _data.control = 0; -- hotas radio
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(162)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.35,  abType = 'p51' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'p51' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'p51' }
+    end
 
     return _data;
 end
@@ -3922,6 +4396,22 @@ function SR.exportRadioP47(_data)
 
     _data.control = 0; -- hotas radio
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(38)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.35,  abType = 'p47' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'p47' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'p47' }
+    end
+
     return _data;
 end
 
@@ -3971,6 +4461,22 @@ function SR.exportRadioFW190(_data)
 
     _data.control = 0; -- hotas radio
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(194)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.35,  abType = 'fw190' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'fw190' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'fw190' }
+    end
+
     return _data;
 end
 
@@ -4018,6 +4524,22 @@ function SR.exportRadioBF109(_data)
 
     _data.control = 0; -- hotas radio
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(95)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.35,  abType = 'bf109' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'bf109' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'bf109' }
+    end
+
     return _data;
 end
 
@@ -4060,6 +4582,22 @@ function SR.exportRadioSpitfireLFMkIX (_data)
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     _data.control = 0; -- no ptt, same as the FW and 109. No connector.
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(138)
+
+        if _door > 0.1 then 
+            _data.ambient = {vol = 0.35,  abType = 'spitfire' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'spitfire' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'spitfire' }
+    end
 
     return _data;
 end
@@ -4120,6 +4658,23 @@ function SR.exportRadioMosquitoFBMkVI (_data)
 
     _data.control = 0; -- no ptt, same as the FW and 109. No connector.
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(250)
+        local _doorRight = SR.getButtonPosition(252)
+
+        if _doorLeft > 0.7 or _doorRight > 0.7 then 
+            _data.ambient = {vol = 0.35,  abType = 'mosquito' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'mosquito' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'mosquito' }
+    end
 
     return _data;
 end
@@ -4240,6 +4795,23 @@ function SR.exportRadioC101EB(_data)
     -- only if The hot mic talk button (labeled TALK in cockpit) is up
     if frontHotMic == 1 or rearHotMic == 1 then
        _data.intercomHotMic = true
+    end
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(1)
+        local _doorRight = SR.getButtonPosition(301)
+
+        if _doorLeft > 0.7 or _doorRight > 0.7 then 
+            _data.ambient = {vol = 0.3,  abType = 'c101' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'c101' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'c101' }
     end
 
     return _data;
@@ -4379,6 +4951,23 @@ function SR.exportRadioC101CC(_data)
        _data.intercomHotMic = true
     end
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(1)
+        local _doorRight = SR.getButtonPosition(301)
+
+        if _doorLeft > 0.7 or _doorRight > 0.7 then 
+            _data.ambient = {vol = 0.3,  abType = 'c101' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'c101' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'c101' }
+    end
+
     return _data;
 end
 
@@ -4460,6 +5049,15 @@ function SR.exportRadioMB339A(_data)
         expansion = false
     }
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'MB339' }
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'MB339' }
+    end
+
     return _data;
 end
 
@@ -4515,6 +5113,15 @@ function SR.exportRadioHawk(_data)
     end
 
     _data.control = 1; -- full radio
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'jet' }
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'jet' }
+    end
 
     return _data;
 end
@@ -4701,6 +5308,23 @@ function SR.exportRadioM2000C(_data)
         _data.iff.mode4 = false
     end
 
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(38)
+
+        if _door > 0.3 then 
+            _data.ambient = {vol = 0.3,  abType = 'm2000' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'm2000' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'm2000' }
+    end
+
     return _data
 end
 
@@ -4786,6 +5410,22 @@ function SR.exportRadioF1CE(_data)
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     _data.control = 0;
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(1)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'f1' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f1' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f1' }
+    end
 
     return _data
 end
@@ -4902,6 +5542,23 @@ function SR.exportRadioF1BE(_data)
 
     _data.control = 0;
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _doorLeft = SR.getButtonPosition(1)
+        local _doorRight = SR.getButtonPosition(6)
+
+        if _doorLeft > 0.2 or _doorRight > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'f1' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f1' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f1' }
+    end
+
     return _data
 end
 
@@ -4963,6 +5620,22 @@ function SR.exportRadioJF17(_data)
     end
 
     _data.iff.mode4 =  _iff:is_m6_trs_on()
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(181)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'jf17' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'jf17' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'jf17' }
+    end
 
     return _data
 end
@@ -5157,6 +5830,22 @@ end
     _data.selected = 1
     _data.control = 0; -- partial radio, allows hotkeys
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(38)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.35,  abType = 'av8bna' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'av8bna' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'av8bna' }
+    end
+
     return _data
 end
 
@@ -5314,6 +6003,22 @@ function SR.exportRadioF14(_data)
 
     -- SR.log("IFF STATUS"..SR.JSON:encode(_data.iff).."\n\n")
 
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(403)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'f14' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f14' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f14' }
+    end
+
     return _data
 end
 
@@ -5349,6 +6054,22 @@ function SR.exportRadioAJS37(_data)
 
     _data.control = 0;
     _data.selected = 1
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+
+        local _door = SR.getButtonPosition(10)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'ajs37' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'ajs37' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'ajs37' }
+    end
 
     return _data
 end
