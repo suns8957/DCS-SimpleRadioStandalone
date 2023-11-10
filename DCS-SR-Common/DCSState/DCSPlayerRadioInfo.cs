@@ -71,8 +71,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
         [JsonDCSIgnoreSerialization]
         public Ambient ambient = new Ambient()
         {
-            vol = 1.0f,
-         //   pitch = 1.0f,
+            vol = 0.0f,
             abType = ""
         };
 

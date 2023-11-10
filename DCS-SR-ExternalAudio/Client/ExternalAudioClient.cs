@@ -65,7 +65,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
             };
 
             gameState.ambient = new Ambient()
-                { pitch = 0, abType = opts.AmbientCockpit.ToLowerInvariant().Trim(), vol = opts.AmbientCockpitVolume };
+                { abType = opts.AmbientCockpit.ToLowerInvariant().Trim(), vol = opts.AmbientCockpitVolume };
 
             var srsClientSyncHandler = new SRSClientSyncHandler(Guid, gameState,opts.Name, opts.Coalition,position, opts.Record);
 
