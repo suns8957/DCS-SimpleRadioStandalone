@@ -249,6 +249,13 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
  //           clientAudio.Ambient.abType = "uh1";
  //           clientAudio.Ambient.vol = 0.35f;
 
+            var abType = clientAudio.Ambient?.abType;
+
+            if (string.IsNullOrEmpty(abType))
+            {
+                return;
+            }
+
             var effect = audioEffectProvider.GetAmbientEffect(clientAudio.Ambient.abType);
 
             var vol = clientAudio.Ambient.vol;
