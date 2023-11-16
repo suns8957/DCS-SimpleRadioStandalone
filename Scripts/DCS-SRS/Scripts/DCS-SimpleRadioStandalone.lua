@@ -1,4 +1,4 @@
--- Version 2.0.9.0
+-- Version 2.0.9.1
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -1932,8 +1932,32 @@ function SR.exportRadioF15C(_data)
     return _data
 end
 
+local _f15e = {}
+-- initial IFF status set to -1 to indicate its not initialized, status then set depending on cold/hot start
+_f15e.iff = {
+    status=-1,
+    mode1=-1,
+    mode3=-1,
+    mode4=false,
+    control=0,
+    expansion=false,
+}
+
 function SR.exportRadioF15ESE(_data)
-    _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
+
+    -- reset state on aircraft switch
+    if _lastUnitId ~= _data.unitId then
+        _f15e.iff = {
+            status=-1,
+            mode1=-1,
+            mode3=-1,
+            mode4=false,
+            control=0,
+            expansion=false,
+        }
+    end
+
+    _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = true, desc = "" }
 
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
@@ -1970,8 +1994,7 @@ function SR.exportRadioF15ESE(_data)
         end
     end
 
-    -- required for hot mic
-    _data.control = 1 -- full radio
+    _data.control = 0
     _data.selected = 1
 
     if SR.getAmbientVolumeEngine()  > 10 then
@@ -1990,6 +2013,63 @@ function SR.exportRadioF15ESE(_data)
         _data.ambient = {vol = 0, abType = 'f15' }
     end
 
+        -- { ["UFC_SC_11"] = MC*,["UFC_CC_03"] = ,["UFC_CC_02"] = ,["UFC_SC_05A"] = .,["UFC_CC_04"] = ,["UFC_SC_09"] = AAI SLV ,["UFC_SC_08"] = U133000*,["UFC_SC_12"] =  ,["UFC_DISPLAY"] = ,["UFC_SC_10"] = PROGRAM ,["UFC_SC_05"] = *U225000,["UFC_SC_07"] = GV ,["UFC_SC_08A"] = .,["UFC_SC_06"] =  G,["UFC_SC_02"] = *M1-00,["UFC_SC_04"] = *M3-0000,["UFC_SC_03"] = *M2,["UFC_CC_01"] = -IFF-,["UFC_SC_01"] =  PH-0,} 
+    --{ ["UFC_SC_11"] = MC ,["UFC_CC_03"] = ,["UFC_CC_02"] = ,["UFC_SC_05A"] = .,["UFC_CC_04"] = ,["UFC_SC_09"] = AAI SLV ,["UFC_SC_08"] = U133000*,["UFC_SC_12"] =  ,["UFC_DISPLAY"] = ,["UFC_SC_10"] = PROGRAM ,["UFC_SC_05"] = *U225000,["UFC_SC_07"] = GV ,["UFC_SC_08A"] = .,["UFC_SC_06"] =  G,["UFC_SC_02"] =  M1-00,["UFC_SC_04"] =  M3-0000,["UFC_SC_03"] =  M2,["UFC_CC_01"] = -IFF-,["UFC_SC_01"] =  PH-0,} 
+
+    local ufc = SR.getListIndicatorValue(9)
+
+   --  SR.log(SR.debugDump(ufc).."\n\n")
+
+    if ufc and ufc["UFC_CC_01"] ~= nil and  string.match(ufc["UFC_CC_01"], "IFF") then
+            if ufc["UFC_SC_02"] ~= nil then
+                --["UFC_SC_02"] =  M1-00
+                if string.sub(ufc["UFC_SC_02"], 1,1) == "*" then
+                    local code = string.match(ufc["UFC_SC_02"], "%d%d")
+
+                    if code then
+                        _f15e.iff.mode1 = code
+                    end
+                else
+                   _f15e.iff.mode1 = -1
+                end
+            end
+
+            if ufc["UFC_SC_04"] ~= nil then
+                --["UFC_SC_04"] =  M3-0000
+
+                if string.sub(ufc["UFC_SC_04"], 1,1) == "*" then
+
+                    local code = string.match(ufc["UFC_SC_04"], "%d%d%d%d")
+
+                    if code then
+                        _f15e.iff.mode3 = code
+                    end
+                else
+                    _f15e.iff.mode3 = -1
+                end
+                
+            end
+
+            if ufc["UFC_SC_11"] ~= nil then
+               -- ["UFC_SC_11"] = MC*
+
+               if ufc["UFC_SC_11"] == "MC*" then
+                 _f15e.iff.mode4 = true
+               else
+                 _f15e.iff.mode4 = false
+               end
+                
+            end
+    end
+
+    if _f15e.iff.mode4 == true or _f15e.iff.mode3 ~= -1 or _f15e.iff.mode1 ~= -1 then
+        _f15e.iff.status = 1
+    else
+        _f15e.iff.status = -1
+    end
+
+    _data.iff = _f15e.iff
+              
     return _data
 end
 
@@ -6516,4 +6596,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.0.9.0")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.0.9.1")
