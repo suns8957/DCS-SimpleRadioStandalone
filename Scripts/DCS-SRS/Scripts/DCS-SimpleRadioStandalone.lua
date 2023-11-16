@@ -2016,10 +2016,14 @@ function SR.exportRadioF15ESE(_data)
         -- { ["UFC_SC_11"] = MC*,["UFC_CC_03"] = ,["UFC_CC_02"] = ,["UFC_SC_05A"] = .,["UFC_CC_04"] = ,["UFC_SC_09"] = AAI SLV ,["UFC_SC_08"] = U133000*,["UFC_SC_12"] =  ,["UFC_DISPLAY"] = ,["UFC_SC_10"] = PROGRAM ,["UFC_SC_05"] = *U225000,["UFC_SC_07"] = GV ,["UFC_SC_08A"] = .,["UFC_SC_06"] =  G,["UFC_SC_02"] = *M1-00,["UFC_SC_04"] = *M3-0000,["UFC_SC_03"] = *M2,["UFC_CC_01"] = -IFF-,["UFC_SC_01"] =  PH-0,} 
     --{ ["UFC_SC_11"] = MC ,["UFC_CC_03"] = ,["UFC_CC_02"] = ,["UFC_SC_05A"] = .,["UFC_CC_04"] = ,["UFC_SC_09"] = AAI SLV ,["UFC_SC_08"] = U133000*,["UFC_SC_12"] =  ,["UFC_DISPLAY"] = ,["UFC_SC_10"] = PROGRAM ,["UFC_SC_05"] = *U225000,["UFC_SC_07"] = GV ,["UFC_SC_08A"] = .,["UFC_SC_06"] =  G,["UFC_SC_02"] =  M1-00,["UFC_SC_04"] =  M3-0000,["UFC_SC_03"] =  M2,["UFC_CC_01"] = -IFF-,["UFC_SC_01"] =  PH-0,} 
 
-    local ufc = SR.getListIndicatorValue(9)
+    local ufc = nil
 
-   --  SR.log(SR.debugDump(ufc).."\n\n")
-
+    if _seat == 0 then
+        ufc = SR.getListIndicatorValue(9)
+    else
+        ufc = SR.getListIndicatorValue(18)
+    end
+    
     if ufc and ufc["UFC_CC_01"] ~= nil and  string.match(ufc["UFC_CC_01"], "IFF") then
             if ufc["UFC_SC_02"] ~= nil then
                 --["UFC_SC_02"] =  M1-00
