@@ -2025,49 +2025,63 @@ function SR.exportRadioF15ESE(_data)
     end
     
     if ufc and ufc["UFC_CC_01"] ~= nil and  string.match(ufc["UFC_CC_01"], "IFF") then
-            if ufc["UFC_SC_02"] ~= nil then
-                --["UFC_SC_02"] =  M1-00
-                if string.sub(ufc["UFC_SC_02"], 1,1) == "*" then
-                    local code = string.match(ufc["UFC_SC_02"], "%d%d")
+        if ufc["UFC_SC_02"] ~= nil then
+            --["UFC_SC_02"] =  M1-00
+            if string.sub(ufc["UFC_SC_02"], 1,1) == "*" then
+                local code = string.match(ufc["UFC_SC_02"], "%d%d")
 
-                    if code then
-                        _f15e.iff.mode1 = code
-                    end
-                else
-                   _f15e.iff.mode1 = -1
+                if code then
+                    _f15e.iff.mode1 = code
                 end
+            else
+               _f15e.iff.mode1 = -1
             end
+        end
 
-            if ufc["UFC_SC_04"] ~= nil then
-                --["UFC_SC_04"] =  M3-0000
+        if ufc["UFC_SC_04"] ~= nil then
+            --["UFC_SC_04"] =  M3-0000
 
-                if string.sub(ufc["UFC_SC_04"], 1,1) == "*" then
+            if string.sub(ufc["UFC_SC_04"], 1,1) == "*" then
 
-                    local code = string.match(ufc["UFC_SC_04"], "%d%d%d%d")
+                local code = string.match(ufc["UFC_SC_04"], "%d%d%d%d")
 
-                    if code then
-                        _f15e.iff.mode3 = code
-                    end
-                else
-                    _f15e.iff.mode3 = -1
+                if code then
+                    _f15e.iff.mode3 = code
                 end
-                
+            else
+                _f15e.iff.mode3 = -1
             end
+            
+        end
 
-            if ufc["UFC_SC_11"] ~= nil then
-               -- ["UFC_SC_11"] = MC*
+        if ufc["UFC_SC_11"] ~= nil then
+           -- ["UFC_SC_11"] = MC*
 
-               if ufc["UFC_SC_11"] == "MC*" then
-                 _f15e.iff.mode4 = true
-               else
-                 _f15e.iff.mode4 = false
-               end
-                
-            end
+           if ufc["UFC_SC_11"] == "MC*" then
+             _f15e.iff.mode4 = true
+           else
+             _f15e.iff.mode4 = false
+           end
+            
+        end
     end
 
     if _f15e.iff.mode4 == true or _f15e.iff.mode3 ~= -1 or _f15e.iff.mode1 ~= -1 then
         _f15e.iff.status = 1
+
+        -- IDENT check
+        local iffIdent = -1 
+
+        if _seat == 0 then
+            iffIdent = SR.getButtonPosition(297)
+        else
+            iffIdent = SR.getButtonPosition(1322)
+        end
+
+        if iffIdent == 1 then
+            _f15e.iff.status = 2 -- IDENT (BLINKY THING)
+        end
+
     else
         _f15e.iff.status = -1
     end
