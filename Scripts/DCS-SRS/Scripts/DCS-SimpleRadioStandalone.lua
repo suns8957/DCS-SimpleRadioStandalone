@@ -473,13 +473,13 @@ function SR.exportRadioA10A(_data)
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
 
-        local _door = SR.getButtonPosition(181)
+      --  local _door = SR.getButtonPosition(181)
 
-        if _door > 0.15 then 
+      --  if _door > 0.15 then 
             _data.ambient = {vol = 0.3,  abType = 'a10' }
-        else
-            _data.ambient = {vol = 0.2,  abType = 'a10' }
-        end 
+       -- else
+       --     _data.ambient = {vol = 0.2,  abType = 'a10' }
+      --  end 
     
     else
         -- engine off
@@ -533,13 +533,13 @@ function SR.exportRadioMiG29(_data)
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
 
-        local _door = SR.getButtonPosition(181)
+      --  local _door = SR.getButtonPosition(181)
 
-        if _door > 0.15 then 
+     --   if _door > 0.15 then 
             _data.ambient = {vol = 0.3,  abType = 'mig29' }
-        else
-            _data.ambient = {vol = 0.2,  abType = 'mig29' }
-        end 
+     --   else
+      --      _data.ambient = {vol = 0.2,  abType = 'mig29' }
+    --    end 
     
     else
         -- engine off
@@ -589,14 +589,13 @@ function SR.exportRadioSU25(_data)
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
-
-        local _door = SR.getButtonPosition(181)
-
-        if _door > 0.15 then 
+     --   local _door = SR.getButtonPosition(181)
+    
+    --    if _door > 0.15 then 
             _data.ambient = {vol = 0.3,  abType = 'su25' }
-        else
-            _data.ambient = {vol = 0.2,  abType = 'su25' }
-        end 
+     --   else
+      --      _data.ambient = {vol = 0.2,  abType = 'su25' }
+    --    end 
     
     else
         -- engine off
@@ -649,13 +648,13 @@ function SR.exportRadioSU27(_data)
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
 
-        local _door = SR.getButtonPosition(181)
+      --  local _door = SR.getButtonPosition(181)
 
-        if _door > 0.2 then 
+      --  if _door > 0.2 then 
             _data.ambient = {vol = 0.3,  abType = 'su27' }
-        else
-            _data.ambient = {vol = 0.2,  abType = 'su27' }
-        end 
+      --  else
+      --      _data.ambient = {vol = 0.2,  abType = 'su27' }
+     --   end 
     
     else
         -- engine off
@@ -1916,13 +1915,13 @@ function SR.exportRadioF15C(_data)
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
 
-        local _door = SR.getButtonPosition(181)
+     --   local _door = SR.getButtonPosition(181)
 
-        if _door > 0.2 then 
+  --      if _door > 0.2 then 
             _data.ambient = {vol = 0.3,  abType = 'f15' }
-        else
-            _data.ambient = {vol = 0.2,  abType = 'f15' }
-        end 
+      --  else
+        --    _data.ambient = {vol = 0.2,  abType = 'f15' }
+      --  end 
     
     else
         -- engine off
