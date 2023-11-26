@@ -194,6 +194,7 @@ function SR.exporter()
 
         -- IFF_STATUS:  OFF = 0,  NORMAL = 1 , or IDENT = 2 (IDENT means Blink on LotATC)
         -- M1:-1 = off, any other number on
+        -- M2: -1 = OFF, any other number on
         -- M3: -1 = OFF, any other number on
         -- M4: 1 = ON or 0 = OFF
         -- EXPANSION: only enabled if IFF Expansion is enabled
@@ -201,7 +202,7 @@ function SR.exporter()
         -- MIC - -1 for OFF or ID of the radio to trigger IDENT Mode if the PTT is used
         -- IFF STATUS{"control":1,"expansion":false,"mode1":51,"mode3":7700,"mode4":1,"status":2,mic=1}
 
-        _update.iff = {status=0,mode1=0,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
+        _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
         --SR.log(_update.unit.."\n\n")
 
@@ -249,7 +250,7 @@ function SR.exporter()
 
             _update.control = 0;
             _update.selected = 1
-            _update.iff = {status=0,mode1=0,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
+            _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
 
             _update.ambient = {vol = 0.2, abType = 'jet' }
         end
@@ -283,7 +284,7 @@ function SR.exporter()
                 { name = "VHF Guard", freq = 124.8 * 1000000, modulation = 0, volume = 1.0, secFreq = 121.5 * 1000000, freqMin = 1 * 1000000, freqMax = 400 * 1000000, encKey = 0, enc = false, encMode = 0, freqMode = 1, volMode = 1, expansion = false, rtMode = 1 },
             },
             radioType = 3,
-            iff = {status=0,mode1=0,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
+            iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
         }
 
         local _latLng,_point = SR.exportCameraLocation()
@@ -1801,7 +1802,7 @@ end
 
 function SR.exportRadioHercules(_data)
     _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = true, desc = "" }
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
     -- Intercom
     _data.radios[1].name = "Intercom"
@@ -1937,6 +1938,7 @@ _f15e.iff = {
     status=-1,
     mode1=-1,
     mode3=-1,
+    mode2 = -1,
     mode4=false,
     control=0,
     expansion=false,
@@ -1950,6 +1952,7 @@ function SR.exportRadioF15ESE(_data)
             status=-1,
             mode1=-1,
             mode3=-1,
+            mode2=-1,
             mode4=false,
             control=0,
             expansion=false,
@@ -2198,7 +2201,7 @@ function SR.exportRadioUH1H(_data)
 
 
     -- HANDLE TRANSPONDER
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
 
     local iffPower =  SR.getSelectorPosition(59,0.1)
@@ -2410,7 +2413,7 @@ function SR.exportRadioSA342(_data)
      _data.intercomHotMic = not SR.getSpecialOption('SA342.HOT_MIC')
 
     -- HANDLE TRANSPONDER
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getButtonPosition(246)
 
@@ -3110,7 +3113,7 @@ function SR.exportRadioA10C(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(200,0.1)
 
@@ -3366,7 +3369,7 @@ function SR.exportRadioA10C2(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(200,0.1)
 
@@ -3452,6 +3455,7 @@ _fa18.radio4.channel = 127
 _fa18.iff = {
     status=-1,
     mode1=-1,
+    mode2=-1,
     mode3=-1,
     mode4=true,
     control=0,
@@ -3664,10 +3668,10 @@ end
 
         if batterySwitch == 0 then
             -- cold start, everything off
-            _fa18.iff = {status=0,mode1=-1,mode3=-1,mode4=false,control=0,expansion=false}
+            _fa18.iff = {status=0,mode1=-1,mode2=-1,mode3=-1,mode4=false,control=0,expansion=false}
         else
             -- hot start, M4 on
-            _fa18.iff = {status=1,mode1=-1,mode3=-1,mode4=true,control=0,expansion=false}
+            _fa18.iff = {status=1,mode1=-1,mode2=-1,mode3=-1,mode4=true,control=0,expansion=false}
         end
 
         iff = _fa18.iff
@@ -3891,7 +3895,7 @@ function SR.exportRadioF16C(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(540,0.1)
 
@@ -4300,7 +4304,7 @@ function SR.exportRadioF5E(_data)
 
     _data.control = 0; -- hotas radio
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(200,0.1)
 
@@ -4821,7 +4825,7 @@ function SR.exportRadioC101EB(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(347,0.25)
 
@@ -4973,7 +4977,7 @@ function SR.exportRadioC101CC(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(347,0.25)
 
@@ -5321,7 +5325,7 @@ function SR.exportRadioM2000C(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
 
 
@@ -5440,7 +5444,7 @@ function SR.exportRadioF1CE(_data)
     _data.radios[3].volMode = 0
     _data.radios[3].channel = SR.getNonStandardSpinner(348, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(739,0.1)
 
@@ -5542,7 +5546,7 @@ function SR.exportRadioF1BE(_data)
     _data.radios[3].volMode = 0
     _data.radios[3].channel = SR.getNonStandardSpinner(348, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(739,0.1)
 
@@ -5686,7 +5690,7 @@ function SR.exportRadioJF17(_data)
 
 
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local _iff = GetDevice(15)
 
@@ -6041,7 +6045,7 @@ function SR.exportRadioF14(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(184,0.25)
 
