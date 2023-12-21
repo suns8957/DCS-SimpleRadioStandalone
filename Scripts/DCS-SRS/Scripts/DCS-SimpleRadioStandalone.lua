@@ -6109,6 +6109,125 @@ function SR.exportRadioF14(_data)
     return _data
 end
 
+--for F-4
+function SR.exportRadioF4(_data)
+
+    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
+
+    local ics_devid = 2
+    local arc164_devid = 3
+
+    local ICS_device = GetDevice(ics_devid)
+    local ARC164_device = GetDevice(arc164_devid)
+
+    local intercom_transmit = ICS_device:intercom_transmit()
+    local ARC164_ptt = ARC164_device:is_ptt_pressed()
+
+    _data.radios[1].name = "Intercom"
+    _data.radios[1].freq = 100.0
+    _data.radios[1].modulation = 2 --Special intercom modulation
+    _data.radios[1].volume = ICS_device:get_volume()
+
+    _data.radios[2].name = "AN/ARC-164"
+    _data.radios[2].freq = ARC164_device:is_on() and SR.round(ARC164_device:get_frequency(), 5000) or 1
+    _data.radios[2].modulation = ARC164_device:get_modulation()
+    _data.radios[2].volume = ARC164_device:get_volume()
+    if ARC164_device:is_guard_enabled() then
+        _data.radios[2].secFreq = 243.0 * 1000000
+    else
+        _data.radios[2].secFreq = 0
+    end
+    _data.radios[2].freqMin = 225 * 1000000
+    _data.radios[2].freqMax = 399.950 * 1000000
+    _data.radios[2].encKey = ICS_device:get_ky28_key()
+    _data.radios[2].enc = ICS_device:is_arc164_encrypted()
+    _data.radios[2].encMode = 2
+
+    --todo aux receiver
+    --[[
+    _data.radios[3].name = "AN/ARC-182(V)"
+    _data.radios[3].freq = ARC182_device:is_on() and SR.round(ARC182_device:get_frequency(), 5000) or 1
+    _data.radios[3].modulation = ARC182_device:get_modulation()
+    _data.radios[3].volume = ARC182_device:get_volume()
+    if ARC182_device:is_guard_enabled() then
+        _data.radios[3].secFreq = SR.round(ARC182_device:get_guard_freq(), 5000)
+    else
+        _data.radios[3].secFreq = 0
+    end
+    _data.radios[3].freqMin = 30 * 1000000
+    _data.radios[3].freqMax = 399.975 * 1000000
+    _data.radios[3].encKey = ICS_device:get_ky28_key()
+    _data.radios[3].enc = ICS_device:is_arc182_encrypted()
+    _data.radios[3].encMode = 2
+
+    --]]
+    local _seat = SR.lastKnownSeat
+
+    --   Pilot_ICS_Radio_Override = 1378,
+    --   WSO_ICS_RADIO_OVERRIDE = 2668,
+    -- todo a lua function
+    
+    local _hotMic = false
+    if _seat == 0 then
+        if SR.getButtonPosition(1378) > -0.5 then
+            _hotMic = true
+        end
+
+    else
+        if SR.getButtonPosition(2668) > -0.5 then
+            _hotMic = true
+        end
+     end
+
+    _data.intercomHotMic = _hotMic 
+
+    if (ARC164_ptt) then
+        _data.selected = 2 -- radios[2] ARC-164
+        _data.ptt = true
+    elseif (intercom_transmit and not _hotMic) then
+
+        -- CHECK ICS Function Selector
+        -- If not set to HOT MIC - switch radios and PTT
+        -- if set to hot mic - dont switch and ignore
+        
+        _data.selected = 0 -- radios[1] intercom
+        _data.ptt = true
+    else
+        _data.selected = -1
+        _data.ptt = false
+    end
+
+    _data.control = 1 -- full radio
+
+   
+    -- Handle transponder- simpliefied for now
+
+    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+
+    _data.iff.status = 1 -- NORMAL
+    _data.iff.mode1 = -1
+    _data.iff.mode3 = 7000
+    _data.iff.mode4 = false
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        -- Pilot_Canopy = 87,
+        local _door = SR.getButtonPosition(87)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.3,  abType = 'f4' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'f4' }
+        end 
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'f4' }
+    end
+
+    return _data
+end
+
 function SR.exportRadioAJS37(_data)
 
     _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
@@ -6531,6 +6650,7 @@ SR.exporters["P-47D-40"] = SR.exportRadioP47
 SR.exporters["SpitfireLFMkIX"] = SR.exportRadioSpitfireLFMkIX
 SR.exporters["SpitfireLFMkIXCW"] = SR.exportRadioSpitfireLFMkIX
 SR.exporters["MosquitoFBMkVI"] = SR.exportRadioMosquitoFBMkVI
+SR.exporters["F-4E-45MC"] = SR.exportRadioF4
 
 
 --- DCS EXPORT FUNCTIONS
