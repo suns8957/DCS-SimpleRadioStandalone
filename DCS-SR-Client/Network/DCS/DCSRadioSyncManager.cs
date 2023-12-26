@@ -97,6 +97,21 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
                     {
                         radioJson = File.ReadAllText(AWACS_RADIOS_CUSTOM_FILE);
                         awacsRadios = JsonConvert.DeserializeObject<RadioInformation[]>(radioJson);
+
+                        foreach (var radio in awacsRadios)
+                        {
+                            if (radio.modulation == RadioInformation.Modulation.MIDS)
+                            {
+                                radio.freq = 1030100000.0;
+                                radio.freqMin = 1030000000;
+                                radio.freqMax = 1060000000;
+                                radio.encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION;
+                                radio.guardFreqMode = RadioInformation.FreqMode.COCKPIT;
+                                radio.volMode = RadioInformation.VolumeMode.OVERLAY;
+                                radio.freqMode = RadioInformation.FreqMode.OVERLAY;
+                            }
+
+                        }
                     }
                     catch (Exception ex)
                     {
