@@ -1938,10 +1938,10 @@ _f15e.iff = {
     status=-1,
     mode1=-1,
     mode3=-1,
-    mode2 = -1,
     mode4=false,
     control=0,
     expansion=false,
+    newIff=nil
 }
 
 function SR.exportRadioF15ESE(_data)
@@ -1952,11 +1952,27 @@ function SR.exportRadioF15ESE(_data)
             status=-1,
             mode1=-1,
             mode3=-1,
-            mode2=-1,
             mode4=false,
             control=0,
             expansion=false,
+            newIff=nil
         }
+    end
+
+    if _f15e.newIff == nil then
+
+        pcall(function()
+
+            _f15e.newIff = false
+
+            local _iffDevice = GetDevice(68)
+
+            if _iffDevice and _iffDevice:hasPower() ~= nil then
+                _f15e.newIff = true
+                return
+            end
+        end)
+
     end
 
     _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = true, desc = "" }
@@ -1977,8 +1993,9 @@ function SR.exportRadioF15ESE(_data)
     _data.radios[3].freq = SR.getRadioFrequency(8)
     _data.radios[3].modulation = SR.getRadioModulation(8)
 
-
     local _seat = SR.lastKnownSeat
+
+    _seat = 1
 
     if _seat == 0 then
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
@@ -2015,81 +2032,134 @@ function SR.exportRadioF15ESE(_data)
         _data.ambient = {vol = 0, abType = 'f15' }
     end
 
-        -- { ["UFC_SC_11"] = MC*,["UFC_CC_03"] = ,["UFC_CC_02"] = ,["UFC_SC_05A"] = .,["UFC_CC_04"] = ,["UFC_SC_09"] = AAI SLV ,["UFC_SC_08"] = U133000*,["UFC_SC_12"] =  ,["UFC_DISPLAY"] = ,["UFC_SC_10"] = PROGRAM ,["UFC_SC_05"] = *U225000,["UFC_SC_07"] = GV ,["UFC_SC_08A"] = .,["UFC_SC_06"] =  G,["UFC_SC_02"] = *M1-00,["UFC_SC_04"] = *M3-0000,["UFC_SC_03"] = *M2,["UFC_CC_01"] = -IFF-,["UFC_SC_01"] =  PH-0,} 
-    --{ ["UFC_SC_11"] = MC ,["UFC_CC_03"] = ,["UFC_CC_02"] = ,["UFC_SC_05A"] = .,["UFC_CC_04"] = ,["UFC_SC_09"] = AAI SLV ,["UFC_SC_08"] = U133000*,["UFC_SC_12"] =  ,["UFC_DISPLAY"] = ,["UFC_SC_10"] = PROGRAM ,["UFC_SC_05"] = *U225000,["UFC_SC_07"] = GV ,["UFC_SC_08A"] = .,["UFC_SC_06"] =  G,["UFC_SC_02"] =  M1-00,["UFC_SC_04"] =  M3-0000,["UFC_SC_03"] =  M2,["UFC_CC_01"] = -IFF-,["UFC_SC_01"] =  PH-0,} 
+      -- HANDLE TRANSPONDER
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
-    local ufc = nil
+    if _f15e.newIff == true then
+        --- Test for device
+        local _iffDevice = GetDevice(68)
 
-    if _seat == 0 then
-        ufc = SR.getListIndicatorValue(9)
+        if _iffDevice:hasPower() then
+            _data.iff.status = 1 -- NORMAL
+
+            if _iffDevice:isIdentActive() then
+                _data.iff.status = 2 -- IDENT (BLINKY THING)
+            end
+        else
+            _data.iff.status = -1
+        end
+        
+        
+        if _iffDevice:isModeActive(4) then 
+            _data.iff.mode4 = true
+        else
+            _data.iff.mode4 = false
+        end
+
+        if _iffDevice:isModeActive(3) then 
+            _data.iff.mode3 = string.format("%04d",_iffDevice:getModeCode(3))
+        else
+            _data.iff.mode3 = -1
+        end
+
+        if _iffDevice:isModeActive(2) then 
+            _data.iff.mode2 = string.format("%04d",_iffDevice:getModeCode(2))
+        else
+            _data.iff.mode2 = -1
+        end
+
+        if _iffDevice:isModeActive(1) then 
+            _data.iff.mode1 = string.format("%02d",_iffDevice:getModeCode(1))
+        else
+            _data.iff.mode1 = -1
+        end
+
+        -- local temp = {}
+        -- temp.mode4 = string.format("%04d",_iffDevice:getModeCode(4)) -- mode 4
+        -- temp.mode1 = string.format("%02d",_iffDevice:getModeCode(1))
+        -- temp.mode3 = string.format("%04d",_iffDevice:getModeCode(3))
+        -- temp.mode2 = string.format("%04d",_iffDevice:getModeCode(2))
+        -- temp.mode4Active = _iffDevice:isModeActive(4)
+        -- temp.mode1Active = _iffDevice:isModeActive(1)
+        -- temp.mode3Active = _iffDevice:isModeActive(3)
+        -- temp.mode2Active = _iffDevice:isModeActive(2)
+        -- temp.ident = _iffDevice:isIdentActive()
+        -- temp.power = _iffDevice:hasPower()
+
     else
-        ufc = SR.getListIndicatorValue(18)
-    end
-    
-    if ufc and ufc["UFC_CC_01"] ~= nil and  string.match(ufc["UFC_CC_01"], "IFF") then
-        if ufc["UFC_SC_02"] ~= nil then
-            --["UFC_SC_02"] =  M1-00
-            if string.sub(ufc["UFC_SC_02"], 1,1) == "*" then
-                local code = string.match(ufc["UFC_SC_02"], "%d%d")
-
-                if code then
-                    _f15e.iff.mode1 = code
-                end
-            else
-               _f15e.iff.mode1 = -1
-            end
-        end
-
-        if ufc["UFC_SC_04"] ~= nil then
-            --["UFC_SC_04"] =  M3-0000
-
-            if string.sub(ufc["UFC_SC_04"], 1,1) == "*" then
-
-                local code = string.match(ufc["UFC_SC_04"], "%d%d%d%d")
-
-                if code then
-                    _f15e.iff.mode3 = code
-                end
-            else
-                _f15e.iff.mode3 = -1
-            end
-            
-        end
-
-        if ufc["UFC_SC_11"] ~= nil then
-           -- ["UFC_SC_11"] = MC*
-
-           if ufc["UFC_SC_11"] == "MC*" then
-             _f15e.iff.mode4 = true
-           else
-             _f15e.iff.mode4 = false
-           end
-            
-        end
-    end
-
-    if _f15e.iff.mode4 == true or _f15e.iff.mode3 ~= -1 or _f15e.iff.mode1 ~= -1 then
-        _f15e.iff.status = 1
-
-        -- IDENT check
-        local iffIdent = -1 
+        local ufc = nil
 
         if _seat == 0 then
-            iffIdent = SR.getButtonPosition(297)
+            ufc = SR.getListIndicatorValue(9)
         else
-            iffIdent = SR.getButtonPosition(1322)
+            ufc = SR.getListIndicatorValue(18)
+        end
+        
+        if ufc and ufc["UFC_CC_01"] ~= nil and  string.match(ufc["UFC_CC_01"], "IFF") then
+            if ufc["UFC_SC_02"] ~= nil then
+                --["UFC_SC_02"] =  M1-00
+                if string.sub(ufc["UFC_SC_02"], 1,1) == "*" then
+                    local code = string.match(ufc["UFC_SC_02"], "%d%d")
+
+                    if code then
+                        _f15e.iff.mode1 = code
+                    end
+                else
+                   _f15e.iff.mode1 = -1
+                end
+            end
+
+            if ufc["UFC_SC_04"] ~= nil then
+                --["UFC_SC_04"] =  M3-0000
+
+                if string.sub(ufc["UFC_SC_04"], 1,1) == "*" then
+
+                    local code = string.match(ufc["UFC_SC_04"], "%d%d%d%d")
+
+                    if code then
+                        _f15e.iff.mode3 = code
+                    end
+                else
+                    _f15e.iff.mode3 = -1
+                end
+                
+            end
+
+            if ufc["UFC_SC_11"] ~= nil then
+               -- ["UFC_SC_11"] = MC*
+
+               if ufc["UFC_SC_11"] == "MC*" then
+                 _f15e.iff.mode4 = true
+               else
+                 _f15e.iff.mode4 = false
+               end
+                
+            end
         end
 
-        if iffIdent == 1 then
-            _f15e.iff.status = 2 -- IDENT (BLINKY THING)
+        if _f15e.iff.mode4 == true or _f15e.iff.mode3 ~= -1 or _f15e.iff.mode1 ~= -1 then
+            _f15e.iff.status = 1
+
+            -- IDENT check
+            local iffIdent = -1 
+
+            if _seat == 0 then
+                iffIdent = SR.getButtonPosition(297)
+            else
+                iffIdent = SR.getButtonPosition(1322)
+            end
+
+            if iffIdent == 1 then
+                _f15e.iff.status = 2 -- IDENT (BLINKY THING)
+            end
+
+        else
+            _f15e.iff.status = -1
         end
 
-    else
-        _f15e.iff.status = -1
+        _data.iff = _f15e.iff
     end
 
-    _data.iff = _f15e.iff
-              
     return _data
 end
 
@@ -3113,7 +3183,7 @@ function SR.exportRadioA10C(_data)
 
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(200,0.1)
 
@@ -3512,7 +3582,7 @@ function SR.exportRadioFA18C(_data)
         _fa18.radio2.guard = 0
         _fa18.radio3.channel = 127 --127 is disabled for MIDS
         _fa18.radio4.channel = 127
-        _fa18.iff = {status=-1,mode1=-1,mode3=-1,mode4=true,control=0,expansion=false}
+        _fa18.iff = {status=-1,mode1=-1,mode2=-1,mode3=-1,mode4=true,control=0,expansion=false}
         _fa18ent = false
         _fa18.enttries = 0
         _fa18.mode3opt = ""
@@ -5133,6 +5203,7 @@ function SR.exportRadioMB339A(_data)
     _data.iff = {
         status = iff_status,
         mode1 = iff_device:get_mode1_code(),
+        mode2=-1,
         mode3 = iff_device:get_mode3_code(),
         -- Mode 4 - not available in real MB-339 but we have decided to include it for gameplay
         mode4 = iff_device:is_mode4_working(),
@@ -5219,6 +5290,7 @@ end
 
 local _mirageEncStatus = false
 local _previousEncState = 0
+
 function SR.exportRadioM2000C(_data)
 
     local RED_devid = 20
@@ -5241,6 +5313,17 @@ function SR.exportRadioM2000C(_data)
     pcall(function() 
         GREEN_guard = tonumber(GREEN_device:guard_standby_freq())
         end)
+
+    local _newIff = false
+
+    pcall(function()
+        local _testIff = GetDevice(42)
+
+        if _testIff and _testIff:hasPower() ~= nil then
+            _newIff = true
+            return
+        end
+    end)
         
     _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
     _data.control = 0 
@@ -5328,77 +5411,118 @@ function SR.exportRadioM2000C(_data)
     _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
 
+    if _newIff then
 
-    -- Power switch
-    local masterIFF = SR.getSelectorPosition(392, 0.25)
-    if masterIFF >= 2 then
-        _data.iff.status = 1 -- NORMAL
-    end
+        local _iffDevice = GetDevice(42)
 
-    --IFF IDENT/MIC blinking
-    local iffIdent =  SR.getButtonPosition(383) -- -1 is MIC, 0 is OUT(OFF), 1 is IDENT
-    if iffIdent == 1 or (iffIdent == -1 and (GREEN_ptt or RED_ptt)) then
-        _data.iff.status = 2 -- IDENT (BLINKY THING)
-    end
+        if _iffDevice:hasPower() then
+            _data.iff.status = 1 -- NORMAL
 
-    local mode1On =  SR.getButtonPosition(384)
+            if _iffDevice:isIdentActive() then
+                _data.iff.status = 2 -- IDENT (BLINKY THING)
+            end
+        else
+            _data.iff.status = -1
+        end
+        
+        
+        if _iffDevice:isModeActive(4) then 
+            _data.iff.mode4 = true
+        else
+            _data.iff.mode4 = false
+        end
 
-    local mode1Digit1 = SR.round(SR.getButtonPosition(377), 0.1)*100
-    local mode1Digit2 = SR.round(SR.getButtonPosition(378), 0.1)*10
+        if _iffDevice:isModeActive(3) then 
+            _data.iff.mode3 = string.format("%04d",_iffDevice:getModeCode(3))
+        else
+            _data.iff.mode3 = -1
+        end
 
-    if mode1Digit1 > 70 then
-        mode1Digit1 = 70
-    end
+        if _iffDevice:isModeActive(2) then 
+            _data.iff.mode2 = string.format("%04d",_iffDevice:getModeCode(2))
+        else
+            _data.iff.mode2 = -1
+        end
 
-    if mode1Digit2 > 3 then
-        mode1Digit2 = 3
-    end
-
-    _data.iff.mode1 = mode1Digit1+mode1Digit2
-
-    if mode1On == 0 then
-        _data.iff.mode1 = -1
-    end
-
-    local mode3On =  SR.getButtonPosition(386)
-
-    local mode3Digit1 = SR.round(SR.getButtonPosition(379), 0.1)*10000
-    local mode3Digit2 = SR.round(SR.getButtonPosition(380), 0.1)*1000
-    local mode3Digit3 = SR.round(SR.getButtonPosition(381), 0.1)*100
-    local mode3Digit4 = SR.round(SR.getButtonPosition(382), 0.1)*10
-
-    if mode3Digit1 > 7000 then
-        mode3Digit1 = 7000
-    end
-
-    if mode3Digit2 > 700 then
-        mode3Digit2 = 700
-    end
-
-    if mode3Digit3 > 70 then
-        mode3Digit3 = 70
-    end
-
-    if mode3Digit4 > 7 then
-        mode3Digit4 = 7
-    end
-
-    _data.iff.mode3 = mode3Digit1+mode3Digit2+mode3Digit3+mode3Digit4
-
-    if mode3On == 0 then
-        _data.iff.mode3 = -1
-    elseif masterIFF == 3 then
-        -- EMERG SETTING 7770
-        _data.iff.mode3 = 7700
-    end
-
-    local mode4On = SR.getButtonPosition(390)
-    if mode4On == 1 then
-        _data.iff.mode4 = true
+        if _iffDevice:isModeActive(1) then 
+            _data.iff.mode1 = string.format("%02d",_iffDevice:getModeCode(1))
+        else
+            _data.iff.mode1 = -1
+        end
+    
+      --  SR.log(JSON:encode(_data.iff)..'\n\n')
     else
-        _data.iff.mode4 = false
-    end
+        
+        -- Power switch
+        local masterIFF = SR.getSelectorPosition(392, 0.25)
+        if masterIFF >= 2 then
+            _data.iff.status = 1 -- NORMAL
+        end
 
+        --IFF IDENT/MIC blinking
+        local iffIdent =  SR.getButtonPosition(383) -- -1 is MIC, 0 is OUT(OFF), 1 is IDENT
+        if iffIdent == 1 or (iffIdent == -1 and (GREEN_ptt or RED_ptt)) then
+            _data.iff.status = 2 -- IDENT (BLINKY THING)
+        end
+
+        local mode1On =  SR.getButtonPosition(384)
+
+        local mode1Digit1 = SR.round(SR.getButtonPosition(377), 0.1)*100
+        local mode1Digit2 = SR.round(SR.getButtonPosition(378), 0.1)*10
+
+        if mode1Digit1 > 70 then
+            mode1Digit1 = 70
+        end
+
+        if mode1Digit2 > 3 then
+            mode1Digit2 = 3
+        end
+
+        _data.iff.mode1 = mode1Digit1+mode1Digit2
+
+        if mode1On == 0 then
+            _data.iff.mode1 = -1
+        end
+
+        local mode3On =  SR.getButtonPosition(386)
+
+        local mode3Digit1 = SR.round(SR.getButtonPosition(379), 0.1)*10000
+        local mode3Digit2 = SR.round(SR.getButtonPosition(380), 0.1)*1000
+        local mode3Digit3 = SR.round(SR.getButtonPosition(381), 0.1)*100
+        local mode3Digit4 = SR.round(SR.getButtonPosition(382), 0.1)*10
+
+        if mode3Digit1 > 7000 then
+            mode3Digit1 = 7000
+        end
+
+        if mode3Digit2 > 700 then
+            mode3Digit2 = 700
+        end
+
+        if mode3Digit3 > 70 then
+            mode3Digit3 = 70
+        end
+
+        if mode3Digit4 > 7 then
+            mode3Digit4 = 7
+        end
+
+        _data.iff.mode3 = mode3Digit1+mode3Digit2+mode3Digit3+mode3Digit4
+
+        if mode3On == 0 then
+            _data.iff.mode3 = -1
+        elseif masterIFF == 3 then
+            -- EMERG SETTING 7770
+            _data.iff.mode3 = 7700
+        end
+
+        local mode4On = SR.getButtonPosition(390)
+        if mode4On == 1 then
+            _data.iff.mode4 = true
+        else
+            _data.iff.mode4 = false
+        end
+    end
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
@@ -5546,7 +5670,7 @@ function SR.exportRadioF1BE(_data)
     _data.radios[3].volMode = 0
     _data.radios[3].channel = SR.getNonStandardSpinner(348, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
 
-    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
 
     local iffPower =  SR.getSelectorPosition(739,0.1)
 
