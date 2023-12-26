@@ -127,8 +127,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
             //convert the byte buffer to a wave buffer
          //   var waveBuffer = new WaveBuffer(tmp);
 
-       
-            
             audio.PcmAudioFloat = tmp;
 
             var decrytable = audio.Decryptable /* || (audio.Encryption == 0) <--- this test has already been performed by all callers and would require another call to check for STRICT_AUDIO_ENCRYPTION */;
@@ -138,8 +136,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
                 //adjust for LOS + Distance + Volume
                 AdjustVolumeForLoss(audio);
 
-                //Add cockpit effect
-                if(ambientCockpitEffectEnabled)
+                //Add cockpit effect - but not for Intercom
+                if(ambientCockpitEffectEnabled && audio.Modulation != (short)Modulation.INTERCOM)
                     AddCockpitAmbientAudio(audio);
             }
             else
@@ -260,6 +258,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
             var vol = clientAudio.Ambient.vol;
 
+            if (clientAudio.Modulation == (short)Modulation.MIDS)
+            {
+                //for MIDS - lower the volume by 30%
+                vol = vol / 0.30f;
+            }
+
             var ambientEffectProg = ambientEffectProgress[clientAudio.ReceivedRadio];
 
             if (effect.Loaded)
@@ -291,7 +295,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
         private void AdjustVolumeForLoss(ClientAudio clientAudio)
         {
-            if (clientAudio.Modulation == (short)Modulation.MIDS || clientAudio.Modulation == (short)Modulation.SATCOM)
+            if (clientAudio.Modulation == (short)Modulation.MIDS || clientAudio.Modulation == (short)Modulation.SATCOM
+                                                                 || clientAudio.Modulation == (short)Modulation.INTERCOM)
             {
                 return;
             }
