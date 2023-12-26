@@ -33,6 +33,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
 
 #if DEBUG
             _logger.Info("Skipping update check due to DEBUG mode");
+
+            //ShowUpdateAvailableDialog("test",currentVersion,"https://google.com", false);
 #else
             try
             {
@@ -127,14 +129,33 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
             }
         }
 
+        private static bool IsDCSRunning()
+        {
+            foreach (var clsProcess in Process.GetProcesses())
+            {
+                if (clsProcess.ProcessName.ToLower().Trim().Equals("dcs"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static void LaunchUpdater(bool beta)
         {
-            WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-            bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-
-            if (!hasAdministrativeRight)
+            Task.Run(() =>
             {
-               
+                while (IsDCSRunning())
+                {
+                    Thread.Sleep(5000);
+                }
+
+                WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+                bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
+
+                if (!hasAdministrativeRight)
+                {
+
                     var location = AppDomain.CurrentDomain.BaseDirectory;
 
                     ProcessStartInfo startInfo = new ProcessStartInfo
@@ -149,7 +170,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
                     {
                         startInfo.Arguments = "-beta";
                     }
-                  
+
                     try
                     {
                         Process p = Process.Start(startInfo);
@@ -160,18 +181,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
                             "SRS Auto Update Requires Admin Rights",
                             "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
-            }
-            else
-            {
-                if (beta)
-                {
-                    Process.Start("SRS-AutoUpdater.exe", "-beta");
                 }
                 else
                 {
-                    Process.Start("SRS-AutoUpdater.exe");
+                    if (beta)
+                    {
+                        Process.Start("SRS-AutoUpdater.exe", "-beta");
+                    }
+                    else
+                    {
+                        Process.Start("SRS-AutoUpdater.exe");
+                    }
                 }
-            }
+            });
+           
         }
     }
 }

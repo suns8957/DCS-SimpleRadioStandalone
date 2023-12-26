@@ -127,9 +127,12 @@
     <value>available!</value>
   </data>
   <data name="MsgBoxUpdate4" xml:space="preserve">
-    <value>Do you want to Auto update? This will close SRS
+    <value>Do you want to Auto update?
+    
+If DCS is running this will wait until DCS has stopped running and automatically update after as the SRS installer requires DCS to be stopped. 
+It will also close SRS automatically if DCS is no longer running.
 
-Yes - Auto Update
+Yes - Auto Update (and wait for DCS to Close automatically)
 No - Manual Update
 Cancel - Ignore</value>
   </data>
