@@ -61,7 +61,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
                 
                 Mode3.IsEnabled = false;
                 Mode3.Text = "--";
-                
+
                 Mode4Button.IsEnabled = false;
                 Mode4Button.Foreground = new SolidColorBrush(Colors.Black);
 
@@ -143,6 +143,22 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
                     else
                     {
                         Mode4Button.Foreground = new SolidColorBrush(Colors.Black);
+                    }
+
+                    if (iff.mode2 > -1)
+                    {
+                        Mode2Button.Foreground = _buttonOn;
+                        if (Mode2Button.Visibility != Visibility.Visible)
+                        {
+                            Mode2Button.Visibility = Visibility.Visible;
+                        }
+                    }
+                    else
+                    {
+                        if (Mode2Button.Visibility != Visibility.Collapsed)
+                        {
+                            Mode2Button.Visibility = Visibility.Collapsed;
+                        }
                     }
 
                     if (iff.status == Common.DCSState.Transponder.IFFStatus.IDENT)

@@ -1,9 +1,9 @@
--- Version 2.0.9.1
+-- Version 2.1.0.0
 -- Make sure you COPY this file to the same location as the Export.lua as well! 
 -- Otherwise the Overlay will not work
 
 
-net.log("Loading - DCS-SRS Overlay GameGUI - Ciribob: 2.0.9.1 ")
+net.log("Loading - DCS-SRS Overlay GameGUI - Ciribob: 2.1.0.0 ")
 
 local base = _G
 
@@ -190,6 +190,10 @@ function srsOverlay.updateRadio()
                      _iff = _iff .. " M1:OFF"
                 else
                      _iff = _iff .. string.format(" M1:%02d",_radioInfo.iff.mode1)
+                end
+
+                if _radioInfo.iff.mode2 ~= -1 then
+                     _iff = _iff.." M2:ON"
                 end
 
                 if _radioInfo.iff.mode3 == -1 then
@@ -690,4 +694,4 @@ end
 
 DCS.setUserCallbacks(srsOverlay)
 
-net.log("Loaded - DCS-SRS Overlay GameGUI - Ciribob: 2.0.9.1 ")
+net.log("Loaded - DCS-SRS Overlay GameGUI - Ciribob: 2.1.0.0 ")

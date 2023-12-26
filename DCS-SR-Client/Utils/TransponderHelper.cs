@@ -101,6 +101,39 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
             return false;
         }
 
+        public static bool SetMode2(int mode2)
+        {
+            ClientStateSingleton.Instance.LastSent = 0;
+            var trans = GetTransponder(true);
+
+            if (trans != null)
+            {
+
+                if (mode2 < 0)
+                {
+                    trans.mode2 = -1;
+                }
+                else
+                {
+                    var numberStr = Math.Abs(mode2).ToString().ToCharArray();
+
+                    for (int i = 0; i < numberStr.Length; i++)
+                    {
+                        if (int.Parse(numberStr[i].ToString()) > 7)
+                        {
+                            numberStr[i] = '7';
+                        }
+                    }
+
+                    trans.mode2 = int.Parse(new string(numberStr));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool SetMode1(int mode1)
         {
             ClientStateSingleton.Instance.LastSent = 0;

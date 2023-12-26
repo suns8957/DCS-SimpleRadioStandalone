@@ -4,7 +4,7 @@
 
 function exportRadioMyModName(_data)
     _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = false, desc = "" }
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
     -- COMM1 Radio
     _data.radios[2].name = "AN/ARC-186(V)"

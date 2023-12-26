@@ -2893,6 +2893,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mode 2.
+        /// </summary>
+        public static string ToolTipTransponderMode2 {
+            get {
+                return ResourceManager.GetString("ToolTipTransponderMode2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Mode 4.
         /// </summary>
         public static string ToolTipTransponderMode4 {

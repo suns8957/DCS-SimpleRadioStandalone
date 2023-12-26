@@ -60,6 +60,18 @@
                      TextWrapping="NoWrap"
                      BorderThickness="0"/>
 
+            <Button x:Name="Mode2Button"
+                    Width="20"
+                    FontSize="10"
+                    Height="20"
+                    Margin="5,0,0,0"
+                    HorizontalAlignment="Center"
+                    Content="M2"
+                    IsEnabled="False"
+                    Visibility="Collapsed"
+                    Foreground="Black"
+                    Style="{StaticResource DarkStyle-Button}"
+                    ToolTip="{x:Static p:Resources.ToolTipTransponderMode2}" />
             <Button x:Name="Mode4Button"
                     Width="20"
                     FontSize="10"

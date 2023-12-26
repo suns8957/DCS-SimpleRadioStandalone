@@ -19,7 +19,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
 
             if (radio != null && radioId > 0)
             {
-                if (radio.freqMode == RadioInformation.FreqMode.OVERLAY || radio.guardFreqMode == RadioInformation.FreqMode.OVERLAY)
+                if ((radio.freqMode == RadioInformation.FreqMode.OVERLAY 
+                     || radio.guardFreqMode == RadioInformation.FreqMode.OVERLAY) 
+                    && radio.modulation != RadioInformation.Modulation.MIDS)
                 {
                     if (radio.secFreq > 0)
                     {
@@ -42,7 +44,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
 
             if (radio != null && radioId > 0)
             {
-                if (radio.freqMode == RadioInformation.FreqMode.OVERLAY || radio.guardFreqMode == RadioInformation.FreqMode.OVERLAY)
+                if ((radio.freqMode == RadioInformation.FreqMode.OVERLAY
+                     || radio.guardFreqMode == RadioInformation.FreqMode.OVERLAY)
+                    && radio.modulation != RadioInformation.Modulation.MIDS)
                 {
                     if (!enabled)
                     {
@@ -79,6 +83,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
                 {
                     if (delta)
                     {
+                        //ignore as its done via set channel which is not delta
+                        if (radio.modulation == RadioInformation.Modulation.MIDS)
+                        {
+                            return false;
+                        }
+
                         if (GlobalSettingsStore.Instance.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RotaryStyleIncrement))
                         {
                             // Easier to simply shift the decimal place value to the ones position for finding numeral at specific position
@@ -168,7 +178,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
 
             if (radio != null && radioId > 0)
             {
-                if (radio.modulation != RadioInformation.Modulation.DISABLED) // disabled
+                if (radio.modulation != RadioInformation.Modulation.DISABLED && radio.modulation != RadioInformation.Modulation.MIDS) // disabled or MIDS
                 {
                     //update stuff
                     if (radio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_JUST_OVERLAY)
@@ -194,7 +204,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
             var currentRadio = RadioHelper.GetRadio(radioId);
 
             if (currentRadio != null &&
-                currentRadio.modulation != RadioInformation.Modulation.DISABLED) // disabled
+                currentRadio.modulation != RadioInformation.Modulation.DISABLED 
+                && currentRadio.modulation != RadioInformation.Modulation.MIDS) // disabled & mids
             {
                 if (currentRadio.modulation != RadioInformation.Modulation.DISABLED) // disabled
                 {

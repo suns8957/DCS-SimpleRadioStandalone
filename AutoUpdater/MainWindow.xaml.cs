@@ -60,6 +60,18 @@ namespace AutoUpdater
             
         }
 
+        private bool IsDCSRunning()
+        {
+            foreach (var clsProcess in Process.GetProcesses())
+            {
+                if (clsProcess.ProcessName.ToLower().Trim().Equals("dcs"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void QuitSimpleRadio()
         {
             foreach (var clsProcess in Process.GetProcesses())
@@ -275,6 +287,15 @@ namespace AutoUpdater
 
                 if (!ServerInstall())
                 {
+
+                    while (IsDCSRunning())
+                    {
+                        MessageBox.Show(
+                            "Please Close DCS \n\nSRS cannot be installed - please close DCS before hitting OK \n\n",
+                            "Close DCS",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+
                     var releaseNotes = MessageBox.Show(
                         "Do you want to read the release notes? \n\nHighly recommended before installing! \n\n",
                         "Read Release Notes?",
