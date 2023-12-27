@@ -88,9 +88,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do you want to Auto update? This will close SRS
+        ///   Looks up a localized string similar to Do you want to Auto update?
+        ///    
+        ///If DCS is running this will wait until DCS has stopped running and automatically update after as the SRS installer requires DCS to be stopped. 
+        ///It will also close SRS automatically if DCS is no longer running.
         ///
-        ///Yes - Auto Update
+        ///Yes - Auto Update (and wait for DCS to Close automatically)
         ///No - Manual Update
         ///Cancel - Ignore.
         /// </summary>

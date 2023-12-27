@@ -7,6 +7,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.PresetChannels;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.DCS.SimpleRadio.Standalone.Common;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.PresetChannels
 {
@@ -76,15 +77,32 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
 
             var radio = radios[_radioId];
 
-            int i = 1;
-            foreach (var channel in _channelsStore.LoadFromStore(radio.name))
+            if (radio.modulation != RadioInformation.Modulation.MIDS)
             {
-                if (((double) channel.Value) <= Max
-                    && ((double) channel.Value) >= Min)
+                int i = 1;
+                foreach (var channel in _channelsStore.LoadFromStore(radio.name))
                 {
-                    channel.Channel = i++;
-                    PresetChannels.Add(channel);
+                    if (((double)channel.Value) <= Max
+                        && ((double)channel.Value) >= Min)
+                    {
+                        channel.Channel = i++;
+                        PresetChannels.Add(channel);
+                    }
                 }
+            }
+            else
+            {
+                //SR.MIDS_FREQ = 1030.0 * 1000000-- Start at UHF 10300
+               // SR.MIDS_FREQ_SEPARATION = 1.0 * 100000-- 0.1 MHZ between MIDS channels
+               for (int i = 1; i < 127; i++)
+               {
+                   PresetChannels.Add(new PresetChannel
+                   {
+                       Channel = i,
+                       Text = "MIDS " + i,
+                       Value = (i * 100000.0) + (1030.0 * 1000000.0)
+                   });
+               }
             }
         }
 
