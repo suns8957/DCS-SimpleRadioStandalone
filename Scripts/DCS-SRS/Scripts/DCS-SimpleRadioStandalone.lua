@@ -6122,16 +6122,19 @@ function SR.exportRadioF4(_data)
 
     local intercom_hot_mic = ICS_device:intercom_transmit()
     local ARC164_ptt = ARC164_device:is_ptt_pressed()
+    local radio_modulation = ARC164_device:get_modulation()
+    local ky28_key = ICS_device:get_ky28_key()
+    local is_encrypted = ICS_device:is_arc164_encrypted()
 
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
     _data.radios[1].volume = ICS_device:get_volume()
 
-    _data.radios[2].name = "AN/ARC-164"
-    _data.radios[2].freq = ARC164_device:is_on() and SR.round(ARC164_device:get_frequency(), 5000) or 1
-    _data.radios[2].modulation = ARC164_device:get_modulation()
-    _data.radios[2].volume = ARC164_device:get_volume()
+    _data.radios[2].name = "AN/ARC-164 COMM"
+    _data.radios[2].freq = ARC164_device:is_on() and SR.round(ARC164_device:get_comm_frequency(), 5000) or 1
+    _data.radios[2].modulation = radio_modulation
+    _data.radios[2].volume = ARC164_device:get_comm_volume()
     if ARC164_device:is_guard_enabled() then
         _data.radios[2].secFreq = 243.0 * 1000000
     else
@@ -6139,28 +6142,20 @@ function SR.exportRadioF4(_data)
     end
     _data.radios[2].freqMin = 225 * 1000000
     _data.radios[2].freqMax = 399.950 * 1000000
-    _data.radios[2].encKey = ICS_device:get_ky28_key()
-    _data.radios[2].enc = ICS_device:is_arc164_encrypted()
+    _data.radios[2].encKey = ky28_key
+    _data.radios[2].enc = is_encrypted
     _data.radios[2].encMode = 2
 
-    --todo aux receiver
-    --[[
-    _data.radios[3].name = "AN/ARC-182(V)"
-    _data.radios[3].freq = ARC182_device:is_on() and SR.round(ARC182_device:get_frequency(), 5000) or 1
-    _data.radios[3].modulation = ARC182_device:get_modulation()
-    _data.radios[3].volume = ARC182_device:get_volume()
-    if ARC182_device:is_guard_enabled() then
-        _data.radios[3].secFreq = SR.round(ARC182_device:get_guard_freq(), 5000)
-    else
-        _data.radios[3].secFreq = 0
-    end
-    _data.radios[3].freqMin = 30 * 1000000
-    _data.radios[3].freqMax = 399.975 * 1000000
-    _data.radios[3].encKey = ICS_device:get_ky28_key()
-    _data.radios[3].enc = ICS_device:is_arc182_encrypted()
+    _data.radios[3].name = "AN/ARC-164 AUX"
+    _data.radios[3].freq = ARC164_device:is_aux_on() and SR.round(ARC164_device:get_aux_frequency(), 5000) or 1 --todo freq function --todo aux rec_on function
+    _data.radios[3].modulation = radio_modulation
+    _data.radios[3].volume = ARC164_device:get_aux_volume()
+    _data.radios[3].secFreq = 0
+    _data.radios[3].freqMin = 265 * 1000000
+    _data.radios[3].freqMax = 284.9 * 1000000
+    _data.radios[3].encKey = ky28_key
+    _data.radios[3].enc = is_encrypted
     _data.radios[3].encMode = 2
-
-    --]]
  
     _data.intercomHotMic = intercom_hot_mic
 
