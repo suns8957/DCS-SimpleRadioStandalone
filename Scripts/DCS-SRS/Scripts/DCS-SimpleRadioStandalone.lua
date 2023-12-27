@@ -6120,7 +6120,7 @@ function SR.exportRadioF4(_data)
     local ICS_device = GetDevice(ics_devid)
     local ARC164_device = GetDevice(arc164_devid)
 
-    local intercom_transmit = ICS_device:intercom_transmit()
+    local intercom_hot_mic = ICS_device:intercom_transmit()
     local ARC164_ptt = ARC164_device:is_ptt_pressed()
 
     _data.radios[1].name = "Intercom"
@@ -6161,39 +6161,13 @@ function SR.exportRadioF4(_data)
     _data.radios[3].encMode = 2
 
     --]]
-    local _seat = SR.lastKnownSeat
-
-    --   Pilot_ICS_Radio_Override = 1378,
-    --   WSO_ICS_RADIO_OVERRIDE = 2668,
-    -- todo a lua function
-   
-    local _hotMic = false
-    
-    if _seat == 0 then
-        if SR.getButtonPosition(1378) > -0.5 then
-            _hotMic = true
-        end
-
-    else
-        if SR.getButtonPosition(2668) > -0.5 then
-            _hotMic = true
-        end
-     end
-    
-    _data.intercomHotMic = _hotMic 
+ 
+    _data.intercomHotMic = intercom_hot_mic
 
     if (ARC164_ptt) then
         _data.selected = 1 -- radios[2] ARC-164
         _data.ptt = true
-    
-    elseif (intercom_transmit and not _hotMic) then
 
-        -- CHECK ICS Function Selector
-        -- If not set to HOT MIC - switch radios and PTT
-        -- if set to hot mic - dont switch and ignore
-        
-        _data.selected = 0 -- radios[1] intercom
-        _data.ptt = true
     else
         _data.selected = -1
         _data.ptt = false
