@@ -6166,8 +6166,9 @@ function SR.exportRadioF4(_data)
     --   Pilot_ICS_Radio_Override = 1378,
     --   WSO_ICS_RADIO_OVERRIDE = 2668,
     -- todo a lua function
-    
+   
     local _hotMic = false
+    
     if _seat == 0 then
         if SR.getButtonPosition(1378) > -0.5 then
             _hotMic = true
@@ -6178,12 +6179,13 @@ function SR.exportRadioF4(_data)
             _hotMic = true
         end
      end
-
+    
     _data.intercomHotMic = _hotMic 
 
     if (ARC164_ptt) then
-        _data.selected = 2 -- radios[2] ARC-164
+        _data.selected = 1 -- radios[2] ARC-164
         _data.ptt = true
+    
     elseif (intercom_transmit and not _hotMic) then
 
         -- CHECK ICS Function Selector
