@@ -260,8 +260,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
             if (clientAudio.Modulation == (short)Modulation.MIDS)
             {
-                //for MIDS - lower the volume by 30%
-                vol = vol / 0.30f;
+                //for MIDS - half volume again - just for ambient vol
+                vol = vol / 0.50f;
             }
 
             var ambientEffectProg = ambientEffectProgress[clientAudio.ReceivedRadio];
