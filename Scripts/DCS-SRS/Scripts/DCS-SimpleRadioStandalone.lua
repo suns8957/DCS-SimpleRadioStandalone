@@ -1995,8 +1995,6 @@ function SR.exportRadioF15ESE(_data)
 
     local _seat = SR.lastKnownSeat
 
-    _seat = 1
-
     if _seat == 0 then
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 283, { 0.0, 1.0 }, false)
