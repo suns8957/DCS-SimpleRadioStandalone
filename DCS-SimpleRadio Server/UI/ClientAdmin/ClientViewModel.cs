@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Globalization;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
@@ -17,6 +19,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public ClientViewModel(SRClient client, IEventAggregator eventAggregator)
         {
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
             _eventAggregator = eventAggregator;
             Client = client;
             Client.PropertyChanged += ClientOnPropertyChanged;
