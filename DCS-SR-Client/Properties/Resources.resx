@@ -1079,6 +1079,9 @@ Requires Tx or Rx Effects On</value>
   <data name="ToolTipTransponder" xml:space="preserve">
     <value>Activate / Deactivate Transponder</value>
   </data>
+  <data name="ToolTipTransponderMode2" xml:space="preserve">
+    <value>Mode 2</value>
+  </data>
   <data name="ToolTipTransponderMode4" xml:space="preserve">
     <value>Mode 4</value>
   </data>

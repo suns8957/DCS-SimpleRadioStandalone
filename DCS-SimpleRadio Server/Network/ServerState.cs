@@ -162,7 +162,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Network
                                             {
                                                 radios = null,
                                                 unitId = srClient.RadioInfo.unitId,
-                                                iff = srClient.RadioInfo.iff,
+                                                iff = srClient.RadioInfo.iff.Copy(),
                                                 unit = srClient.RadioInfo.unit,
                                             },
                                             Coalition = srClient.Coalition,
@@ -171,6 +171,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Network
                                             Seat = srClient.Seat,
                                             AllowRecord = srClient.AllowRecord                                       
                                         };
+
+                                        //reset and hide anything if the IFF is off
+                                        if (newClient.RadioInfo.iff.status == Transponder.IFFStatus.OFF)
+                                        {
+                                            newClient.RadioInfo.iff = new Transponder();
+                                        }
 
                                         data.Clients.Add(newClient);
 

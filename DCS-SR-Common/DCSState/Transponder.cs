@@ -12,6 +12,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.DCSState
         /**
          *  -- IFF_STATUS:  OFF = 0,  NORMAL = 1 , or IDENT = 2 (IDENT means Blink on LotATC) 
             -- M1:-1 = off, any other number on 
+            -- M2: -1 = OFF, any other number on
             -- M3: -1 = OFF, any other number on 
             -- M4: 1 = ON or 0 = OFF
             -- EXPANSION: only enabled if IFF Expansion is enabled
@@ -39,6 +40,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.DCSState
         public bool expansion = false;
 
         public int mode1 = -1;
+        public int mode2 = -1;
         public int mode3 = -1;
         public bool mode4 = false;
 
@@ -55,6 +57,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.DCSState
 
 
             if (mode1 != compare.mode1)
+            {
+                return false;
+            }
+
+            if (mode2 != compare.mode2)
             {
                 return false;
             }
@@ -79,7 +86,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.DCSState
 
         public Transponder Copy()
         {
-            return new Transponder(){mode1 = mode1,mode3 = mode3,mode4 = mode4,status = status, mic = mic};
+            return new Transponder(){mode1 = mode1,mode2 = mode2, mode3 = mode3,mode4 = mode4,status = status, mic = mic};
         }
     }
 }
