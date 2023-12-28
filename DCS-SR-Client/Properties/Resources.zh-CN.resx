@@ -138,6 +138,12 @@
   <data name="AlwaysAllowTransponderOverlay" xml:space="preserve">
     <value>始终允许浮窗应答机控制</value>
   </data>
+  <data name="AmbientEffectToggle" xml:space="preserve">
+    <value>启用座舱环境音效</value>
+  </data>
+  <data name="AmbientEffectVolume" xml:space="preserve">
+    <value>座舱环境音效音量</value>
+  </data>
   <data name="AudioHeader" xml:space="preserve">
     <value>音频</value>
   </data>
