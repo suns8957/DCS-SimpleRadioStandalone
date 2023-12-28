@@ -6244,9 +6244,11 @@ function SR.exportRadioF4(_data)
 
     local ics_devid = 2
     local arc164_devid = 3
+    local iff_devid = 4
 
     local ICS_device = GetDevice(ics_devid)
     local ARC164_device = GetDevice(arc164_devid)
+    local IFF_device = GetDevice(iff_devid)
 
     local intercom_hot_mic = ICS_device:intercom_transmit()
     local ARC164_ptt = ARC164_device:is_ptt_pressed()
@@ -6275,7 +6277,7 @@ function SR.exportRadioF4(_data)
     _data.radios[2].encMode = 2
 
     _data.radios[3].name = "AN/ARC-164 AUX"
-    _data.radios[3].freq = ARC164_device:is_aux_on() and SR.round(ARC164_device:get_aux_frequency(), 5000) or 1 --todo freq function --todo aux rec_on function
+    _data.radios[3].freq = ARC164_device:is_aux_on() and SR.round(ARC164_device:get_aux_frequency(), 5000) or 1
     _data.radios[3].modulation = radio_modulation
     _data.radios[3].volume = ARC164_device:get_aux_volume()
     _data.radios[3].secFreq = 0
@@ -6299,14 +6301,26 @@ function SR.exportRadioF4(_data)
     _data.control = 1 -- full radio
 
    
-    -- Handle transponder- simpliefied for now
+    -- Handle transponder
 
     _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
 
-    _data.iff.status = 1 -- NORMAL
-    _data.iff.mode1 = -1
-    _data.iff.mode3 = 7000
-    _data.iff.mode4 = false
+    local iff_power = IFF_device:get_is_on()
+    local iff_ident = IFF_device:get_ident()
+
+    if iff_power then
+        _data.iff.status = 1 -- NORMAL
+
+        if iff_ident then
+            _data.iff.status = 2 -- IDENT (BLINKY THING)
+        end
+    else
+        _data.iff.status = -1
+    end
+
+    _data.iff.mode1 = IFF_device:get_mode1()
+    _data.iff.mode3 = IFF_device:get_mode3()
+    _data.iff.mode4 = IFF_device:get_mode4_is_on()
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
