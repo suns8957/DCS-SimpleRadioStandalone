@@ -766,7 +766,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
     <value>机内通话常开</value>
   </data>
   <data name="OverlayMIDS" xml:space="preserve">
-    <value>数据链通讯</value>
+    <value>数据链</value>
   </data>
   <data name="OverlayNoIntercom" xml:space="preserve">
     <value>无机内通话</value>
