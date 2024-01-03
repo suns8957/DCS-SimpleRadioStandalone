@@ -1,4 +1,4 @@
--- Version 2.1.0.0
+-- Version 2.1.0.1
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -1994,8 +1994,6 @@ function SR.exportRadioF15ESE(_data)
     _data.radios[3].modulation = SR.getRadioModulation(8)
 
     local _seat = SR.lastKnownSeat
-
-    _seat = 1
 
     if _seat == 0 then
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
@@ -6846,4 +6844,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.0")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.1")
