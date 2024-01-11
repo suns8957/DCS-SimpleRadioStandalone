@@ -6260,9 +6260,9 @@ function SR.exportRadioF4(_data)
     _data.radios[1].volume = ICS_device:get_volume()
 
     _data.radios[2].name = "AN/ARC-164 COMM"
-    _data.radios[2].freq = ARC164_device:is_on() and SR.round(ARC164_device:get_comm_frequency(), 5000) or 1
+    _data.radios[2].freq = ARC164_device:is_on() and SR.round(ARC164_device:get_frequency(), 5000) or 1
     _data.radios[2].modulation = radio_modulation
-    _data.radios[2].volume = ARC164_device:get_comm_volume()
+    _data.radios[2].volume = ARC164_device:get_volume()
     if ARC164_device:is_guard_enabled() then
         _data.radios[2].secFreq = 243.0 * 1000000
     else
