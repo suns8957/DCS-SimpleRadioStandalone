@@ -486,11 +486,16 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
                             channelModel.Max = clientRadio.freqMax;
                             channelModel.Min = clientRadio.freqMin;
                             channelModel.Reload();
-                            clientRadio.channel = -1; //reset channel
 
                             if (_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel))
                             {
                                 RadioHelper.RadioChannelUp(i);
+                            }
+                            else if (!_clientStateSingleton.ExternalAWACSModeConnected)
+                            {
+                                // Only reset channels if the user is not using the AWACS panel.
+                                // Otherwise, keep whatever channel they preset in the json.
+                                clientRadio.channel = -1; //reset channel
                             }
                         }
                         else
