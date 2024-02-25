@@ -5465,7 +5465,7 @@ function SR.exportRadioF1BE(_data)
 
 
     _data.radios[3].name = "UHF TRAP-137B"
-    _data.radios[3].freq = SR.getRadioFrequency(7)
+    _data.radios[3].freq = SR.getRadioFrequency(8)
     _data.radios[3].modulation = 0
     _data.radios[3].volMode = 0
     _data.radios[3].channel = SR.getNonStandardSpinner(348, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
