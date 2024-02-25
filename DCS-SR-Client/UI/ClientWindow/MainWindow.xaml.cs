@@ -656,7 +656,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             try
             {
                 var pos = ClientState.PlayerCoaltionLocationMetadata.LngLngPosition;
-                CurrentPosition.Text = $"Lat/Lng: {pos.lat:0.###},{pos.lng:0.###} - Alt: {pos.alt:0} {ClientState?.DcsPlayerRadioInfo?.unit}";
+                CurrentPosition.Text = $"Lat/Lng: {pos.lat:0.###},{pos.lng:0.###} - Alt: {pos.alt:0}";
+                CurrentUnit.Text = $"{ClientState?.DcsPlayerRadioInfo?.unit}";
             }
             catch { }
 

@@ -221,6 +221,9 @@
   <data name="CurrentProfileNone" xml:space="preserve">
     <value>无</value>
   </data>
+  <data name="CurrentUnitLabel" xml:space="preserve">
+    <value>飞机</value>
+  </data>
   <data name="DefaultMicrophone" xml:space="preserve">
     <value>默认麦克风</value>
   </data>
