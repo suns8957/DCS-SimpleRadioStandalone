@@ -215,6 +215,9 @@
   <data name="CurrentPositionLabel" xml:space="preserve">
     <value>Current Position:</value>
   </data>
+  <data name="CurrentUnitLabel" xml:space="preserve">
+    <value>Unit:</value>
+  </data>
   <data name="CurrentProfile" xml:space="preserve">
     <value>Current Profile:</value>
   </data>

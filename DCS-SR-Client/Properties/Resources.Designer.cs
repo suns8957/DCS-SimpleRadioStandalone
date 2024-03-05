@@ -387,6 +387,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unit:.
+        /// </summary>
+        public static string CurrentUnitLabel {
+            get {
+                return ResourceManager.GetString("CurrentUnitLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default Microphone.
         /// </summary>
         public static string DefaultMicrophone {
