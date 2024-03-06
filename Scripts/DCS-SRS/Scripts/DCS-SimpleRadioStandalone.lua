@@ -6103,7 +6103,7 @@ function SR.exportRadioF4(_data)
    
     -- Handle transponder
 
-    _data.iff = {status=0,mode1=0,mode3=0,mode4=false,control=0,expansion=false}
+    _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
     local iff_power = IFF_device:get_is_on()
     local iff_ident = IFF_device:get_ident()
@@ -6119,6 +6119,7 @@ function SR.exportRadioF4(_data)
     end
 
     _data.iff.mode1 = IFF_device:get_mode1()
+    _data.iff.mode2 = IFF_device:get_mode2()
     _data.iff.mode3 = IFF_device:get_mode3()
     _data.iff.mode4 = IFF_device:get_mode4_is_on()
 
