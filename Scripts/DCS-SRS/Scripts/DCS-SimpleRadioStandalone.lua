@@ -665,27 +665,20 @@ function SR.exportRadioSU27(_data)
     return _data
 end
 
+local _ah64Mode1Persist = -1 -- Need this persistence for only MODE1 because it's pulled from the XPNDR page; default it to off
 function SR.exportRadioAH64D(_data)
     _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "Recommended: Always Allow SRS Hotkeys - OFF. Bind Intercom Select & PTT, Radio PTT and DCS RTS up down" }
+    _data.control = 1
 
     local _iffSettings = {
         status = 0,
-        mode1 = -1,
+        mode1 = _ah64Mode1Persist,
         mode2 = -1,
         mode3 = -1,
         mode4 = 0,
         control = 0,
         expansion = false
-
     }
-
-    local _cipherSettings = {
-        uhfCipher = 0,
-        fm1Cipher = 0,
-        fm2Cipher = 0,
-        hfCipher = 0
-    }
-    _data.control = 1
 
     -- Check if player is in a new aircraft
     if _lastUnitId ~= _data.unitId then
@@ -732,21 +725,22 @@ function SR.exportRadioAH64D(_data)
     _data.radios[6].freq = SR.getRadioFrequency(61)
     _data.radios[6].modulation = 0
     _data.radios[6].volMode = 0
-    -- _data.radios[6].encMode = 2 -- The ACFT has the functionality but SRS doesn't want to?
+    _data.radios[6].encMode = 2 -- As of DCS OB2.9.2.49940 the HF preset functionality is bugged, but I'll leave this here in hopes ED fixes the bug
 
-    local _radioPanel = nil
+    local _eufdDevice = nil
     local _mpdLeft = nil
     local _mpdRight = nil
     local _iffIdentBtn = nil
-    --local _iffEmergencyBtn = nil
+    --local _iffEmergencyBtn = nil -- TODO: No (easily achieved) reliable way to determine if this is active (that I'm aware of)
+                                        -- Don't want to overengineer something just for this functionality.
 
     if SR.lastKnownSeat == 0 then
 
-        _radioPanel = SR.getListIndicatorValue(17)
+        _eufdDevice = SR.getListIndicatorValue(17)
         _mpdLeft = SR.getListIndicatorValue(6)
         _mpdRight = SR.getListIndicatorValue(8)
         _iffIdentBtn = SR.getButtonPosition(347) -- PLT comm panel ident button
-        --_iffEmergencyBtn = SR.getButtonPosition(311) -- PLT Emergency Panel XPNDR Btn -- No (easily achieved) reliable way to determine if this is active
+        --_iffEmergencyBtn = SR.getButtonPosition(311) -- PLT Emergency Panel XPNDR Btn
 
         local _masterVolume = SR.getRadioVolume(0, 344, { 0.0, 1.0 }, false) 
         
@@ -794,7 +788,7 @@ function SR.exportRadioAH64D(_data)
 
     else
 
-        _radioPanel = SR.getListIndicatorValue(18)
+        _eufdDevice = SR.getListIndicatorValue(18)
         _mpdLeft = SR.getListIndicatorValue(10)
         _mpdRight = SR.getListIndicatorValue(12)
         _iffIdentBtn = SR.getButtonPosition(388) -- CPG comm panel ident button
@@ -846,91 +840,61 @@ function SR.exportRadioAH64D(_data)
 
     end
 
-    if _radioPanel then
+    if _eufdDevice then
         -- figure out selected
-        if _radioPanel['Rts_VHF_'] == '<' then
+        if _eufdDevice['Rts_VHF_'] == '<' then
             _data.selected = 1
-        elseif _radioPanel['Rts_UHF_'] == '<' then
+        elseif _eufdDevice['Rts_UHF_'] == '<' then
             _data.selected = 2
-        elseif _radioPanel['Rts_FM1_'] == '<' then
+        elseif _eufdDevice['Rts_FM1_'] == '<' then
             _data.selected = 3
-        elseif _radioPanel['Rts_FM2_'] == '<' then
+        elseif _eufdDevice['Rts_FM2_'] == '<' then
             _data.selected = 4
-        elseif _radioPanel['Rts_HF_'] == '<' then
+        elseif _eufdDevice['Rts_HF_'] == '<' then
             _data.selected = 5
         end
 
-        if _radioPanel['Guard'] == 'G' then
+        if _eufdDevice['Guard'] == 'G' then
             _data.radios[3].secFreq = 243e6
         end
 
-        if _radioPanel["Transponder_MC"] == "NORM" then -- IFF NORM
-            _iffSettings.status = 1
+        -- TODO??: Regarding IFF, I had not checked prior to @falcoger pointing it out... the Apache XPNDR
+        --      page only runs a simple logic check (#digits) to accept input for modes. I considered
+        --      scripting the logic on SRS' end to perform the check for validity, but without sufficient
+        --      means to provide user feedback regarding the validity, I opted to just let the user input
+        --      invalid codes since it seems (?) LotAtc doesn't perform a proper logic check either, just a
+        --      #digit check. Hopefully ED will someday emplace the logic check within the Apache.
 
-            if _iffIdentBtn > 0 then
-                _iffSettings.status = 2 -- IDENT
-            end
+        if _eufdDevice["Transponder_MC"] == "NORM" then -- IFF NORM
+            _iffSettings.status = (_iffIdentBtn > 0) and 2 or 1 -- IDENT and Power
 
-            if _radioPanel["Transponder_MODE_3A"] then
-                _iffSettings.mode3 = string.format("%04d", _radioPanel["Transponder_MODE_3A"])
-            else
-                _iffSettings.mode3 = -1
-            end
+            _iffSettings.mode3 = _eufdDevice["Transponder_MODE_3A"] and string.format("%04d", _eufdDevice["Transponder_MODE_3A"]) or -1
 
-            if _radioPanel["XPNDR_MODE_4"] then
-                _iffSettings.mode4 = 1
-            else
-                _iffSettings.mode4 = 0
-            end
-        else -- IFF STBY
+            _iffSettings.mode4 = _eufdDevice["XPNDR_MODE_4"] and 1 or 0
+        else -- Transponder_MC == "STBY" or there's no power
             _iffSettings.status = 0
         end
 
-        if _radioPanel["Cipher_UHF"] then
-            _cipherSettings.uhfCipher = 1
-            _data.radios[3].encKey = string.format("%01d", string.match(_radioPanel["Cipher_UHF"], "%d+"))
-        end
+        _data.radios[3].enc = _eufdDevice["Cipher_UHF"] and 1 or 0
+        _data.radios[3].encKey = _eufdDevice["Cipher_UHF"] and string.format("%01d", string.match(_eufdDevice["Cipher_UHF"], "%d+")) or 1
 
-        if _radioPanel["Cipher_FM1"] then
-            _cipherSettings.fm1Cipher = 1
-            _data.radios[4].encKey = string.format("%01d", string.match(_radioPanel["Cipher_FM1"], "%d+"))
-        end
+        _data.radios[4].enc = _eufdDevice["Cipher_FM1"] and 1 or 0
+        _data.radios[4].encKey = _eufdDevice["Cipher_FM1"] and string.format("%01d", string.match(_eufdDevice["Cipher_FM1"], "%d+")) or 1
 
-        if _radioPanel["Cipher_FM2"] then
-            _cipherSettings.fm2Cipher = 1
-            _data.radios[5].encKey = string.format("%01d", string.match(_radioPanel["Cipher_FM2"], "%d+"))
-        end
+        _data.radios[5].enc = _eufdDevice["Cipher_FM2"] and 1 or 0
+        _data.radios[5].encKey = _eufdDevice["Cipher_FM2"] and string.format("%01d", string.match(_eufdDevice["Cipher_FM2"], "%d+")) or 1
 
-        -- if _radioPanel["Cipher_HF"] then
-        --     _cipherSettings.fm1Cipher = 1
-        --     _data.radios[6].encKey = string.format("%01d", string.match(_radioPanel["Cipher_HF"], "%d+"))
-        -- end
-
-        _data.radios[3].enc = _cipherSettings.uhfCipher
-        _data.radios[4].enc = _cipherSettings.fm1Cipher
-        _data.radios[5].enc = _cipherSettings.fm2Cipher
-        --_data.radios[6].enc = _cipherSettings.hfCipher
+        _data.radios[6].enc = _eufdDevice["Cipher_HF"] and 1 or 0
+        _data.radios[6].encKey = _eufdDevice["Cipher_HF"] and string.format("%01d", string.match(_eufdDevice["Cipher_HF"], "%d+"))
     end
 
     if (_mpdLeft or _mpdRight) then
-        if _mpdLeft["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the left MPD
-            if _mpdLeft["PB24_9"] == "}1" then -- The curly brackets denote on/off status
-                _iffSettings.mode1 = -1 -- off
-            else
-                if _mpdLeft["PB7_23"] then -- mode1 MPD display
-                    _iffSettings.mode1 = string.format("%02d", _mpdLeft["PB7_23"]) -- set mode1 according to MPD display
-                end
-            end
+        if _mpdLeft["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the LEFT MPD
+            _ah64Mode1Persist = _mpdLeft["PB24_9"] == "}1" and -1 or string.format("%02d", _mpdLeft["PB7_23"])
         end
 
-        if _mpdRight["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the right MPD -- (functions same as above w/comments)
-            if _mpdRight["PB24_9"] == "}1" then
-                _iffSettings.mode1 = -1
-            else
-                if _mpdRight["PB7_23"] then
-                    _iffSettings.mode1 = string.format("%02d", _mpdRight["PB7_23"])
-                end
-            end
+        if _mpdRight["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the RIGHT MPD
+            _ah64Mode1Persist = _mpdRight["PB24_9"] == "}1" and -1 or string.format("%02d", _mpdRight["PB7_23"])
         end
     end
 
