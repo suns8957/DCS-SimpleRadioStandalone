@@ -665,105 +665,27 @@ function SR.exportRadioSU27(_data)
     return _data
 end
 
-local  _ah64 = {}
-_ah64.cipher = {
-    key = 1,
-    enabled = false
-}
-
-
 function SR.exportRadioAH64D(_data)
-    _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "Recommended: Always Allow SRS Hotkeys - OFF. Bind Intercom Select & PTT, Radio PTT and DCS RTS up down" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "Recommended: Always Allow SRS Hotkeys - OFF. Bind Intercom Select & PTT, Radio PTT and DCS RTS up down" }
 
--- 17 is the pilot (back seat)
--- 18 is the gunner (front seat)
--- Rts_FM1 is LEFT (single underscore) - current radio selected
--- Rts__FM1 is RIGHT (double underscore) - current radio selected in the OTHER seat (swaps if front or back)
--- we only care bout LEFT
--- { ["Net_FM1"] = ,
--- ["Net_Standby_FM2"] = ,
--- ["Frequency_Standby_VHF"] = 121.500,
--- ["Idm_FM2"] = ,
--- ["Idm_UHF"] = ,
--- ["Transponder_ID"] = XPNDR,
--- ["Net_VHF"] = ,
--- ["PowerStatus_FM1"] = NORM,
--- ["AdvisoryList_1"] = TAIL WHL LOCK SEL ,
--- ["Rts__FM1"] = =,
--- ["Idm_FM1"] = ],
--- ["Squelch_FM2"] = *,
--- ["Net_Standby_FM1"] = ,
--- ["Net_Standby_VHF"] = ,
--- ["Symbols_1"] = |,
--- ["RadioStats_HF"] = ,
--- ["Call_Standby_FM2"] = -----,
--- ["Idm_VHF"] = [,
--- ["Call_Standby_VHF"] = -----,
--- ["PowerStatus_HF"] = LOW,
--- ["Frequency_FM1"] =  30.000,
--- ["Symbols_5"] = |,
--- ["Arrows_3"] = |,
--- ["Symbols_10"] = |,
--- ["Rts_FM1_"] = =,
--- ["Symbols_6"] = |,
--- ["Radio_VHF"] = VHF,
--- ["Symbols_4"] = |,
--- ["Squelch_VHF"] = *,
--- ["Transponder_MODE_3A"] = 1200,
--- ["Rts__VHF"] = =,
--- ["Call_Standby_FM1"] = -----,
--- ["Call_UHF"] = -----,
--- ["Frequency_VHF"] = 121.000,
--- ["Radio_FM1"] = FM1,
--- ["background"] = ,
--- ["Frequency_Standby_UHF"] = 305.000,
--- ["Transponder_MC"] = NORM,
--- ["Call_VHF"] = -----,
--- ["Call_FM2"] = -----,
--- ["Net_UHF"] = ,
--- ["Arrows_4"] = |,
--- ["Symbols_7"] = |,
--- ["Frequency_HF"] =   2.0000A,
--- ["Watch_"] = 04:02:40 Z,
--- ["Frequency_Standby_FM1"] =  30.000,
--- ["Symbols_2"] = |,
--- ["Frequency_FM2"] =  30.000,
--- ["Rts__FM2"] = =,
--- ["XPNDR_MODE_S"] = S,
--- ["Call_FM1"] = -----,
--- ["Fuel_"] = 3140,
--- ["Fuel"] = FUEL,
--- ["XPNDR_MODE_4"] = A,
--- ["Call_Standby_HF"] = -----,
--- ["Symbols_3"] = |,
--- ["Call_Standby_UHF"] = -----,
--- ["Frequency_Standby_HF"] =   2.0000A,
--- ["Frequency_Standby_FM2"] =  30.000,
--- ["Idm_HF"] = ,
--- ["Net_FM2"] = ,
--- ["Rts__UHF"] = >,
--- ["Rts_HF_"] = =,
--- ["Guard"] = ,
--- ["Symbols_9"] = |,
--- ["Squelch_HF"] = *,
--- ["Radio_HF"] = HF ,
--- ["Arrows_1"] = |,
--- ["Squelch_UHF"] = *,
--- ["Squelch_FM1"] = *,
--- ["Radio_FM2"] = FM2,
--- ["Rts__HF"] = =,
--- ["Arrows_2"] = |,
--- ["Symbols_8"] = |,
--- ["Rts_VHF_"] = =,
--- ["Frequency_UHF"] = 305.000,
--- ["Call_HF"] = -----,
--- ["Rts_UHF_"] = =,
--- ["Rts_FM2_"] = <,
--- ["Radio_UHF"] = UHF,
--- ["Net_Standby_UHF"] = ,
--- } 
+    local _iffSettings = {
+        status = 0,
+        mode1 = -1,
+        mode2 = -1,
+        mode3 = -1,
+        mode4 = 0,
+        control = 0,
+        expansion = false
 
+    }
 
+    local _cipherSettings = {
+        uhfCipher = 0,
+        fm1Cipher = 0,
+        fm2Cipher = 0,
+        hfCipher = 0
+    }
+    _data.control = 1
 
     -- Check if player is in a new aircraft
     if _lastUnitId ~= _data.unitId then
@@ -792,33 +714,39 @@ function SR.exportRadioAH64D(_data)
     _data.radios[3].freq = SR.getRadioFrequency(57)
     _data.radios[3].modulation = SR.getRadioModulation(57)
     _data.radios[3].volMode = 0
+    _data.radios[3].encMode = 2
 
     _data.radios[4].name = "FM1-ARC-201D"
     _data.radios[4].freq = SR.getRadioFrequency(59)
     _data.radios[4].modulation = SR.getRadioModulation(59)
     _data.radios[4].volMode = 0
-    _data.radios[4].encKey = 1
-    _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[4].encMode = 2
 
     _data.radios[5].name = "FM2-ARC-201D"
     _data.radios[5].freq = SR.getRadioFrequency(60)
     _data.radios[5].modulation = SR.getRadioModulation(60)
     _data.radios[5].volMode = 0
-    _data.radios[5].encKey = 1
-    _data.radios[5].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[5].encMode = 2
 
     _data.radios[6].name = "HF-ARC-220"
     _data.radios[6].freq = SR.getRadioFrequency(61)
     _data.radios[6].modulation = 0
     _data.radios[6].volMode = 0
+    -- _data.radios[6].encMode = 2 -- The ACFT has the functionality but SRS doesn't want to?
 
     local _radioPanel = nil
-    local _cipher = nil
+    local _mpdLeft = nil
+    local _mpdRight = nil
+    local _iffIdentBtn = nil
+    --local _iffEmergencyBtn = nil
 
     if SR.lastKnownSeat == 0 then
 
         _radioPanel = SR.getListIndicatorValue(17)
-        _cipher = SR.getListIndicatorValue(6)
+        _mpdLeft = SR.getListIndicatorValue(6)
+        _mpdRight = SR.getListIndicatorValue(8)
+        _iffIdentBtn = SR.getButtonPosition(347) -- PLT comm panel ident button
+        --_iffEmergencyBtn = SR.getButtonPosition(311) -- PLT Emergency Panel XPNDR Btn -- No (easily achieved) reliable way to determine if this is active
 
         local _masterVolume = SR.getRadioVolume(0, 344, { 0.0, 1.0 }, false) 
         
@@ -865,10 +793,14 @@ function SR.exportRadioAH64D(_data)
         end
 
     else
-        local _masterVolume = SR.getRadioVolume(0, 385, { 0.0, 1.0 }, false) 
-        _cipher = SR.getListIndicatorValue(10)
 
         _radioPanel = SR.getListIndicatorValue(18)
+        _mpdLeft = SR.getListIndicatorValue(10)
+        _mpdRight = SR.getListIndicatorValue(12)
+        _iffIdentBtn = SR.getButtonPosition(388) -- CPG comm panel ident button
+        --_iffEmergencyBtn = SR.getButtonPosition(359) -- CPG Emergency Panel XPNDR Btn
+
+        local _masterVolume = SR.getRadioVolume(0, 385, { 0.0, 1.0 }, false) 
 
         --intercom 
         _data.radios[1].volume = SR.getRadioVolume(0, 386, { 0.0, 1.0 }, false) * _masterVolume
@@ -931,24 +863,76 @@ function SR.exportRadioAH64D(_data)
         if _radioPanel['Guard'] == 'G' then
             _data.radios[3].secFreq = 243e6
         end
-    end
 
-    if _cipher then
-          -- PLAIN, CIPHER , RECEIVE
-        if _cipher["PB7_17"] then
-            _ah64.cipher.enabled = _cipher["PB7_17"] == "CIPHER"
+        if _radioPanel["Transponder_MC"] == "NORM" then -- IFF NORM
+            _iffSettings.status = 1
+
+            if _iffIdentBtn > 0 then
+                _iffSettings.status = 2 -- IDENT
+            end
+
+            if _radioPanel["Transponder_MODE_3A"] then
+                _iffSettings.mode3 = string.format("%04d", _radioPanel["Transponder_MODE_3A"])
+            else
+                _iffSettings.mode3 = -1
+            end
+
+            if _radioPanel["XPNDR_MODE_4"] then
+                _iffSettings.mode4 = 1
+            else
+                _iffSettings.mode4 = 0
+            end
+        else -- IFF STBY
+            _iffSettings.status = 0
         end
 
-        -- KEY 1,2,3,4,5,6
-        if _cipher["PB8_21"] then
-            _ah64.cipher.key = tonumber(_cipher["PB8_21"])
+        if _radioPanel["Cipher_UHF"] then
+            _cipherSettings.uhfCipher = 1
+            _data.radios[3].encKey = string.format("%01d", string.match(_radioPanel["Cipher_UHF"], "%d+"))
         end
-        _data.radios[3].encKey = _ah64.cipher.key
-        _data.radios[3].enc = _ah64.cipher.enabled
+
+        if _radioPanel["Cipher_FM1"] then
+            _cipherSettings.fm1Cipher = 1
+            _data.radios[4].encKey = string.format("%01d", string.match(_radioPanel["Cipher_FM1"], "%d+"))
+        end
+
+        if _radioPanel["Cipher_FM2"] then
+            _cipherSettings.fm2Cipher = 1
+            _data.radios[5].encKey = string.format("%01d", string.match(_radioPanel["Cipher_FM2"], "%d+"))
+        end
+
+        -- if _radioPanel["Cipher_HF"] then
+        --     _cipherSettings.fm1Cipher = 1
+        --     _data.radios[6].encKey = string.format("%01d", string.match(_radioPanel["Cipher_HF"], "%d+"))
+        -- end
+
+        _data.radios[3].enc = _cipherSettings.uhfCipher
+        _data.radios[4].enc = _cipherSettings.fm1Cipher
+        _data.radios[5].enc = _cipherSettings.fm2Cipher
+        --_data.radios[6].enc = _cipherSettings.hfCipher
     end
 
-    _data.control = 1
-    _data.radios[3].encMode = 2 -- Mode 2 is set by aircraft
+    if (_mpdLeft or _mpdRight) then
+        if _mpdLeft["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the left MPD
+            if _mpdLeft["PB24_9"] == "}1" then -- The curly brackets denote on/off status
+                _iffSettings.mode1 = -1 -- off
+            else
+                if _mpdLeft["PB7_23"] then -- mode1 MPD display
+                    _iffSettings.mode1 = string.format("%02d", _mpdLeft["PB7_23"]) -- set mode1 according to MPD display
+                end
+            end
+        end
+
+        if _mpdRight["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the right MPD -- (functions same as above w/comments)
+            if _mpdRight["PB24_9"] == "}1" then
+                _iffSettings.mode1 = -1
+            else
+                if _mpdRight["PB7_23"] then
+                    _iffSettings.mode1 = string.format("%02d", _mpdRight["PB7_23"])
+                end
+            end
+        end
+    end
 
       --CYCLIC_RTS_SW_LEFT 573 CPG 531 PLT
     local _pttButtonId = 573
@@ -992,6 +976,8 @@ function SR.exportRadioAH64D(_data)
         -- engine off
         _data.ambient = {vol = 0, abType = 'ah64' }
     end
+
+    for k,v in pairs(_iffSettings) do _data.iff[k] = v end -- IFF table overwrite
 
     return _data
 
