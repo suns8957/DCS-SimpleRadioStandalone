@@ -679,7 +679,7 @@ function SR.exportRadioAH64D(_data)
         control = 0,
         expansion = false
     }
-
+    
     -- Check if player is in a new aircraft
     if _lastUnitId ~= _data.unitId then
         -- New aircraft; SENS volume is at 0
@@ -725,22 +725,21 @@ function SR.exportRadioAH64D(_data)
     _data.radios[6].freq = SR.getRadioFrequency(61)
     _data.radios[6].modulation = 0
     _data.radios[6].volMode = 0
-    _data.radios[6].encMode = 2 -- As of DCS OB2.9.2.49940 the HF preset functionality is bugged, but I'll leave this here in hopes ED fixes the bug
+    _data.radios[6].encMode = 2 -- As of DCS ver 2.9.4.53627 the HF preset functionality is bugged, but I'll leave this here in hopes ED fixes the bug
 
+    local _seat = get_param_handle("SEAT"):get() -- PLT/CPG ?
     local _eufdDevice = nil
     local _mpdLeft = nil
     local _mpdRight = nil
     local _iffIdentBtn = nil
-    --local _iffEmergencyBtn = nil -- TODO: No (easily achieved) reliable way to determine if this is active (that I'm aware of)
-                                        -- Don't want to overengineer something just for this functionality.
+    local _iffEmergency = nil
 
-    if SR.lastKnownSeat == 0 then
-
+    if _seat == 0 then
         _eufdDevice = SR.getListIndicatorValue(17)
         _mpdLeft = SR.getListIndicatorValue(6)
         _mpdRight = SR.getListIndicatorValue(8)
         _iffIdentBtn = SR.getButtonPosition(347) -- PLT comm panel ident button
-        --_iffEmergencyBtn = SR.getButtonPosition(311) -- PLT Emergency Panel XPNDR Btn
+        _iffEmergency = GetDevice(0):get_argument_value(404) -- PLT Emergency Panel XPNDR Indicator
 
         local _masterVolume = SR.getRadioVolume(0, 344, { 0.0, 1.0 }, false) 
         
@@ -787,12 +786,11 @@ function SR.exportRadioAH64D(_data)
         end
 
     else
-
         _eufdDevice = SR.getListIndicatorValue(18)
         _mpdLeft = SR.getListIndicatorValue(10)
         _mpdRight = SR.getListIndicatorValue(12)
         _iffIdentBtn = SR.getButtonPosition(388) -- CPG comm panel ident button
-        --_iffEmergencyBtn = SR.getButtonPosition(359) -- CPG Emergency Panel XPNDR Btn
+        _iffEmergency = GetDevice(0):get_argument_value(428) -- CPG Emergency Panel XPNDR Indicator
 
         local _masterVolume = SR.getRadioVolume(0, 385, { 0.0, 1.0 }, false) 
 
@@ -875,6 +873,11 @@ function SR.exportRadioAH64D(_data)
             _iffSettings.status = 0
         end
 
+        if _iffEmergency == 1 then
+            _iffSettings.mode3 = 7700
+            _iffSettings.status = 1 -- XPNDR btn would actually turn on the XPNDR if it were in STBY (in real life)
+        end
+
         _data.radios[3].enc = _eufdDevice["Cipher_UHF"] and 1 or 0
         _data.radios[3].encKey = _eufdDevice["Cipher_UHF"] and string.format("%01d", string.match(_eufdDevice["Cipher_UHF"], "%d+")) or 1
 
@@ -900,7 +903,7 @@ function SR.exportRadioAH64D(_data)
 
       --CYCLIC_RTS_SW_LEFT 573 CPG 531 PLT
     local _pttButtonId = 573
-    if SR.lastKnownSeat == 0 then
+    if _seat == 0 then
         _pttButtonId = 531
     end
 
