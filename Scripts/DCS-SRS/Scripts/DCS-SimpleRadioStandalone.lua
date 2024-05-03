@@ -209,6 +209,10 @@ function SR.exporter()
         local aircraftExporter = SR.exporters[_update.unit]
 
         if aircraftExporter then
+
+          --  show_param_handles_list()
+          --  list_cockpit_params()
+
             _update = aircraftExporter(_update)
         else
             -- FC 3
@@ -1906,7 +1910,8 @@ function SR.exportRadioF15ESE(_data)
     _data.radios[3].freq = SR.getRadioFrequency(8)
     _data.radios[3].modulation = SR.getRadioModulation(8)
 
-    local _seat = SR.lastKnownSeat
+    -- TODO check
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
     if _seat == 0 then
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
@@ -2059,7 +2064,8 @@ function SR.exportRadioUH1H(_data)
 
     --_device:get_argument_value(_arg)
 
-    local _seat = SR.lastKnownSeat
+    -- TODO check it works
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
     if _seat == 0 then
 
@@ -2208,7 +2214,8 @@ function SR.exportRadioSA342(_data)
     _data.radios[1].volume = 1.0
     _data.radios[1].volMode = 1
 
-    local _seat = SR.lastKnownSeat
+    -- TODO check
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
     local vhfVolume = 68 -- IC1_VHF
     local uhfVolume = 69 -- IC1_UHF
@@ -2362,6 +2369,131 @@ function SR.exportRadioSA342(_data)
         -- engine off
         _data.ambient = {vol = 0, abType = 'sa342' }
     end
+
+    return _data
+end
+
+function SR.exportRadioOH58D(_data)
+    _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "VOX control for intercom volume" }
+
+
+    _data.radios[1].name = "Intercom"
+    _data.radios[1].freq = 100.0
+    _data.radios[1].modulation = 2 --Special intercom modulation
+    _data.radios[1].volMode = 0
+
+    _data.radios[2].name = "FM1"
+    _data.radios[2].freq = SR.getRadioFrequency(28)
+    _data.radios[2].modulation = SR.getRadioModulation(28)
+    _data.radios[2].volMode = 0
+
+    _data.radios[3].name = "UHF"
+    _data.radios[3].freq = SR.getRadioFrequency(29)
+    _data.radios[3].modulation = SR.getRadioModulation(29)
+    _data.radios[3].volMode = 0
+
+    _data.radios[4].name = "VHF"
+    _data.radios[4].freq = SR.getRadioFrequency(30)
+    _data.radios[4].modulation = SR.getRadioModulation(30)
+    _data.radios[4].volMode = 0
+
+
+    _data.radios[5].name = "FM2"
+    _data.radios[5].freq = SR.getRadioFrequency(31)
+    _data.radios[5].modulation = SR.getRadioModulation(31)
+    _data.radios[5].volMode = 0
+
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
+    local _hotMic = 0
+    local _selector = 0
+    local _cyclicICSPtt = false
+    local _cyclicPtt = false
+    local _footPtt = false
+
+    if _seat == 0 then
+        _data.radios[1].volume = SR.getRadioVolume(0, 173, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 187, { 0.0, 0.8 }, false) 
+        _data.radios[2].volume = SR.getRadioVolume(0, 173, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 175, { 0.0, 0.8 }, false) * SR.getButtonPosition(174)
+        _data.radios[3].volume = SR.getRadioVolume(0, 173, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 177, { 0.0, 0.8 }, false) * SR.getButtonPosition(176)
+        _data.radios[4].volume = SR.getRadioVolume(0, 173, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 179, { 0.0, 0.8 }, false) * SR.getButtonPosition(178)
+        _data.radios[5].volume = SR.getRadioVolume(0, 173, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 183, { 0.0, 0.8 }, false) * SR.getButtonPosition(182)
+        -- 186 hotmic
+        -- 188 radio selector
+
+        _hotMic = SR.getSelectorPosition(186, 0.1)
+        _selector = SR.getSelectorPosition(188, 0.1)
+
+        -- right cyclic ICS (intercom) 1st detent trigger PTT: 400
+        -- right cyclic radio 2nd detent trigger PTT: 401
+        -- right foot pedal PTT: 404
+
+        _cyclicICSPtt = SR.getButtonPosition(400)
+        _cyclicPtt = SR.getButtonPosition(401)
+        _footPtt = SR.getButtonPosition(404)
+
+    else
+        _data.radios[1].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 830, { 0.0, 0.8 }, false) 
+        _data.radios[2].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 814, { 0.0, 0.8 }, false) * SR.getButtonPosition(813)
+        _data.radios[3].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 817, { 0.0, 0.8 }, false) * SR.getButtonPosition(816)
+        _data.radios[4].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 819, { 0.0, 0.8 }, false) * SR.getButtonPosition(818)
+        _data.radios[5].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 823, { 0.0, 0.8 }, false) * SR.getButtonPosition(822)
+
+        --- 828 Hotmic wheel
+        --- 831 radio selector
+
+        _hotMic = SR.getSelectorPosition(828, 0.1)
+        _selector = SR.getSelectorPosition(831, 0.1)
+
+        -- left cyclic ICS (intercom) 1st detent trigger PTT: 402
+        -- left cyclic radio 2nd detent trigger PTT: 403
+        -- left foot pedal PTT: 405
+
+        _cyclicICSPtt = SR.getButtonPosition(402)
+        _cyclicPtt = SR.getButtonPosition(403)
+        _footPtt = SR.getButtonPosition(405)
+    end
+
+    if _hotMic == 0 or _hotMic == 1 then
+        _data.intercomHotMic = true
+    end
+
+    if _selector == 1 then
+        _data.selected = 0
+    elseif _selector == 2 then
+        _data.selected = 1
+    elseif _selector == 3 then
+        _data.selected = 2
+     elseif _selector == 4 then
+        _data.selected = 3
+     elseif _selector == 6 then
+        _data.selected = 4
+    else
+        _data.selected = -1
+    end
+
+    if _cyclicICSPtt > 0.5 then
+        _data.ptt = true
+        _data.selected = 0
+    end
+
+    if _cyclicPtt > 0.5  then
+        _data.ptt = true
+    end
+
+    if _footPtt > 0.5  then
+        _data.ptt = true
+    end
+
+    -- check for CIPHER
+
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2,  abType = 'oh58d' }
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'oh58d' }
+    end
+
+    _data.control = 1
 
     return _data
 end
@@ -2570,7 +2702,8 @@ function SR.exportRadioMI24P(_data)
     _data.radios[5].volMode = 0
     _data.radios[5].expansion = true
 
-    local _seat = SR.lastKnownSeat
+    -- TODO check
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
     if _seat == 0 then
 
@@ -4614,7 +4747,8 @@ function SR.exportRadioMosquitoFBMkVI (_data)
     _data.radios[2].modulation = 0
     _data.radios[2].volume = SR.getRadioVolume(0, 364, { 0.0, 1.0 }, false)
 
-    local _seat = SR.lastKnownSeat
+    --TODO check
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
     if _seat == 0 then
 
@@ -5869,7 +6003,8 @@ function SR.exportRadioF14(_data)
     _data.radios[3].enc = ICS_device:is_arc182_encrypted()
     _data.radios[3].encMode = 2
 
-    local _seat = SR.lastKnownSeat
+    --TODO check
+    local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
  --   RADIO_ICS_Func_RIO = 402,
 --   RADIO_ICS_Func_Pilot = 2044,
@@ -6502,6 +6637,7 @@ SR.exporters["SA342M"] = SR.exportRadioSA342
 SR.exporters["SA342L"] = SR.exportRadioSA342
 SR.exporters["SA342Mistral"] = SR.exportRadioSA342
 SR.exporters["SA342Minigun"] = SR.exportRadioSA342
+SR.exporters["OH58D"] = SR.exportRadioOH58D
 SR.exporters["L-39C"] = SR.exportRadioL39
 SR.exporters["L-39ZA"] = SR.exportRadioL39
 SR.exporters["F-14B"] = SR.exportRadioF14
