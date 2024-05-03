@@ -2523,7 +2523,7 @@ function SR.exportRadioOH6A(_data)
     local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
     local _hotMic = 0
     local _selector = 0
-    _seat =1
+    
     if _seat == 0 then
 
         if SR.getButtonPosition(352) > 0.5 then
