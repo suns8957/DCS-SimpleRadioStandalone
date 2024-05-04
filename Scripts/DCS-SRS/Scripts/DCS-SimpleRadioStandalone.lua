@@ -1897,8 +1897,7 @@ function SR.exportRadioF15ESE(_data)
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
-    _data.radios[1].volume =  1.0
-    _data.radios[4].volMode = 0
+ 
  
 
     _data.radios[2].name = "AN/ARC-164 UHF-1"
@@ -1914,17 +1913,19 @@ function SR.exportRadioF15ESE(_data)
     local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
     if _seat == 0 then
+        _data.radios[1].volume =  SR.getRadioVolume(0, 504, { 0.0, 1.0 }, false)
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 283, { 0.0, 1.0 }, false)
 
-        if SR.getButtonPosition(509) >= 0.5 then
+        if SR.getButtonPosition(509) == 0.5 then
             _data.intercomHotMic = true
         end
     else
+        _data.radios[1].volume =  SR.getRadioVolume(0, 1422, { 0.0, 1.0 }, false)
         _data.radios[2].volume = SR.getRadioVolume(0, 1307, { 0.0, 1.0 }, false)
         _data.radios[3].volume = SR.getRadioVolume(0, 1308, { 0.0, 1.0 }, false)
 
-        if SR.getButtonPosition(1427) >= 0.5 then
+        if SR.getButtonPosition(1427) == 0.5 then
             _data.intercomHotMic = true
         end
     end
@@ -2487,7 +2488,15 @@ function SR.exportRadioOH58D(_data)
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
-        _data.ambient = {vol = 0.2,  abType = 'oh58d' }
+
+        local _door = SR.getButtonPosition(800)
+
+        if _door > 0.2 then 
+            _data.ambient = {vol = 0.35,  abType = 'oh58d' }
+        else
+            _data.ambient = {vol = 0.2,  abType = 'oh58d' }
+        end 
+    
     else
         -- engine off
         _data.ambient = {vol = 0, abType = 'oh58d' }

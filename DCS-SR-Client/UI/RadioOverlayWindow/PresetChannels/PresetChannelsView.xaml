@@ -13,7 +13,7 @@
     d:DesignHeight="100"
     d:DesignWidth="135"
     mc:Ignorable="d">
-    <WrapPanel HorizontalAlignment="Center"
+    <StackPanel HorizontalAlignment="Center"
                Background="#444"
                Orientation="Vertical">
         <ComboBox x:Name="FrequencyDropDown"
@@ -24,14 +24,25 @@
                   ItemsSource="{Binding Path=PresetChannels}"
                   SelectedItem="{Binding Path=SelectedPresetChannel}" />
 
-        <Button Name="ReloadButton"
+        <StackPanel HorizontalAlignment="Center"
+                    Background="#444"
+                    Orientation="Horizontal">
+            <Button Name="ReloadButton"
                 Width="50"
                 Height="20"
-                Margin="0,5,0,0"
+                Margin="2"
                 HorizontalAlignment="Center"
                 Command="{Binding Path=ReloadCommand}"
                 Content="{x:Static p:Resources.OverlayPresetReload}"
                 Style="{x:Null}" />
-
-    </WrapPanel>
+            <Button Name="CreateButton"
+                Width="50"
+                Height="20"
+                Margin="2"
+                HorizontalAlignment="Center"
+                Command="{Binding Path=PresetCreateCommand}"
+                Content="{x:Static p:Resources.OverlayPresetCreate}"
+                Style="{x:Null}" />
+        </StackPanel>
+    </StackPanel>
 </UserControl>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Windows.Data;
 using System.Windows.Input;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels;
@@ -17,6 +18,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
         private int _radioId;
 
         public DelegateCommand DropDownClosedCommand { get; set; }
+
+        public DelegateCommand PresetCreateCommand { get; set; }
 
 
         private readonly object _presetChannelLock = new object();
@@ -49,6 +52,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
             ReloadCommand = new DelegateCommand(OnReload);
             DropDownClosedCommand = new DelegateCommand(DropDownClosed);
             PresetChannels = new ObservableCollection<PresetChannel>();
+            PresetCreateCommand = new DelegateCommand(CreatePreset);
         }
 
 
@@ -92,16 +96,25 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
             }
             else
             {
-                //SR.MIDS_FREQ = 1030.0 * 1000000-- Start at UHF 10300
-               // SR.MIDS_FREQ_SEPARATION = 1.0 * 100000-- 0.1 MHZ between MIDS channels
-               for (int i = 1; i < 127; i++)
+                
+               int i = 1;
+               foreach (var channel in _channelsStore.LoadFromStore(radio.name,true))
                {
-                   PresetChannels.Add(new PresetChannel
+                   channel.Channel = i++;
+                   PresetChannels.Add(channel);
+               }
+
+               if (PresetChannels.Count == 0)
+               {
+                   for (int chn = 1; chn < 126; chn++)
                    {
-                       Channel = i,
-                       Text = "MIDS " + i,
-                       Value = (i * 100000.0) + (1030.0 * 1000000.0)
-                   });
+                       PresetChannels.Add(new PresetChannel
+                       {
+                           Channel = chn,
+                           Text = "MIDS " + chn,
+                           Value = (chn * 100000.0) + (1030.0 * 1000000.0)
+                       });
+                   }
                }
             }
         }
@@ -109,6 +122,18 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
         private void OnReload()
         {
             Reload();
+        }
+
+        private void CreatePreset()
+        {
+            var radios = ClientStateSingleton.Instance.DcsPlayerRadioInfo.radios;
+
+            var radio = radios[_radioId];
+
+            if (radio.modulation != RadioInformation.Modulation.DISABLED && radio.modulation != RadioInformation.Modulation.INTERCOM)
+            {
+                _channelsStore.CreatePresetFile(radio.name);
+            }
         }
 
         public void Clear()

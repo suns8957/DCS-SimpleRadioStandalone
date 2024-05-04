@@ -774,6 +774,9 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   <data name="OverlayNotAvailable" xml:space="preserve">
     <value>不可用 - 仅限SRS浮窗控制</value>
   </data>
+  <data name="OverlayPresetCreate" xml:space="preserve">
+    <value>创造</value>
+  </data>
   <data name="OverlayPresetReload" xml:space="preserve">
     <value>重新加载</value>
   </data>
