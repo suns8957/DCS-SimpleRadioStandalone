@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels;
@@ -11,16 +16,31 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.PresetChannels
 {
-    public class PresetChannelsViewModel
+    public class PresetChannelsViewModel: INotifyPropertyChanged
     {
         private IPresetChannelsStore _channelsStore;
         private int _radioId;
 
         public DelegateCommand DropDownClosedCommand { get; set; }
 
+        public DelegateCommand PresetCreateCommand { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public Visibility ShowPresetCreate
+        {
+            get => _showPresetCreate;
+            set
+            {
+                _showPresetCreate = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShowPresetCreate"));
+            }
+        }
+
 
         private readonly object _presetChannelLock = new object();
         private ObservableCollection<PresetChannel> _presetChannels;
+        private Visibility _showPresetCreate = Visibility.Visible;
 
         public ObservableCollection<PresetChannel> PresetChannels
         {
@@ -49,6 +69,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
             ReloadCommand = new DelegateCommand(OnReload);
             DropDownClosedCommand = new DelegateCommand(DropDownClosed);
             PresetChannels = new ObservableCollection<PresetChannel>();
+            PresetCreateCommand = new DelegateCommand(CreatePreset);
         }
 
 
@@ -72,6 +93,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
         public void Reload()
         {
             PresetChannels.Clear();
+            ShowPresetCreate = Visibility.Collapsed;
 
             var radios = ClientStateSingleton.Instance.DcsPlayerRadioInfo.radios;
 
@@ -89,26 +111,75 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.Preset
                         PresetChannels.Add(channel);
                     }
                 }
+
+                if (PresetChannels.Count > 0)
+                {
+                    ShowPresetCreate = Visibility.Collapsed;
+                }
+                else
+                {
+                    ShowPresetCreate = Visibility.Visible;
+                }
             }
             else
             {
-                //SR.MIDS_FREQ = 1030.0 * 1000000-- Start at UHF 10300
-               // SR.MIDS_FREQ_SEPARATION = 1.0 * 100000-- 0.1 MHZ between MIDS channels
-               for (int i = 1; i < 127; i++)
+                
+               int i = 1;
+               foreach (var channel in _channelsStore.LoadFromStore(radio.name,true))
                {
-                   PresetChannels.Add(new PresetChannel
+                   channel.Channel = i++;
+                   PresetChannels.Add(channel);
+               }
+
+               if (PresetChannels.Count == 0)
+               {
+                   for (int chn = 1; chn < 126; chn++)
                    {
-                       Channel = i,
-                       Text = "MIDS " + i,
-                       Value = (i * 100000.0) + (1030.0 * 1000000.0)
-                   });
+                       PresetChannels.Add(new PresetChannel
+                       {
+                           Channel = chn,
+                           Text = "MIDS " + chn,
+                           Value = (chn * 100000.0) + (1030.0 * 1000000.0)
+                       });
+                   }
+
+                   ShowPresetCreate = Visibility.Visible;
+               }
+               else
+               {
+                   ShowPresetCreate = Visibility.Collapsed;
                }
             }
+
         }
 
         private void OnReload()
         {
             Reload();
+        }
+
+        private void CreatePreset()
+        {
+            var radios = ClientStateSingleton.Instance.DcsPlayerRadioInfo.radios;
+
+            var radio = radios[_radioId];
+
+            if (radio.modulation != RadioInformation.Modulation.DISABLED && radio.modulation != RadioInformation.Modulation.INTERCOM)
+            {
+                var path = _channelsStore.CreatePresetFile(radio.name);
+                if (path != null)
+                {
+                    var res = MessageBox.Show($"Created presets file at path:\n {path} \n\nOpen the file?","Created Preset File",MessageBoxButton.YesNo,MessageBoxImage.Information,MessageBoxResult.No);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            Process.Start(path);
+                        }
+                        catch(Exception ex) { }
+                    }
+                }
+            }
         }
 
         public void Clear()
