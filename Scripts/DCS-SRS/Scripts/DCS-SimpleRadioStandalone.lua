@@ -2488,14 +2488,15 @@ function SR.exportRadioOH58D(_data)
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
-
-        local _door = SR.getButtonPosition(800)
-
-        if _door > 0.2 then 
-            _data.ambient = {vol = 0.35,  abType = 'oh58d' }
-        else
-            _data.ambient = {vol = 0.2,  abType = 'oh58d' }
-        end 
+       _data.ambient = {vol = 0.3,  abType = 'oh58d' }
+--       
+--       local _door = SR.getButtonPosition(800)
+--
+--        if _door > 0.2 then 
+--            _data.ambient = {vol = 0.35,  abType = 'oh58d' }
+--        else
+--            _data.ambient = {vol = 0.2,  abType = 'oh58d' }
+--        end 
     
     else
         -- engine off
