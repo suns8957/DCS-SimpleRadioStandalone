@@ -571,6 +571,9 @@
     <Content Include="AudioEffects\Ambient\Mosquito.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="AudioEffects\Ambient\OH6A.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="AudioEffects\Ambient\P47.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

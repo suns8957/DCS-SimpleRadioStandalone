@@ -8,6 +8,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.PresetChannels;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
+using MathNet.Numerics.Distributions;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
 {
@@ -140,6 +141,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
             }
             return inLimit;
         }
+
 
         public static bool SelectRadio(int radioId)
         {
@@ -327,12 +329,24 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
 
         public static void SelectRadioChannel(PresetChannel selectedPresetChannel, int radioId)
         {
-            if (UpdateRadioFrequency((double) selectedPresetChannel.Value, radioId, false, false))
-            {
-                var radio = GetRadio(radioId);
 
-                if (radio != null) radio.channel = selectedPresetChannel.Channel;
+            var radio = GetRadio(radioId);
+
+            if (radio != null && radioId > 0)
+            {
+                if (radio.modulation != RadioInformation.Modulation.DISABLED
+                    && radio.modulation != RadioInformation.Modulation.INTERCOM
+                    && radio.freqMode == RadioInformation.FreqMode.OVERLAY)
+                {
+
+                    radio.freq = (double)selectedPresetChannel.Value;
+                    radio.channel = selectedPresetChannel.Channel;
+
+                    //make radio data stale to force resysnc
+                    ClientStateSingleton.Instance.LastSent = 0;
+                }
             }
+   
         }
 
         public static void RadioChannelUp(int radioId)

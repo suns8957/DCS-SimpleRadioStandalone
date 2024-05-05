@@ -1160,4 +1160,7 @@ Requires Tx or Rx Effects On</value>
   <data name="VOXModeLower" xml:space="preserve">
     <value>Lower</value>
   </data>
+  <data name="OverlayPresetCreate" xml:space="preserve">
+    <value>Create</value>
+  </data>
 </root>
