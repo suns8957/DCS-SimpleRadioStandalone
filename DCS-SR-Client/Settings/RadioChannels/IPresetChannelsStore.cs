@@ -7,6 +7,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
     {
         IEnumerable<PresetChannel> LoadFromStore(string radioName, bool mids = false);
 
-        void CreatePresetFile(string radioName);
+        string CreatePresetFile(string radioName);
     }
 }

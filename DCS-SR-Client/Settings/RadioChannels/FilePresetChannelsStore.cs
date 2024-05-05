@@ -35,7 +35,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
             return new List<PresetChannel>();
         }
 
-        public void CreatePresetFile(string radioName)
+        public string CreatePresetFile(string radioName)
         {
             var file = FindRadioFile(NormaliseString(radioName));
 
@@ -47,13 +47,17 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
                 {
                     File.Create(path);
                     Logger.Log(LogLevel.Info, $"Created radio file {path} ");
+                    return path;
                 }
                 catch
                 {
                     Logger.Log(LogLevel.Error, $"Error creating radio file {path} ");
                 }
-                
+
+                return null;
             }
+
+            return file;
         }
 
         private List<PresetChannel> ReadFrequenciesFromFile(string filePath)
@@ -103,7 +107,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
             int i = 1;
             foreach (var channel in channels)
             {
-                channel.Text = i + " - " + channel.Text;
+                channel.Text = i + ": " + channel.Text;
                 i++;
             }
 
@@ -162,7 +166,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
             int i = 1;
             foreach (var channel in channels)
             {
-                channel.Text = i + " - " + channel.Text;
+                channel.Text = i + ": " + channel.Text;
                 i++;
             }
 

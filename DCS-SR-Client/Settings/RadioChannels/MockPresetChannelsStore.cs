@@ -35,9 +35,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
             return _presetChannels;
         }
 
-        public void CreatePresetFile(string radioName)
+        public string CreatePresetFile(string radioName)
         {
             //nothing
+            return null;
         }
     }
 }

@@ -40,6 +40,7 @@
                 Height="20"
                 Margin="2"
                 HorizontalAlignment="Center"
+                Visibility="{Binding Path=ShowPresetCreate}"
                 Command="{Binding Path=PresetCreateCommand}"
                 Content="{x:Static p:Resources.OverlayPresetCreate}"
                 Style="{x:Null}" />
