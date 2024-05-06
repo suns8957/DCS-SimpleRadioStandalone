@@ -228,7 +228,7 @@
     <value>无</value>
   </data>
   <data name="CurrentUnitLabel" xml:space="preserve">
-    <value>飞机</value>
+    <value>单位:</value>
   </data>
   <data name="DefaultMicrophone" xml:space="preserve">
     <value>默认麦克风</value>
@@ -781,7 +781,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
     <value>不可用 - 仅限SRS浮窗控制</value>
   </data>
   <data name="OverlayPresetCreate" xml:space="preserve">
-    <value>创造</value>
+    <value>创建预设</value>
   </data>
   <data name="OverlayPresetReload" xml:space="preserve">
     <value>重新加载</value>
