@@ -330,11 +330,7 @@
     <value>帮助和介绍</value>
   </data>
   <data name="HelpLocalizationNotes" xml:space="preserve">
-    <value>本SRS汉化版由小猫蛋卷经原作者授权后制作，汉化相关的问题请联系蛋卷。如遇到SRS本身的问题需向原作者反馈BUG，也可以找我帮忙翻译代提交。
-
-在正式的多语言支持做好之前，自动更新功能会更新到英文版。
-蛋卷会随之跟进汉化版更新，请留意 CatATC.cn 上的发布页面。
-</value>
+    <value>当前语言：中文</value>
   </data>
   <data name="HelpP1" xml:space="preserve">
     <value>
@@ -423,8 +419,7 @@ DCS游戏内SRS浮窗</value>
     <value>最新版本和更新</value>
   </data>
   <data name="HelpP6L1" xml:space="preserve">
-    <value>（注意这里指的是英文原版）
-你永远可以在GitHub页面上的Release区域找最新版的SRS:</value>
+    <value>你永远可以在GitHub页面上的Release区域找最新版的SRS:</value>
   </data>
   <data name="HelpP6L2" xml:space="preserve">
     <value>

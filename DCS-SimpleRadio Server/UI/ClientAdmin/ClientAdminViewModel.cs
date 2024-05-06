@@ -20,7 +20,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public ClientAdminViewModel(IEventAggregator eventAggregator)
         {
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
             _eventAggregator = eventAggregator;
             _eventAggregator.Subscribe(this);
 

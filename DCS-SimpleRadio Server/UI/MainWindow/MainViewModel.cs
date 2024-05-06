@@ -28,7 +28,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
         public MainViewModel(IWindowManager windowManager, IEventAggregator eventAggregator,
             ClientAdminViewModel clientAdminViewModel)
         {
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
             _windowManager = windowManager;
             _eventAggregator = eventAggregator;
             _clientAdminViewModel = clientAdminViewModel;
