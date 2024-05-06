@@ -161,7 +161,7 @@
                          MouseDown="RadioSelectSwitch"
                          Stroke="Black"
                          Style="{x:Null}"
-                         ToolTip="Selected Radio" />
+                         ToolTip="{x:Static p:Resources.ToolTipSelectedRadio}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                 <Button x:Name="Down10"
@@ -236,7 +236,7 @@
                         Foreground="White"
                         Style="{StaticResource DarkStyle-Button}"
                         Click="RetransmitClick"
-                        ToolTip="Retransmit" />
+                        ToolTip="{x:Static p:Resources.ToolTipRetransmit}" />
 
                     <Button x:Name="ToggleSimultaneousTransmissionButton"
                         Width="24"
