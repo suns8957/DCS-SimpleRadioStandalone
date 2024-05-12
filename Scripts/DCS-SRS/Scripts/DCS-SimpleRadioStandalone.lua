@@ -2536,28 +2536,6 @@ function SR.exportRadioOH6A(_data)
     
     if _seat == 0 then
 
-        if SR.getButtonPosition(352) > 0.5 then
-            _data.radios[1].volume = SR.getRadioVolume(0, 354, { -1.0, 1.0 }, false)
-        else
-            _data.radios[1].volume = 0
-        end
-
-        if SR.getButtonPosition(349) > 0.5 then
-            _data.radios[2].volume = SR.getRadioVolume(0, 354, { -1.0, 1.0 }, false) * SR.getRadioVolume(0, 57, { 0.0, 1.0 }, false)
-        else
-            _data.radios[2].volume = 0
-        end
-
-       if SR.getButtonPosition(348) > 0.5 then
-            _data.radios[3].volume = SR.getRadioVolume(0, 354, { -1.0, 1.0 }, false) *SR.getRadioVolume(0, 51, { 0.0, 1.0 }, false)
-        else
-            _data.radios[3].volume = 0
-        end
-      
-        -- _hotMic = SR.getSelectorPosition(186, 0.1)
-         _selector = SR.getSelectorPosition(355, 0.165)
-
-    else
         if SR.getButtonPosition(344) > 0.5 then
             _data.radios[1].volume = SR.getRadioVolume(0, 346, { -1.0, 1.0 }, false)
         else
@@ -2565,19 +2543,42 @@ function SR.exportRadioOH6A(_data)
         end
       
 
-        if SR.getButtonPosition(341) > 0.5 then
-            _data.radios[2].volume = SR.getRadioVolume(0, 346, { -1.0, 1.0 }, false) * SR.getRadioVolume(0, 57, { 0.0, 1.0 }, false)
+        if SR.getButtonPosition(340) > 0.5 then
+            _data.radios[2].volume = SR.getRadioVolume(0, 346, { -1.0, 1.0 }, false) * SR.getRadioVolume(0, 51, { 0.0, 1.0 }, false)
         else
             _data.radios[2].volume = 0
         end
 
-        if SR.getButtonPosition(340) > 0.5 then
-            _data.radios[3].volume = SR.getRadioVolume(0, 346, { -1.0, 1.0 }, false) *SR.getRadioVolume(0, 51, { 0.0, 1.0 }, false)
+        if SR.getButtonPosition(341) > 0.5 then
+            _data.radios[3].volume = SR.getRadioVolume(0, 346, { -1.0, 1.0 }, false) *SR.getRadioVolume(0, 57, { 0.0, 1.0 }, false)
         else
             _data.radios[3].volume = 0
         end
 
         _selector = SR.getSelectorPosition(347, 0.165)
+
+    else
+
+        if SR.getButtonPosition(352) > 0.5 then
+            _data.radios[1].volume = SR.getRadioVolume(0, 354, { -1.0, 1.0 }, false)
+        else
+            _data.radios[1].volume = 0
+        end
+
+        if SR.getButtonPosition(348) > 0.5 then
+            _data.radios[2].volume = SR.getRadioVolume(0, 354, { -1.0, 1.0 }, false) * SR.getRadioVolume(0, 51, { 0.0, 1.0 }, false)
+        else
+            _data.radios[2].volume = 0
+        end
+
+       if SR.getButtonPosition(349) > 0.5 then
+            _data.radios[3].volume = SR.getRadioVolume(0, 354, { -1.0, 1.0 }, false) *SR.getRadioVolume(0, 57, { 0.0, 1.0 }, false)
+        else
+            _data.radios[3].volume = 0
+        end
+      
+        -- _hotMic = SR.getSelectorPosition(186, 0.1)
+         _selector = SR.getSelectorPosition(355, 0.165)
 
     end
 

@@ -175,6 +175,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
                 HelpText = "Allow audio sent by ExternalAudio to be recorded by clients",
                 Required = false, Default = false)]
             public bool Record { get; set; }
+            //
+            // [Option( "IP",
+            //     HelpText = "",
+            //     Required = false, Default = "127.0.0.1")]
+            public string IP { get; set; } = "127.0.0.1";
         }
         public static void Main(string[] args)
         {

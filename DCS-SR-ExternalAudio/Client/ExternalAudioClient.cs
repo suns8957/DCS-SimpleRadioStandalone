@@ -69,7 +69,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
 
             var srsClientSyncHandler = new SRSClientSyncHandler(Guid, gameState,opts.Name, opts.Coalition,position, opts.Record);
 
-            srsClientSyncHandler.TryConnect(new IPEndPoint(IPAddress.Loopback, opts.Port));
+            srsClientSyncHandler.TryConnect(new IPEndPoint(IPAddress.Parse(opts.IP), opts.Port));
 
             //wait for it to end
             finished.Token.WaitHandle.WaitOne();
@@ -86,7 +86,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
             if (udpVoiceHandler == null)
             {
                 Logger.Info($"Connecting UDP VoIP");
-                udpVoiceHandler = new UdpVoiceHandler(Guid, IPAddress.Loopback, opts.Port, gameState);
+                udpVoiceHandler = new UdpVoiceHandler(Guid, IPAddress.Parse(opts.IP), opts.Port, gameState);
                 udpVoiceHandler.Start();
                 new Thread(SendAudio).Start();
             }
