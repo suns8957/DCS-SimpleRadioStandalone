@@ -1,4 +1,4 @@
--- Version 2.1.0.3
+-- Version 2.1.0.4
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -6262,7 +6262,7 @@ end
 --for F-4
 function SR.exportRadioF4(_data)
 
-    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "Expansion Radio requires Always allow SRS Hotkeys on" }
 
     local ics_devid = 2
     local arc164_devid = 3
@@ -6884,4 +6884,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.3")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.4")

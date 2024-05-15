@@ -1212,4 +1212,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   <data name="ToolTipNoMicL2" xml:space="preserve">
     <value>你依然可以用SRS接受无线电呼叫，但无法发送任何东西</value>
   </data>
+  <data name="AmbientEffectIntercomToggle" xml:space="preserve">
+    <value>机内通讯启用座舱环境音效</value>
+  </data>
 </root>
