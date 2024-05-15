@@ -19,10 +19,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Ciribob.DCS.SimpleRadio.Standalone.Server.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,12 +61,345 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ban!.
+        /// </summary>
+        public static string BtnBan {
+            get {
+                return ResourceManager.GetString("BtnBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Client Admin.
+        /// </summary>
+        public static string BtnClientAdmin {
+            get {
+                return ResourceManager.GetString("BtnClientAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DISABLED.
+        /// </summary>
+        public static string BtnDisabled {
+            get {
+                return ResourceManager.GetString("BtnDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ENABLED.
+        /// </summary>
+        public static string BtnEnabled {
+            get {
+                return ResourceManager.GetString("BtnEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Kick.
+        /// </summary>
+        public static string BtnKick {
+            get {
+                return ResourceManager.GetString("BtnKick", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mute.
+        /// </summary>
+        public static string BtnMute {
+            get {
+                return ResourceManager.GetString("BtnMute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OFF.
+        /// </summary>
+        public static string BtnOff {
+            get {
+                return ResourceManager.GetString("BtnOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ON.
+        /// </summary>
+        public static string BtnOn {
+            get {
+                return ResourceManager.GetString("BtnOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start Server.
+        /// </summary>
+        public static string BtnStartServer {
+            get {
+                return ResourceManager.GetString("BtnStartServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stop Server.
+        /// </summary>
+        public static string BtnStopServer {
+            get {
+                return ResourceManager.GetString("BtnStopServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transmission Archive Time.
+        /// </summary>
+        public static string LabelArchiveTime {
+            get {
+                return ResourceManager.GetString("LabelArchiveTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check for beta updates.
+        /// </summary>
+        public static string LabelCheckBetaUpdates {
+            get {
+                return ResourceManager.GetString("LabelCheckBetaUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clients:.
+        /// </summary>
+        public static string LabelClients {
+            get {
+                return ResourceManager.GetString("LabelClients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Distance Limit.
+        /// </summary>
+        public static string LabelDistanceLimit {
+            get {
+                return ResourceManager.GetString("LabelDistanceLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto Export List.
+        /// </summary>
+        public static string LabelExportList {
+            get {
+                return ResourceManager.GetString("LabelExportList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External AWACS Mode (EAM).
+        /// </summary>
+        public static string LabelExternalAWACS {
+            get {
+                return ResourceManager.GetString("LabelExternalAWACS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EAM blue coal. password.
+        /// </summary>
+        public static string LabelExternalAWACSBluePass {
+            get {
+                return ResourceManager.GetString("LabelExternalAWACSBluePass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EAM red coal. password.
+        /// </summary>
+        public static string LabelExternalAWACSRedPass {
+            get {
+                return ResourceManager.GetString("LabelExternalAWACSRedPass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Global Lobby Freq. AM (MHz).
+        /// </summary>
+        public static string LabelGlobalLobbyFreq {
+            get {
+                return ResourceManager.GetString("LabelGlobalLobbyFreq", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Line of Sight.
+        /// </summary>
+        public static string LabelLOS {
+            get {
+                return ResourceManager.GetString("LabelLOS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LotATC Transponder Export.
+        /// </summary>
+        public static string LabelLotATCExport {
+            get {
+                return ResourceManager.GetString("LabelLotATCExport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ignore Radio Effect on Global Freq.
+        /// </summary>
+        public static string LabelOverrideEffectsOnGlobal {
+            get {
+                return ResourceManager.GetString("LabelOverrideEffectsOnGlobal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Port:.
+        /// </summary>
+        public static string LabelPort {
+            get {
+                return ResourceManager.GetString("LabelPort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow Radio Encryption.
+        /// </summary>
+        public static string LabelRadioEncryption {
+            get {
+                return ResourceManager.GetString("LabelRadioEncryption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Radio Expansion.
+        /// </summary>
+        public static string LabelRadioExpansion {
+            get {
+                return ResourceManager.GetString("LabelRadioExpansion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IRL Radio Rx Behaviour.
+        /// </summary>
+        public static string LabelRealRx {
+            get {
+                return ResourceManager.GetString("LabelRealRx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IRL Radio Tx Behaviour.
+        /// </summary>
+        public static string LabelRealTx {
+            get {
+                return ResourceManager.GetString("LabelRealTx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Retransmit Hop/Node Count.
+        /// </summary>
+        public static string LabelRetransmitNodeLimit {
+            get {
+                return ResourceManager.GetString("LabelRetransmitNodeLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secure Coalition Radios.
+        /// </summary>
+        public static string LabelSecurity {
+            get {
+                return ResourceManager.GetString("LabelSecurity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show Transmitter Name.
+        /// </summary>
+        public static string LabelShowTransmitterName {
+            get {
+                return ResourceManager.GetString("LabelShowTransmitterName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spectator Audio.
+        /// </summary>
+        public static string LabelSpectator {
+            get {
+                return ResourceManager.GetString("LabelSpectator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Strict Radio Encryption.
+        /// </summary>
+        public static string LabelStrictEncryption {
+            get {
+                return ResourceManager.GetString("LabelStrictEncryption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test Frequencies AM (MHz).
+        /// </summary>
+        public static string LabelTestFreq {
+            get {
+                return ResourceManager.GetString("LabelTestFreq", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log Received Transmissions.
+        /// </summary>
+        public static string LabelTransmissionLog {
+            get {
+                return ResourceManager.GetString("LabelTransmissionLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show Tuned/Client Count.
+        /// </summary>
+        public static string LabelTunedCount {
+            get {
+                return ResourceManager.GetString("LabelTunedCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon server_10 {
+        public static System.Drawing.Icon server_10 {
             get {
                 object obj = ResourceManager.GetObject("server_10", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SR Client List.
+        /// </summary>
+        public static string TitleClientList {
+            get {
+                return ResourceManager.GetString("TitleClientList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DCS-SRS Server.
+        /// </summary>
+        public static string TitleServer {
+            get {
+                return ResourceManager.GetString("TitleServer", resourceCulture);
             }
         }
     }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Threading;
 using System.Windows.Threading;
 using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Server.Network;
@@ -18,10 +20,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public ClientAdminViewModel(IEventAggregator eventAggregator)
         {
+            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
             _eventAggregator = eventAggregator;
             _eventAggregator.Subscribe(this);
 
-            DisplayName = "SR Client List";
+            DisplayName = $"{Properties.Resources.TitleClientList}";
 
             _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             _updateTimer.Tick += _updateTimer_Tick;

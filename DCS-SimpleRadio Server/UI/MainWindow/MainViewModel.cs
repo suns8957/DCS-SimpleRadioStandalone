@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -26,19 +28,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
         public MainViewModel(IWindowManager windowManager, IEventAggregator eventAggregator,
             ClientAdminViewModel clientAdminViewModel)
         {
+            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
             _windowManager = windowManager;
             _eventAggregator = eventAggregator;
             _clientAdminViewModel = clientAdminViewModel;
             _eventAggregator.Subscribe(this);
 
-            DisplayName = $"DCS-SRS Server - {UpdaterChecker.VERSION} - {ListeningPort}" ;
+            DisplayName = $"{Properties.Resources.TitleServer} - {UpdaterChecker.VERSION} - {ListeningPort}" ;
 
             Logger.Info("DCS-SRS Server Running - " + UpdaterChecker.VERSION);
         }
 
         public bool IsServerRunning { get; private set; } = true;
 
-        public string ServerButtonText => IsServerRunning ? "Stop Server" : "Start Server";
+        public string ServerButtonText => IsServerRunning ? $"{Properties.Resources.BtnStopServer}" : $"{Properties.Resources.BtnStartServer}";
 
         public int NodeLimit
         {
@@ -56,47 +59,47 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
         public string RadioSecurityText
             =>
                 ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.COALITION_AUDIO_SECURITY).BoolValue
-                    ? "ON"
-                    : "OFF";
+                    ? $"{Properties.Resources.BtnOn}"
+                    : $"{Properties.Resources.BtnOff}";
 
         public string SpectatorAudioText
             =>
                 ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SPECTATORS_AUDIO_DISABLED).BoolValue
-                    ? "DISABLED"
-                    : "ENABLED";
+                    ? $"{Properties.Resources.BtnDisabled}"
+                    : $"{Properties.Resources.BtnEnabled}";
 
         public string ExportListText
             =>
                 ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.CLIENT_EXPORT_ENABLED).BoolValue
-                    ? "ON"
-                    : "OFF";
+                    ? $"{Properties.Resources.BtnOn}"
+                    : $"{Properties.Resources.BtnOff}";
 
         public string LOSText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.LOS_ENABLED).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.LOS_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string DistanceLimitText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string RealRadioText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_TX).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_TX).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string IRLRadioRxText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string RadioExpansion
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RADIO_EXPANSION).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RADIO_EXPANSION).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string CheckForBetaUpdates
-            => ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string ExternalAWACSMode
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.EXTERNAL_AWACS_MODE).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.EXTERNAL_AWACS_MODE).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string AllowRadioEncryption
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.ALLOW_RADIO_ENCRYPTION).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.ALLOW_RADIO_ENCRYPTION).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string StrictRadioEncryption
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.STRICT_RADIO_ENCRYPTION).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.STRICT_RADIO_ENCRYPTION).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public bool IsExternalAWACSModeEnabled { get; set; }
             = ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.EXTERNAL_AWACS_MODE).BoolValue;
@@ -204,19 +207,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
         }
 
         public string OverrideEffectsOnGlobal 
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RADIO_EFFECT_OVERRIDE).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RADIO_EFFECT_OVERRIDE).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string TunedCountText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string LotATCExportText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.LOTATC_EXPORT_ENABLED).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.LOTATC_EXPORT_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string ShowTransmitterNameText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TRANSMITTER_NAME).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TRANSMITTER_NAME).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
         public string TransmissionLogEnabledText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
 
 
         public string ListeningPort
@@ -252,7 +255,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void RadioSecurityToggle()
         {
-            var newSetting = RadioSecurityText != "ON";
+            var newSetting = RadioSecurityText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.COALITION_AUDIO_SECURITY, newSetting);
             NotifyOfPropertyChange(() => RadioSecurityText);
 
@@ -261,7 +264,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void SpectatorAudioToggle()
         {
-            var newSetting = SpectatorAudioText != "DISABLED";
+            var newSetting = SpectatorAudioText != $"{Properties.Resources.BtnDisabled}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SPECTATORS_AUDIO_DISABLED, newSetting);
             NotifyOfPropertyChange(() => SpectatorAudioText);
 
@@ -270,7 +273,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void ExportListToggle()
         {
-            var newSetting = ExportListText != "ON";
+            var newSetting = ExportListText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.CLIENT_EXPORT_ENABLED, newSetting);
             NotifyOfPropertyChange(() => ExportListText);
 
@@ -279,7 +282,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void LOSToggle()
         {
-            var newSetting = LOSText != "ON";
+            var newSetting = LOSText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.LOS_ENABLED, newSetting);
             NotifyOfPropertyChange(() => LOSText);
 
@@ -288,7 +291,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void DistanceLimitToggle()
         {
-            var newSetting = DistanceLimitText != "ON";
+            var newSetting = DistanceLimitText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED, newSetting);
             NotifyOfPropertyChange(() => DistanceLimitText);
 
@@ -297,7 +300,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void RealRadioToggle()
         {
-            var newSetting = RealRadioText != "ON";
+            var newSetting = RealRadioText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.IRL_RADIO_TX, newSetting);
             NotifyOfPropertyChange(() => RealRadioText);
 
@@ -306,7 +309,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void IRLRadioRxBehaviourToggle()
         {
-            var newSetting = IRLRadioRxText != "ON";
+            var newSetting = IRLRadioRxText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE, newSetting);
             NotifyOfPropertyChange(() => IRLRadioRxText);
 
@@ -315,7 +318,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void RadioExpansionToggle()
         {
-            var newSetting = RadioExpansion != "ON";
+            var newSetting = RadioExpansion != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.RADIO_EXPANSION, newSetting);
             NotifyOfPropertyChange(() => RadioExpansion);
 
@@ -324,7 +327,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void AllowRadioEncryptionToggle()
         {
-            var newSetting = AllowRadioEncryption != "ON";
+            var newSetting = AllowRadioEncryption != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.ALLOW_RADIO_ENCRYPTION, newSetting);
             NotifyOfPropertyChange(() => AllowRadioEncryption);
 
@@ -333,7 +336,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void StrictRadioEncryptionToggle()
         {
-            var newSetting = StrictRadioEncryption != "ON";
+            var newSetting = StrictRadioEncryption != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.STRICT_RADIO_ENCRYPTION, newSetting);
             NotifyOfPropertyChange(() => StrictRadioEncryption);
 
@@ -342,7 +345,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void CheckForBetaUpdatesToggle()
         {
-            var newSetting = CheckForBetaUpdates != "ON";
+            var newSetting = CheckForBetaUpdates != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES, newSetting);
             NotifyOfPropertyChange(() => CheckForBetaUpdates);
 
@@ -351,7 +354,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void OverrideEffectsOnGlobalToggle()
         {
-            var newSetting = OverrideEffectsOnGlobal != "ON";
+            var newSetting = OverrideEffectsOnGlobal != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.RADIO_EFFECT_OVERRIDE, newSetting);
             NotifyOfPropertyChange(() => OverrideEffectsOnGlobal);
 
@@ -360,7 +363,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void ExternalAWACSModeToggle()
         {
-            var newSetting = ExternalAWACSMode != "ON";
+            var newSetting = ExternalAWACSMode != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.EXTERNAL_AWACS_MODE, newSetting);
 
             IsExternalAWACSModeEnabled = newSetting;
@@ -414,7 +417,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void TunedCountToggle()
         {
-            var newSetting = TunedCountText != "ON";
+            var newSetting = TunedCountText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT, newSetting);
             NotifyOfPropertyChange(() => TunedCountText);
 
@@ -423,7 +426,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void LotATCExportToggle()
         {
-            var newSetting = LotATCExportText != "ON";
+            var newSetting = LotATCExportText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.LOTATC_EXPORT_ENABLED, newSetting);
             NotifyOfPropertyChange(() => LotATCExportText);
 
@@ -432,7 +435,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void ShowTransmitterNameToggle()
         {
-            var newSetting = ShowTransmitterNameText != "ON";
+            var newSetting = ShowTransmitterNameText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SHOW_TRANSMITTER_NAME, newSetting);
             NotifyOfPropertyChange(() => ShowTransmitterNameText);
 
@@ -441,7 +444,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public void TransmissionLogEnabledToggle()
         {
-            var newSetting = TransmissionLogEnabledText != "ON";
+            var newSetting = TransmissionLogEnabledText != $"{Properties.Resources.BtnOn}";
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED, newSetting);
             NotifyOfPropertyChange(() => TransmissionLogEnabledText);
 

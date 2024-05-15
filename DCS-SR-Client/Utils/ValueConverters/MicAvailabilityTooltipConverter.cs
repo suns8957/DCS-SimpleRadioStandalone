@@ -34,17 +34,17 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils.ValueConverters
 
 			noMicAvailableContent.Children.Add(new TextBlock
 			{
-				Text = "No microphone available",
+				Text = Properties.Resources.ToolTipNoMic,
 				FontWeight = FontWeights.Bold
 			});
 			noMicAvailableContent.Children.Add(new TextBlock
 			{
-				Text = "No valid microphone is available - others will not be able to hear you."
-			});
+				Text = Properties.Resources.ToolTipNoMicL1
+            });
 			noMicAvailableContent.Children.Add(new TextBlock
 			{
-				Text = "You can still use SRS to listen to radio calls, but will not be able to transmit anything yourself."
-			});
+				Text = Properties.Resources.ToolTipNoMicL2
+            });
 
 			NoMicAvailable.Content = noMicAvailableContent;
 			return NoMicAvailable;

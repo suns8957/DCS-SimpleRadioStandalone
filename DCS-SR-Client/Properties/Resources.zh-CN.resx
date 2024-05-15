@@ -138,6 +138,12 @@
   <data name="AlwaysAllowTransponderOverlay" xml:space="preserve">
     <value>始终允许浮窗应答机控制</value>
   </data>
+  <data name="AmbientEffectToggle" xml:space="preserve">
+    <value>启用座舱环境音效</value>
+  </data>
+  <data name="AmbientEffectVolume" xml:space="preserve">
+    <value>座舱环境音效音量</value>
+  </data>
   <data name="AudioHeader" xml:space="preserve">
     <value>音频</value>
   </data>
@@ -222,7 +228,7 @@
     <value>无</value>
   </data>
   <data name="CurrentUnitLabel" xml:space="preserve">
-    <value>飞机</value>
+    <value>单位:</value>
   </data>
   <data name="DefaultMicrophone" xml:space="preserve">
     <value>默认麦克风</value>
@@ -324,11 +330,7 @@
     <value>帮助和介绍</value>
   </data>
   <data name="HelpLocalizationNotes" xml:space="preserve">
-    <value>本SRS汉化版由小猫蛋卷经原作者授权后制作，汉化相关的问题请联系蛋卷。如遇到SRS本身的问题需向原作者反馈BUG，也可以找我帮忙翻译代提交。
-
-在正式的多语言支持做好之前，自动更新功能会更新到英文版。
-蛋卷会随之跟进汉化版更新，请留意 CatATC.cn 上的发布页面。
-</value>
+    <value>当前语言：中文</value>
   </data>
   <data name="HelpP1" xml:space="preserve">
     <value>
@@ -417,8 +419,7 @@ DCS游戏内SRS浮窗</value>
     <value>最新版本和更新</value>
   </data>
   <data name="HelpP6L1" xml:space="preserve">
-    <value>（注意这里指的是英文原版）
-你永远可以在GitHub页面上的Release区域找最新版的SRS:</value>
+    <value>你永远可以在GitHub页面上的Release区域找最新版的SRS:</value>
   </data>
   <data name="HelpP6L2" xml:space="preserve">
     <value>
@@ -763,7 +764,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
     <value>机内通话常开</value>
   </data>
   <data name="OverlayMIDS" xml:space="preserve">
-    <value>数据链通讯</value>
+    <value>数据链</value>
   </data>
   <data name="OverlayNoIntercom" xml:space="preserve">
     <value>无机内通话</value>
@@ -775,7 +776,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
     <value>不可用 - 仅限SRS浮窗控制</value>
   </data>
   <data name="OverlayPresetCreate" xml:space="preserve">
-    <value>创造</value>
+    <value>创建预设</value>
   </data>
   <data name="OverlayPresetReload" xml:space="preserve">
     <value>重新加载</value>
@@ -936,7 +937,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
     <value>最低 - 9</value>
   </data>
   <data name="RecordTransmissions" xml:space="preserve">
-    <value>录制发送</value>
+    <value>录制无线电传输</value>
   </data>
   <data name="RefocusDCS" xml:space="preserve">
     <value>自动聚焦DCS窗口</value>
@@ -1076,11 +1077,29 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   <data name="ToggleServerSettings" xml:space="preserve">
     <value>服务器设置</value>
   </data>
+  <data name="ToolTipEAMButton" xml:space="preserve">
+    <value>外部预警机模式</value>
+  </data>
+  <data name="ToolTipEAMButtonL1" xml:space="preserve">
+    <value>外部预警机模式 (EAM) 可以让你在不启动DCS的情况下使用SRS的预警机功能</value>
+  </data>
+  <data name="ToolTipEAMButtonL2" xml:space="preserve">
+    <value>输入SRS服务器管理员提供的阵营密码来确认阵营选择</value>
+  </data>
+  <data name="ToolTipEAMName" xml:space="preserve">
+    <value>外部预警机名称</value>
+  </data>
+  <data name="ToolTipEAMNameL1" xml:space="preserve">
+    <value>选择你想显示的名称，用于服务器的客户端列表和导出功能</value>
+  </data>
   <data name="ToolTipOpacity" xml:space="preserve">
     <value>窗口透明度</value>
   </data>
   <data name="ToolTipRetransmit" xml:space="preserve">
     <value>转发</value>
+  </data>
+  <data name="ToolTipSavedAddressTab" xml:space="preserve">
+    <value>前往保存的地址页面</value>
   </data>
   <data name="ToolTipSelectedRadio" xml:space="preserve">
     <value>选中的无线电</value>
@@ -1093,6 +1112,15 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   </data>
   <data name="ToolTipTransponderMode4" xml:space="preserve">
     <value>模式 4</value>
+  </data>
+  <data name="ToolTipEAMPassword" xml:space="preserve">
+    <value>外部预警机阵营密码</value>
+  </data>
+  <data name="ToolTipEAMPasswordL1" xml:space="preserve">
+    <value>SRS服务器管理员向你提供的阵营密码</value>
+  </data>
+  <data name="ToolTipEAMPasswordL2" xml:space="preserve">
+    <value>输入正确密码可以允许你接入该阵营的通讯</value>
   </data>
   <data name="UHFEffectVolume" xml:space="preserve">
     <value>UHF音效音量</value>
@@ -1165,5 +1193,23 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   </data>
   <data name="VOXModeLower" xml:space="preserve">
     <value>更低</value>
+  </data>
+  <data name="ToolTipRecordQuality" xml:space="preserve">
+    <value>只有当录制无线电传输设为关时，质量才能被设置</value>
+  </data>
+  <data name="ToolTipVOXButton" xml:space="preserve">
+    <value>当机内通讯常开时开启感应激活</value>
+  </data>
+  <data name="ToolTipVOXSensitivity" xml:space="preserve">
+    <value>灵敏度越高，说话的声音越容易被检测到，但也更容易接收到噪音</value>
+  </data>
+  <data name="ToolTipNoMic" xml:space="preserve">
+    <value>无麦克风可用</value>
+  </data>
+  <data name="ToolTipNoMicL1" xml:space="preserve">
+    <value>没有有效的麦克风，其他人将无法听到你说话</value>
+  </data>
+  <data name="ToolTipNoMicL2" xml:space="preserve">
+    <value>你依然可以用SRS接受无线电呼叫，但无法发送任何东西</value>
   </data>
 </root>
