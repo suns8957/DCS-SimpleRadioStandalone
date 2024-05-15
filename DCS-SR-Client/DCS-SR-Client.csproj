@@ -514,6 +514,7 @@
     <Content Include="AudioEffects\Ambient\F16.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="AudioEffects\Ambient\F4.wav" />
     <Content Include="AudioEffects\Ambient\F5.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

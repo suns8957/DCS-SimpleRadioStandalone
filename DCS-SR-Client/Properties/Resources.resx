@@ -314,6 +314,9 @@
   <data name="AmbientEffectToggle" xml:space="preserve">
     <value>Enable Ambient Cockpit Effects</value>
   </data>
+  <data name="AmbientEffectIntercomToggle" xml:space="preserve">
+    <value>Enable Ambient Intercom Effects</value>
+  </data>
   <data name="AmbientEffectVolume" xml:space="preserve">
     <value>Ambient Cockpit Effect Volume</value>
   </data>

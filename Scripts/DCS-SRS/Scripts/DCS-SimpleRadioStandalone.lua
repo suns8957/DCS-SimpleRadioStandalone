@@ -6308,6 +6308,19 @@ function SR.exportRadioF4(_data)
     _data.radios[3].encKey = ky28_key
     _data.radios[3].enc = is_encrypted
     _data.radios[3].encMode = 2
+
+
+    -- Expansion Radio - Server Side Controlled
+    _data.radios[4].name = "AN/ARC-186(V)"
+    _data.radios[4].freq = 124.8 * 1000000 --116,00-151,975 MHz
+    _data.radios[4].modulation = 0
+    _data.radios[4].secFreq = 121.5 * 1000000
+    _data.radios[4].volume = 1.0
+    _data.radios[4].freqMin = 116 * 1000000
+    _data.radios[4].freqMax = 151.975 * 1000000
+    _data.radios[4].expansion = true
+    _data.radios[4].volMode = 1
+    _data.radios[4].freqMode = 1
  
     _data.intercomHotMic = intercom_hot_mic
 

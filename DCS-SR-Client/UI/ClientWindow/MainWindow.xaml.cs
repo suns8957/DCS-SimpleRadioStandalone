@@ -904,6 +904,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
 
             AmbientCockpitEffectToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect);
+            AmbientIntercomEffectToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect);
 
             AmbientCockpitEffectVolume.IsEnabled = false;
             AmbientCockpitEffectVolume.ValueChanged += (sender, e) =>
@@ -2135,6 +2136,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
         private void AmbientCockpitEffectToggle_OnClick(object sender, RoutedEventArgs e)
         {
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect, (bool)AmbientCockpitEffectToggle.IsChecked);
+        }
+
+        private void AmbientCockpitEffectIntercomToggle_OnClick(object sender, RoutedEventArgs e)
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect, (bool)AmbientIntercomEffectToggle.IsChecked);
         }
     }
 }

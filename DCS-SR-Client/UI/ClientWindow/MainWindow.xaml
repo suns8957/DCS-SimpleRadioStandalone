@@ -1951,6 +1951,7 @@
                                         <RowDefinition />
                                         <RowDefinition />
                                         <RowDefinition />
+                                        <RowDefinition />
                                     </Grid.RowDefinitions>
 
 
@@ -2536,12 +2537,40 @@
 
 
                                     <Label Grid.Row="18"
+                                           Grid.Column="0"
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"
+                                           Content="{x:Static p:Resources.AmbientEffectIntercomToggle}" />
+
+                                    <ToggleButton Name="AmbientIntercomEffectToggle"
+                                                  Grid.Row="18"
+                                                  Grid.Column="1"
+                                                  HorizontalContentAlignment="Center"
+                                                  VerticalContentAlignment="Center"
+                                                  Click="AmbientCockpitEffectIntercomToggle_OnClick">
+                                        <ToggleButton.Style>
+                                            <Style TargetType="{x:Type ToggleButton}">
+                                                <Setter Property="Content" Value="{x:Static p:Resources.ValueON}" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter Property="Content" Value="{x:Static p:Resources.ValueON}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="False">
+                                                        <Setter Property="Content" Value="{x:Static p:Resources.ValueOFF}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                    </ToggleButton>
+
+
+                                    <Label Grid.Row="19"
                                                Grid.Column="0"
                                                HorizontalContentAlignment="Center"
                                                VerticalContentAlignment="Center"
                                                Content="{x:Static p:Resources.AmbientEffectVolume}" />
 
-                                        <StackPanel Grid.Row="18"
+                                        <StackPanel Grid.Row="19"
                                                     Grid.Column="1" Margin="10">
 
                                             <Slider x:Name="AmbientCockpitEffectVolume"

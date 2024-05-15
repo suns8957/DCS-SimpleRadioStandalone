@@ -38,6 +38,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
         private float ambientCockpitEffectVolume = 1.0f;
         private bool ambientCockpitEffectEnabled = true;
+        private bool ambientCockpitIntercomEffectEnabled = true;
 
         private ProfileSettingsStore settingsStore = GlobalSettingsStore.Instance.ProfileSettingsStore;
         private double lastLoaded = 0;
@@ -136,8 +137,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
                 //adjust for LOS + Distance + Volume
                 AdjustVolumeForLoss(audio);
 
-                //Add cockpit effect - but not for Intercom
-                if(ambientCockpitEffectEnabled && audio.Modulation != (short)Modulation.INTERCOM)
+                //Add cockpit effect - but not for Intercom unless you specifically opt in
+                if((ambientCockpitEffectEnabled && audio.Modulation != (short)Modulation.INTERCOM )
+                   || (ambientCockpitEffectEnabled && audio.Modulation == (short)Modulation.INTERCOM && ambientCockpitIntercomEffectEnabled))
                     AddCockpitAmbientAudio(audio);
             }
             else
@@ -238,6 +240,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
                 ambientCockpitEffectEnabled = settingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect);
                 ambientCockpitEffectVolume =
                     settingsStore.GetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume);
+                ambientCockpitIntercomEffectEnabled =
+                    settingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect);
             }
                 
         }

@@ -124,6 +124,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable Ambient Intercom Effects.
+        /// </summary>
+        public static string AmbientEffectIntercomToggle {
+            get {
+                return ResourceManager.GetString("AmbientEffectIntercomToggle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable Ambient Cockpit Effects.
         /// </summary>
         public static string AmbientEffectToggle {
