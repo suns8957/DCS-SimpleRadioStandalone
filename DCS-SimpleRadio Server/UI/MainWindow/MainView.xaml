@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Ciribob.DCS.SimpleRadio.Standalone.Server.UI"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:p="clr-namespace:Ciribob.DCS.SimpleRadio.Standalone.Server.Properties"
              Width="330"
              Height="575"
              mc:Ignorable="d">
@@ -57,7 +58,7 @@
                         <Label Width="55"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Content="Clients:" />
+                               Content="{x:Static p:Resources.LabelClients}" />
                         <Label x:Name="ClientsCount"
                                Width="44"
                                HorizontalAlignment="Left"
@@ -68,7 +69,7 @@
                         <Label Width="55"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Content="Port:" />
+                               Content="{x:Static p:Resources.LabelPort}" />
                         <Label x:Name="ListeningPort"
                                Width="44"
                                HorizontalAlignment="Left"
@@ -85,13 +86,13 @@
                         Height="20"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
-                        Content="Client Admin" Grid.Row="0"
+                        Content="{x:Static p:Resources.BtnClientAdmin}" Grid.Row="0"
                         Grid.Column="2" />
 
                 <Label
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    Content="Secure Coalition Radios"
+                    Content="{x:Static p:Resources.LabelSecurity}"
                     Grid.Row="1"
                     Grid.Column="0" Grid.ColumnSpan="2"/>
 
@@ -104,7 +105,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Spectator Audio" 
+                <Label Content="{x:Static p:Resources.LabelSpectator}"
                        Grid.Row="2"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -120,7 +121,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Auto Export List" 
+                <Label Content="{x:Static p:Resources.LabelExportList}"
                        Grid.Row="3"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -136,7 +137,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center" />
 
-                <Label Content="Line of Sight" 
+                <Label Content="{x:Static p:Resources.LabelLOS}"
                        Grid.Row="4"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -152,7 +153,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Distance Limit" 
+                <Label Content="{x:Static p:Resources.LabelDistanceLimit}"
                        Grid.Row="5"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -168,7 +169,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="IRL Radio Tx Behaviour" 
+                <Label Content="{x:Static p:Resources.LabelRealTx}"
                        Grid.Row="6"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -184,7 +185,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="IRL Radio Rx Behaviour" 
+                <Label Content="{x:Static p:Resources.LabelRealRx}"
                        Grid.Row="7"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -200,7 +201,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Radio Expansion"
+                <Label Content="{x:Static p:Resources.LabelRadioExpansion}"
                        Grid.Row="8"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -216,7 +217,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Allow Radio Encryption"
+                <Label Content="{x:Static p:Resources.LabelRadioEncryption}"
                        Grid.Row="9"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -232,7 +233,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Strict Radio Encryption"
+                <Label Content="{x:Static p:Resources.LabelStrictEncryption}"
                        Grid.Row="10"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -248,7 +249,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Check for beta updates" 
+                <Label Content="{x:Static p:Resources.LabelCheckBetaUpdates}"
                        Grid.Row="11"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -265,7 +266,7 @@
                        HorizontalAlignment="Center"/>
 
 
-                <Label Content="External AWACS Mode (EAM)" 
+                <Label Content="{x:Static p:Resources.LabelExternalAWACS}"
                        Grid.Row="12"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -281,7 +282,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="EAM blue coal. password" 
+                <Label Content="{x:Static p:Resources.LabelExternalAWACSBluePass}"
                        Grid.Row="13"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -298,7 +299,7 @@
                          VerticalAlignment="Center"
                          HorizontalAlignment="Center"/>
 
-                <Label Content="EAM red coal. password"
+                <Label Content="{x:Static p:Resources.LabelExternalAWACSRedPass}"
                        Grid.Row="14"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -315,7 +316,7 @@
                          VerticalAlignment="Center"
                          HorizontalAlignment="Center"/>
 
-                <Label Content="Test Frequencies AM (MHz)"
+                <Label Content="{x:Static p:Resources.LabelTestFreq}"
                        Grid.Row="15"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -333,7 +334,7 @@
                          HorizontalAlignment="Center"/>
 
 
-                <Label Content="Show Tuned/Client Count" 
+                <Label Content="{x:Static p:Resources.LabelTunedCount}"
                        Grid.Row="16"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -349,7 +350,7 @@
                        VerticalAlignment="Center"
                        HorizontalAlignment="Center"/>
 
-                <Label Content="Global Lobby Freq. AM (MHz)"
+                <Label Content="{x:Static p:Resources.LabelGlobalLobbyFreq}"
                        Grid.Row="17"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -366,7 +367,7 @@
                          VerticalAlignment="Center"
                          HorizontalAlignment="Center"/>
 
-                <Label Content="Ignore Radio Effect on Global Freq" 
+                <Label Content="{x:Static p:Resources.LabelOverrideEffectsOnGlobal}"
                        Grid.Row="18"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -382,7 +383,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="LotATC Transponder Export" 
+                <Label Content="{x:Static p:Resources.LabelLotATCExport}"
                        Grid.Row="19"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -398,7 +399,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Show Transmitter Name" 
+                <Label Content="{x:Static p:Resources.LabelShowTransmitterName}"
                        Grid.Row="20"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -414,7 +415,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Log Received Transmissions"
+                <Label Content="{x:Static p:Resources.LabelTransmissionLog}"
                        Grid.Row="21"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -430,7 +431,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
 
-                <Label Content="Transmission Archive Time"
+                <Label Content="{x:Static p:Resources.LabelArchiveTime}"
                        Grid.Row="22"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"
@@ -464,7 +465,7 @@
                     </Slider>
                 </StackPanel>
 
-                <Label Content="Retransmit Hop/Node Count"
+                <Label Content="{x:Static p:Resources.LabelRetransmitNodeLimit}"
                        Grid.Row="23"
                        Grid.Column="0" 
                        Grid.ColumnSpan="2"

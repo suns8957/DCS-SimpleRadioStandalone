@@ -1166,4 +1166,49 @@ Requires Tx or Rx Effects On</value>
   <data name="OverlayPresetCreate" xml:space="preserve">
     <value>Create</value>
   </data>
+  <data name="ToolTipEAMButton" xml:space="preserve">
+    <value>External AWACS Mode</value>
+  </data>
+  <data name="ToolTipEAMButtonL1" xml:space="preserve">
+    <value>External AWACS Mode (EAM) allows you to use the AWACS functionality of SRS without having to run DCS.</value>
+  </data>
+  <data name="ToolTipEAMButtonL2" xml:space="preserve">
+    <value>Enter the side password provided to you by the SRS server admin to confirm a side selection.</value>
+  </data>
+  <data name="ToolTipEAMName" xml:space="preserve">
+    <value>External AWACS Mode name</value>
+  </data>
+  <data name="ToolTipEAMNameL1" xml:space="preserve">
+    <value>Choose a name to display in the client list and export of the SRS server.</value>
+  </data>
+  <data name="ToolTipSavedAddressTab" xml:space="preserve">
+    <value>Go to saved address tab</value>
+  </data>
+  <data name="ToolTipEAMPassword" xml:space="preserve">
+    <value>External AWACS Mode coalition password</value>
+  </data>
+  <data name="ToolTipEAMPasswordL1" xml:space="preserve">
+    <value>The coalition password is provided to you by the SRS server admin.</value>
+  </data>
+  <data name="ToolTipEAMPasswordL2" xml:space="preserve">
+    <value>Entering the correct password for a coalitions allows you to access that side's comms.</value>
+  </data>
+  <data name="ToolTipNoMic" xml:space="preserve">
+    <value>No microphone available</value>
+  </data>
+  <data name="ToolTipNoMicL1" xml:space="preserve">
+    <value>No valid microphone is available - others will not be able to hear you.</value>
+  </data>
+  <data name="ToolTipNoMicL2" xml:space="preserve">
+    <value>You can still use SRS to listen to radio calls, but will not be able to transmit anything yourself.</value>
+  </data>
+  <data name="ToolTipRecordQuality" xml:space="preserve">
+    <value>Quality can only be set if Record Transmissions is set to off</value>
+  </data>
+  <data name="ToolTipVOXButton" xml:space="preserve">
+    <value>Enables Voice Detection if Hot Mic on intercom is used</value>
+  </data>
+  <data name="ToolTipVOXSensitivity" xml:space="preserve">
+    <value>The higher the sensitivity the less likely voice will be missed, but the higher the chance of a false positive</value>
+  </data>
 </root>

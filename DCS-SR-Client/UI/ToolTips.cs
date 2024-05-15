@@ -16,16 +16,16 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
             externalAWACSModeContent.Children.Add(new TextBlock
             {
-                Text = "External AWACS Mode",
+                Text = Properties.Resources.ToolTipEAMButton,
                 FontWeight = FontWeights.Bold
             });
             externalAWACSModeContent.Children.Add(new TextBlock
             {
-                Text = "External AWACS Mode (EAM) allows you to use the AWACS functionality of SRS without having to run DCS."
+                Text = Properties.Resources.ToolTipEAMButtonL1
             });
             externalAWACSModeContent.Children.Add(new TextBlock
             {
-                Text = "Enter the side password provided to you by the SRS server admin to confirm a side selection."
+                Text = Properties.Resources.ToolTipEAMButtonL2
             });
 
             ExternalAWACSMode.Content = externalAWACSModeContent;
@@ -36,12 +36,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
             externalAWACSModeNameContent.Children.Add(new TextBlock
             {
-                Text = "External AWACS Mode name",
+                Text = Properties.Resources.ToolTipEAMName,
                 FontWeight = FontWeights.Bold
             });
             externalAWACSModeNameContent.Children.Add(new TextBlock
             {
-                Text = "Choose a name to display in the client list and export of the SRS server."
+                Text = Properties.Resources.ToolTipEAMNameL1
             });
 
             ExternalAWACSModeName.Content = externalAWACSModeNameContent;
@@ -52,16 +52,16 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
             externalAWACSModePasswordContent.Children.Add(new TextBlock
             {
-                Text = "External AWACS Mode coalition password",
+                Text = Properties.Resources.ToolTipEAMPassword,
                 FontWeight = FontWeights.Bold
             });
             externalAWACSModePasswordContent.Children.Add(new TextBlock
             {
-                Text = "The coalition password is provided to you by the SRS server admin."
+                Text = Properties.Resources.ToolTipEAMPasswordL1
             });
             externalAWACSModePasswordContent.Children.Add(new TextBlock
             {
-                Text = "Entering the correct password for a coalitions allows you to access that side's comms."
+                Text = Properties.Resources.ToolTipEAMPasswordL2
             });
 
             ExternalAWACSModePassword.Content = externalAWACSModePasswordContent;

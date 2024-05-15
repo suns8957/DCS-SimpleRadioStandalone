@@ -220,8 +220,7 @@ DCS脚本已安装至:
   </data>
   <data name="ServerNote" xml:space="preserve">
     <value>请注意: 服务器使用需手动安装 DCS-SRS-AutoConnectGameGUI.lua。
-此文件可在SRS安装目录中的Scripts文件夹内找到，内含安装说明。
-自带的更新功能目前只能更新到英文版，中文版请安装好后看SRS内置的帮助页。</value>
+此文件可在SRS安装目录中的Scripts文件夹内找到，内含安装说明。</value>
   </data>
   <data name="srPathButton" xml:space="preserve">
     <value>浏览</value>

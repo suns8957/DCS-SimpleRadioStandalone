@@ -195,6 +195,7 @@
     <EmbeddedResource Include="Properties\Resources.zh-CN.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.zh-CN.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -276,6 +277,7 @@ copy /Y "$(SolutionDir)x64\Release\srs.dll" "$(SolutionDir)install-build\Scripts
 
 if not exist "$(SolutionDir)install-build\zh-CN" mkdir "$(SolutionDir)install-build\zh-CN"
 copy /Y "$(SolutionDir)DCS-SR-Client\bin\x64\Release\zh-CN\SR-ClientRadio.resources.dll" "$(SolutionDir)install-build\zh-CN\SR-ClientRadio.resources.dll"
+copy /Y "$(SolutionDir)DCS-SimpleRadio Server\bin\x64\Release\zh-CN\SR-Server.resources.dll" "$(SolutionDir)install-build\zh-CN\SR-Server.resources.dll"
 copy /Y "$(SolutionDir)DCS-SR-Client\bin\x64\Release\zh-CN\DCS-SR-Common.resources.dll" "$(SolutionDir)install-build\zh-CN\DCS-SR-Common.resources.dll"
 copy /Y "$(SolutionDir)Installer\bin\x64\Release\zh-CN\Installer.resources.dll" "$(SolutionDir)install-build\zh-CN\Installer.resources.dll"</PostBuildEvent>
   </PropertyGroup>

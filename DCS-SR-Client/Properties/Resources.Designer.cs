@@ -2875,6 +2875,105 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External AWACS Mode.
+        /// </summary>
+        public static string ToolTipEAMButton {
+            get {
+                return ResourceManager.GetString("ToolTipEAMButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External AWACS Mode (EAM) allows you to use the AWACS functionality of SRS without having to run DCS..
+        /// </summary>
+        public static string ToolTipEAMButtonL1 {
+            get {
+                return ResourceManager.GetString("ToolTipEAMButtonL1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the side password provided to you by the SRS server admin to confirm a side selection..
+        /// </summary>
+        public static string ToolTipEAMButtonL2 {
+            get {
+                return ResourceManager.GetString("ToolTipEAMButtonL2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External AWACS Mode name.
+        /// </summary>
+        public static string ToolTipEAMName {
+            get {
+                return ResourceManager.GetString("ToolTipEAMName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose a name to display in the client list and export of the SRS server..
+        /// </summary>
+        public static string ToolTipEAMNameL1 {
+            get {
+                return ResourceManager.GetString("ToolTipEAMNameL1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External AWACS Mode coalition password.
+        /// </summary>
+        public static string ToolTipEAMPassword {
+            get {
+                return ResourceManager.GetString("ToolTipEAMPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The coalition password is provided to you by the SRS server admin..
+        /// </summary>
+        public static string ToolTipEAMPasswordL1 {
+            get {
+                return ResourceManager.GetString("ToolTipEAMPasswordL1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Entering the correct password for a coalitions allows you to access that side&apos;s comms..
+        /// </summary>
+        public static string ToolTipEAMPasswordL2 {
+            get {
+                return ResourceManager.GetString("ToolTipEAMPasswordL2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No microphone available.
+        /// </summary>
+        public static string ToolTipNoMic {
+            get {
+                return ResourceManager.GetString("ToolTipNoMic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid microphone is available - others will not be able to hear you..
+        /// </summary>
+        public static string ToolTipNoMicL1 {
+            get {
+                return ResourceManager.GetString("ToolTipNoMicL1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can still use SRS to listen to radio calls, but will not be able to transmit anything yourself..
+        /// </summary>
+        public static string ToolTipNoMicL2 {
+            get {
+                return ResourceManager.GetString("ToolTipNoMicL2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Window Opacity.
         /// </summary>
         public static string ToolTipOpacity {
@@ -2884,11 +2983,29 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Quality can only be set if Record Transmissions is set to off.
+        /// </summary>
+        public static string ToolTipRecordQuality {
+            get {
+                return ResourceManager.GetString("ToolTipRecordQuality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Retransmit.
         /// </summary>
         public static string ToolTipRetransmit {
             get {
                 return ResourceManager.GetString("ToolTipRetransmit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go to saved address tab.
+        /// </summary>
+        public static string ToolTipSavedAddressTab {
+            get {
+                return ResourceManager.GetString("ToolTipSavedAddressTab", resourceCulture);
             }
         }
         
@@ -2934,6 +3051,24 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         public static string ToolTipTransponderMode4 {
             get {
                 return ResourceManager.GetString("ToolTipTransponderMode4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enables Voice Detection if Hot Mic on intercom is used.
+        /// </summary>
+        public static string ToolTipVOXButton {
+            get {
+                return ResourceManager.GetString("ToolTipVOXButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The higher the sensitivity the less likely voice will be missed, but the higher the chance of a false positive.
+        /// </summary>
+        public static string ToolTipVOXSensitivity {
+            get {
+                return ResourceManager.GetString("ToolTipVOXSensitivity", resourceCulture);
             }
         }
         
