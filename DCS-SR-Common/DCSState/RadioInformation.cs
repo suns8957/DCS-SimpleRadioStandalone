@@ -104,6 +104,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
         [JsonNetworkIgnoreSerialization]
         public bool simul = false;
 
+        [JsonNetworkIgnoreSerialization]
+        public bool rxOnly= false;
+
         /**
          * Used to determine if we should send an update to the server or not
          * We only need to do that if something that would stop us Receiving happens which
@@ -184,7 +187,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common
                 volMode = this.volMode,
                 volume = this.volume,
                 retransmit = this.retransmit,
-                rtMode = this.rtMode
+                rtMode = this.rtMode,
+                rxOnly = this.rxOnly
 
             };
         }

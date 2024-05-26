@@ -222,6 +222,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
         {
             var expansion = _serverSettings.GetSettingAsBool(ServerSettingsKeys.RADIO_EXPANSION);
 
+            if (expansion)
+            {
+                //override the server side setting
+                expansion = !_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.DisableExpansionRadios);
+            }
+
             var playerRadioInfo = _clientStateSingleton.DcsPlayerRadioInfo;
 
             //copy and compare to look for changes
@@ -314,6 +320,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
                     clientRadio.guardFreqMode = RadioInformation.FreqMode.COCKPIT;
                     clientRadio.encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION;
                     clientRadio.volMode = RadioInformation.VolumeMode.COCKPIT;
+                    clientRadio.rxOnly = false;
 
                     continue;
                 }
@@ -339,6 +346,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
                     clientRadio.guardFreqMode = RadioInformation.FreqMode.COCKPIT;
                     clientRadio.encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION;
                     clientRadio.volMode = RadioInformation.VolumeMode.COCKPIT;
+                    clientRadio.rxOnly = false;
                 }
                 else
                 {
@@ -364,6 +372,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
                     clientRadio.freqMode = updateRadio.freqMode;
                     clientRadio.guardFreqMode = updateRadio.guardFreqMode;
                     clientRadio.rtMode = updateRadio.rtMode;
+                    clientRadio.rxOnly = updateRadio.rxOnly;
 
                     if (_serverSettings.GetSettingAsBool(ServerSettingsKeys.ALLOW_RADIO_ENCRYPTION))
                     {

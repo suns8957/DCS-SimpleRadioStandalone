@@ -1211,4 +1211,7 @@ Requires Tx or Rx Effects On</value>
   <data name="ToolTipVOXSensitivity" xml:space="preserve">
     <value>The higher the sensitivity the less likely voice will be missed, but the higher the chance of a false positive</value>
   </data>
+  <data name="DisableExpansionRadios" xml:space="preserve">
+    <value>Disable Expansion Radios</value>
+  </data>
 </root>

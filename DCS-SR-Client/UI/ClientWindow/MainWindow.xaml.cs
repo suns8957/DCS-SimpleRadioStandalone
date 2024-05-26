@@ -772,6 +772,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
                 _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.PTTReleaseDelay);
             PTTReleaseDelay.IsEnabled = true;
 
+            DisableExpansionRadios.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.DisableExpansionRadios);
+
             PTTStartDelay.IsEnabled = false;
             PTTStartDelay.ValueChanged += PushToTalkStartDelay_ValueChanged;
             PTTStartDelay.Value =
@@ -2140,7 +2142,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
         private void AmbientCockpitEffectIntercomToggle_OnClick(object sender, RoutedEventArgs e)
         {
-            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect, (bool)AmbientIntercomEffectToggle.IsChecked);
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect, (bool)AmbientIntercomEffectToggle.IsChecked);
+        }
+
+        private void DisableExpansionRadios_OnClick(object sender, RoutedEventArgs e)
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.DisableExpansionRadios, (bool)DisableExpansionRadios.IsChecked);
         }
     }
 }

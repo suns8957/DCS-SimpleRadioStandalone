@@ -1683,6 +1683,7 @@
                                         <RowDefinition />
                                         <RowDefinition />
                                         <RowDefinition />
+                                        <RowDefinition />
                                     </Grid.RowDefinitions>
 
                                     <Label Grid.Row="0"
@@ -1919,6 +1920,34 @@
                                         </Grid>
 
                                     </StackPanel>
+
+                                    <Label Grid.Row="8"
+                                           Grid.Column="0"
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"
+                                           Content="{x:Static p:Resources.DisableExpansionRadios}" />
+
+                                    <ToggleButton Name="DisableExpansionRadios"
+                                                  Grid.Row="8"
+                                                  Grid.Column="1"
+                                                  HorizontalContentAlignment="Center"
+                                                  VerticalContentAlignment="Center"
+                                                  Click="DisableExpansionRadios_OnClick">
+                                        <ToggleButton.Style>
+                                            <Style TargetType="{x:Type ToggleButton}">
+                                                <Setter Property="Content" Value="{x:Static p:Resources.ValueON}" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter Property="Content" Value="{x:Static p:Resources.ValueON}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="False">
+                                                        <Setter Property="Content" Value="{x:Static p:Resources.ValueOFF}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                    </ToggleButton>
+
                                 </Grid>
                             </GroupBox>
 

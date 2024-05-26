@@ -885,7 +885,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                                                        RadioInformation.Modulation.DISABLED
                                                        && (currentlySelectedRadio.freq > 100 ||
                                                            currentlySelectedRadio.modulation ==
-                                                           RadioInformation.Modulation.INTERCOM))
+                                                           RadioInformation.Modulation.INTERCOM)
+                                                       && currentlySelectedRadio.rxOnly == false)
                     {
                         sendingOn = currentSelected;
                         transmittingRadios.Add(currentlySelectedRadio);
@@ -910,6 +911,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                     {
                         if (radio != null && radio.simul && radio.modulation != RadioInformation.Modulation.DISABLED
                             && (radio.freq > 100 || radio.modulation == RadioInformation.Modulation.INTERCOM)
+                            && radio.rxOnly == false
                             && !transmittingRadios.Contains(radio)
                         ) // Make sure we don't add the selected radio twice
                         {

@@ -1215,4 +1215,7 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   <data name="AmbientEffectIntercomToggle" xml:space="preserve">
     <value>机内通讯启用座舱环境音效</value>
   </data>
+  <data name="DisableExpansionRadios" xml:space="preserve">
+    <value>Disable Expansion Radios</value>
+  </data>
 </root>

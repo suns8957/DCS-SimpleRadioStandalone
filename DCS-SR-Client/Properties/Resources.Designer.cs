@@ -477,6 +477,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disable Expansion Radios.
+        /// </summary>
+        public static string DisableExpansionRadios {
+            get {
+                return ResourceManager.GetString("DisableExpansionRadios", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Record Tone for Disallowed Audio.
         /// </summary>
         public static string DisallowedAudioTone {

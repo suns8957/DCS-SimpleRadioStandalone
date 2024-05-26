@@ -242,8 +242,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
                 ChannelTab.Visibility = Visibility.Visible;
 
+                var currentRadio = _clientStateSingleton.DcsPlayerRadioInfo.radios[RadioId];
+
                 if (_clientStateSingleton.DcsPlayerRadioInfo.simultaneousTransmissionControl ==
-                    DCSPlayerRadioInfo.SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS)
+                    DCSPlayerRadioInfo.SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS 
+                    && currentRadio.rxOnly == false)
                 {
                     if (_clientStateSingleton.DcsPlayerRadioInfo.simultaneousTransmission 
                         && _clientStateSingleton.DcsPlayerRadioInfo.simultaneousTransmissionControl == DCSPlayerRadioInfo.SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS)
@@ -445,7 +448,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                         RadioMetaData.Text += " E" + currentRadio.encKey; // ENCRYPTED
                     }
 
-                 
+                    if (currentRadio.rxOnly)
+                    {
+                        RadioFrequency.Text += " RX";
+                    }
+
                 }
                 RadioLabel.Text = dcsPlayerRadioInfo.radios[RadioId].name;
 

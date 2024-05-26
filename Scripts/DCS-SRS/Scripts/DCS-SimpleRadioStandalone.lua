@@ -210,8 +210,9 @@ function SR.exporter()
 
         if aircraftExporter then
 
-          --  show_param_handles_list()
+          -- show_param_handles_list()
           --  list_cockpit_params()
+          --  SR.log(SR.debugDump(getmetatable(GetDevice(1))).."\n\n")
 
             _update = aircraftExporter(_update)
         else
@@ -1912,6 +1913,32 @@ function SR.exportRadioF15ESE(_data)
     -- TODO check
     local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
 
+    -- {"UFC_CC_01":"","UFC_CC_02":"","UFC_CC_03":"","UFC_CC_04":"","UFC_DISPLAY":"","UFC_SC_01":"LAW 250'","UFC_SC_02":"TCN OFF","UFC_SC_03":"IFF 4","UFC_SC_04":"TF OFF","UFC_SC_05":"*U243000G","UFC_SC_05A":".","UFC_SC_06":" G","UFC_SC_07":"GV ","UFC_SC_08":"U133000*","UFC_SC_08A":".","UFC_SC_09":"N-F OFF","UFC_SC_10":"A4/E4","UFC_SC_11":"A/P OFF","UFC_SC_12":"STR B"}
+
+    local setGuard = function(freq)
+        -- GUARD changes based on the tuned frequency
+        if freq > 108*1000000
+                and freq < 135.995*1000000 then
+            return 121.5 * 1000000
+        end
+        if freq > 108*1000000
+                and freq < 399.975*1000000 then
+            return 243 * 1000000
+        end
+
+        return -1
+    end
+
+    local _ufc = SR.getListIndicatorValue(9)
+
+    if string.find(_ufc.UFC_SC_05, "G",1,true) and _data.radios[2].freq > 1000 then
+         _data.radios[2].secFreq = setGuard(_data.radios[2].freq)
+    end
+
+    if string.find(_ufc.UFC_SC_08, "G",1,true) and _data.radios[3].freq > 1000 then
+         _data.radios[3].secFreq = setGuard(_data.radios[3].freq)
+    end
+   
     if _seat == 0 then
         _data.radios[1].volume =  SR.getRadioVolume(0, 504, { 0.0, 1.0 }, false)
         _data.radios[2].volume = SR.getRadioVolume(0, 282, { 0.0, 1.0 }, false)
@@ -2601,7 +2628,6 @@ function SR.exportRadioOH6A(_data)
     --guard mode for UHF Radio
     local retran = SR.getSelectorPosition(52, 0.33)
 
-    SR.log(retran)
     if retran == 2 and _data.radios[2].freq > 1000 then
         _data.radios[2].rtMode = 0
         _data.radios[2].retransmit = true
@@ -3362,10 +3388,14 @@ end
 
 
 --for A10C2
-
 local _a10c2 = {}
 _a10c2.enc = false
 _a10c2.encKey = 1
+_a10c2.volume = 1
+_a10c2.lastVolPos = 0
+_a10c2.increaseVol = false
+_a10c2.decreaseVol = false
+_a10c2.enableVolumeControl = false
 
 function SR.exportRadioA10C2(_data)
 
@@ -3377,11 +3407,15 @@ function SR.exportRadioA10C2(_data)
         local _device = GetDevice(0)
 
         if _device then
-            _device:set_argument_value(133, 1.0) -- VHF AM
+         --   _device:set_argument_value(133, 1.0) -- VHF AM
             _device:set_argument_value(171, 1.0) -- UHF
             _device:set_argument_value(147, 1.0) -- VHF FM
             _a10c2.enc = false
             _a10c2.encKey = 1
+            _a10c2.volume = 1
+            _a10c2.increaseVol = false
+            _a10c2.decreaseVol = false
+            _a10c2.enableVolumeControl = false
         end
     end
 
@@ -3390,7 +3424,6 @@ function SR.exportRadioA10C2(_data)
     _data.radios[2].name = "AN/ARC-210 VHF/UHF"
     _data.radios[2].freq = SR.getRadioFrequency(55)
     _data.radios[2].modulation = SR.getRadioModulation(55)
-    _data.radios[2].volume = SR.getRadioVolume(0, 133, { 0.0, 1.0 }, false) * SR.getRadioVolume(0, 238, { 0.0, 1.0 }, false) * SR.getRadioVolume(0, 225, { 0.0, 1.0 }, false) * SR.getButtonPosition(226)
     _data.radios[2].encMode = 2 -- Mode 2 is set by aircraft
 
     --18 : {"PREV":"PREV","comsec_mode":"KY-58 VOICE","comsec_submode":"CT","dot_mark":".","freq_label_khz":"000","freq_label_mhz":"124","ky_submode_label":"1","lower_left_corner_arc210":"","modulation_label":"AM","prev_manual_freq":"---.---","txt_RT":"RT1"}
@@ -3398,6 +3431,12 @@ function SR.exportRadioA10C2(_data)
     
     pcall(function() 
         local _radioDisplay = SR.getListIndicatorValue(18)
+
+        if _radioDisplay["COMSEC"] == "COMSEC" then
+            _a10c2.enableVolumeControl = true
+        else
+            _a10c2.enableVolumeControl = false
+        end
 
         if _radioDisplay.comsec_submode and _radioDisplay.comsec_submode == "PT" then
             
@@ -3411,8 +3450,38 @@ function SR.exportRadioA10C2(_data)
          
         end
     end)
-    
 
+    local _current = SR.getButtonPosition(552)
+    local _delta = _a10c2.lastVolPos - _current
+    _a10c2.lastVolPos = _current
+
+    if _delta > 0 then
+        _a10c2.decreaseVol = true
+
+    elseif _delta < 0 then
+        _a10c2.increaseVol = true
+    else
+        _a10c2.increaseVol = false
+        _a10c2.decreaseVol = false
+    end
+       
+    if _a10c2.enableVolumeControl then
+        if _a10c2.increaseVol then
+            _a10c2.volume = _a10c2.volume + 0.05
+        elseif _a10c2.decreaseVol then
+            _a10c2.volume = _a10c2.volume - 0.05
+        end
+
+        if _a10c2.volume > 1.0 then
+            _a10c2.volume = 1.0
+        end
+
+        if _a10c2.volume < 0.0 then
+            _a10c2.volume = 0
+        end
+    end 
+
+    _data.radios[2].volume = _a10c2.volume * SR.getRadioVolume(0, 238, { 0.0, 1.0 }, false) * SR.getRadioVolume(0, 225, { 0.0, 1.0 }, false) * SR.getButtonPosition(226)
     _data.radios[2].encKey = _a10c2.encKey
     _data.radios[2].enc = _a10c2.enc
 
@@ -6262,7 +6331,7 @@ end
 --for F-4
 function SR.exportRadioF4(_data)
 
-    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "Expansion Radio requires Always allow SRS Hotkeys on" }
+    _data.capabilities = { dcsPtt = true, dcsIFF = true, dcsRadioSwitch = true, intercomHotMic = true, desc = "Expansion Radio requires Always allow SRS Hotkeys on. 2nd radio is receive only" }
 
     local ics_devid = 2
     local arc164_devid = 3
@@ -6298,6 +6367,7 @@ function SR.exportRadioF4(_data)
     _data.radios[2].enc = is_encrypted
     _data.radios[2].encMode = 2
 
+    -- RECEIVE ONLY RADIO  https://f4.manuals.heatblur.se/systems/nav_com/uhf.html
     _data.radios[3].name = "AN/ARC-164 AUX"
     _data.radios[3].freq = ARC164_device:is_aux_on() and SR.round(ARC164_device:get_aux_frequency(), 5000) or 1
     _data.radios[3].modulation = radio_modulation
@@ -6308,6 +6378,7 @@ function SR.exportRadioF4(_data)
     _data.radios[3].encKey = ky28_key
     _data.radios[3].enc = is_encrypted
     _data.radios[3].encMode = 2
+    _data.radios[3].rxOnly = true
 
 
     -- Expansion Radio - Server Side Controlled
@@ -6843,6 +6914,7 @@ LuaExportActivityNextEvent = function(tCurrent)
 
     return tNext
 end
+
 
 LuaExportBeforeNextFrame = function()
 
