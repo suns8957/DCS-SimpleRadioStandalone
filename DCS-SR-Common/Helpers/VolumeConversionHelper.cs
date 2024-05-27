@@ -121,5 +121,30 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers
 
             return 20 * Math.Log10(rms);
         }
+
+        public static float ConvertRadioVolumeSlider(float sliderValue)
+        {
+            double dB = ConvertSliderToVolume(sliderValue);
+            return (float) dBToLinearScale(dB);
+        }
+
+        static double ConvertSliderToVolume(double sliderValue)
+        {
+            if (sliderValue <= 0)
+            {
+                sliderValue = 0.000001;
+            }
+            else if (sliderValue > 1)
+            {
+                sliderValue = 1;
+            }
+            return 20 * Math.Log10(sliderValue);
+        }
+
+        static float dBToLinearScale(double dB)
+        {
+            return (float)Math.Pow(10, dB / 20);
+        }
+
     }
 }

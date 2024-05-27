@@ -16,6 +16,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Setting;
 using FragLabs.Audio.Codecs;
@@ -458,7 +459,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                                                 ReceiveTime = DateTime.Now.Ticks,
                                                 Frequency = destinationRadio.Frequency,
                                                 Modulation = destinationRadio.Modulation,
-                                                Volume = destinationRadio.ReceivingRadio.volume,
+                                                Volume = VolumeConversionHelper.ConvertRadioVolumeSlider(destinationRadio.ReceivingRadio.volume),
                                                 ReceivedRadio = destinationRadio.ReceivingState.ReceivedOn,
                                                 UnitId = udpVoicePacket.UnitId,
                                                 Encryption = destinationRadio.Encryption,
@@ -1005,7 +1006,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                         {
                             _audioManager.PlaySoundEffectStartTransmit(sendingOn,
                                 currentlySelectedRadio.enc && (currentlySelectedRadio.encKey > 0),
-                                currentlySelectedRadio.volume, currentlySelectedRadio.modulation);
+                                VolumeConversionHelper.ConvertRadioVolumeSlider(currentlySelectedRadio.volume), currentlySelectedRadio.modulation);
                         }
 
                         //set radio overlay state
@@ -1050,7 +1051,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                     {
                         var radio = _clientStateSingleton.DcsPlayerRadioInfo.radios[_clientStateSingleton.RadioSendingState.SendingOn];
 
-                        _audioManager.PlaySoundEffectEndTransmit(_clientStateSingleton.RadioSendingState.SendingOn, radio.volume, radio.modulation);
+                        _audioManager.PlaySoundEffectEndTransmit(_clientStateSingleton.RadioSendingState.SendingOn, VolumeConversionHelper.ConvertRadioVolumeSlider(radio.volume), radio.modulation);
                     }
                 }
             }
