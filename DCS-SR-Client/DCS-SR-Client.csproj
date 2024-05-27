@@ -274,6 +274,11 @@
     <Compile Include="Network\VAICOM\Models\VAICOMMessageWrapper.cs" />
     <Compile Include="Network\VAICOM\VAICOMSyncHandler.cs" />
     <Compile Include="Audio\Recording\ClientTransmissionBuffer.cs" />
+    <Compile Include="Properties\Resources.ru-RU.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.ru-RU.resx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Resources.zh-CN.Designer.cs">
       <DependentUpon>Resources.zh-CN.resx</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -464,6 +469,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="Properties\Resources.ru-RU.resx">
+      <SubType>Designer</SubType>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.ru-RU.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.zh-CN.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.zh-CN.Designer.cs</LastGenOutput>
