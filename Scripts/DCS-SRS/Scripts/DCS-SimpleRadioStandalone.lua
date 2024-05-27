@@ -4139,7 +4139,7 @@ function SR.exportRadioF16C(_data)
 
     _data.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=false,control=0,expansion=false}
 
-    local iffPower =  SR.getSelectorPosition(540,0.1)
+    local iffPower =  SR.getSelectorPosition(539,0.1)
 
     local iffIdent =  SR.getButtonPosition(125) -- -1 is off 0 or more is on
 
