@@ -1,4 +1,4 @@
--- Version 2.1.0.5
+-- Version 2.1.0.6
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -2411,24 +2411,24 @@ function SR.exportRadioOH58D(_data)
     _data.radios[1].volMode = 0
 
     _data.radios[2].name = "FM1"
-    _data.radios[2].freq = SR.getRadioFrequency(28)
-    _data.radios[2].modulation = SR.getRadioModulation(28)
+    _data.radios[2].freq = SR.getRadioFrequency(29)
+    _data.radios[2].modulation = SR.getRadioModulation(29)
     _data.radios[2].volMode = 0
 
     _data.radios[3].name = "UHF"
-    _data.radios[3].freq = SR.getRadioFrequency(29)
-    _data.radios[3].modulation = SR.getRadioModulation(29)
+    _data.radios[3].freq = SR.getRadioFrequency(30)
+    _data.radios[3].modulation = SR.getRadioModulation(30)
     _data.radios[3].volMode = 0
 
     _data.radios[4].name = "VHF"
-    _data.radios[4].freq = SR.getRadioFrequency(30)
-    _data.radios[4].modulation = SR.getRadioModulation(30)
+    _data.radios[4].freq = SR.getRadioFrequency(31)
+    _data.radios[4].modulation = SR.getRadioModulation(31)
     _data.radios[4].volMode = 0
 
 
     _data.radios[5].name = "FM2"
-    _data.radios[5].freq = SR.getRadioFrequency(31)
-    _data.radios[5].modulation = SR.getRadioModulation(31)
+    _data.radios[5].freq = SR.getRadioFrequency(32)
+    _data.radios[5].modulation = SR.getRadioModulation(32)
     _data.radios[5].volMode = 0
 
     local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
@@ -6956,4 +6956,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.5")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.6")
