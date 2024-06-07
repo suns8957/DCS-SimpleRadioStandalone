@@ -2427,6 +2427,7 @@ function SR.exportRadioOH58D(_data)
     _data.radios[4].freq = SR.getRadioFrequency(31)
     _data.radios[4].modulation = SR.getRadioModulation(31)
     _data.radios[4].volMode = 0
+    _data.radios[3].encMode = 2
 
 
     _data.radios[5].name = "FM2"
@@ -2585,8 +2586,6 @@ function SR.exportRadioOH58D(_data)
     if _footPtt > 0.5  then
         _data.ptt = true
     end
-
-    -- check for CIPHER
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
