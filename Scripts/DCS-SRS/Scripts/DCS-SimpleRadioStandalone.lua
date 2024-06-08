@@ -2401,6 +2401,7 @@ function SR.exportRadioSA342(_data)
     return _data
 end
 
+local _oh58RetranPersist = nil -- For persistence of retrans variable
 function SR.exportRadioOH58D(_data)
     _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = true, desc = "VOX control for intercom volume" }
 
@@ -2414,22 +2415,26 @@ function SR.exportRadioOH58D(_data)
     _data.radios[2].freq = SR.getRadioFrequency(29)
     _data.radios[2].modulation = SR.getRadioModulation(29)
     _data.radios[2].volMode = 0
+    _data.radios[2].encMode = 2
 
     _data.radios[3].name = "UHF"
     _data.radios[3].freq = SR.getRadioFrequency(30)
     _data.radios[3].modulation = SR.getRadioModulation(30)
     _data.radios[3].volMode = 0
+    _data.radios[3].encMode = 2
 
     _data.radios[4].name = "VHF"
     _data.radios[4].freq = SR.getRadioFrequency(31)
     _data.radios[4].modulation = SR.getRadioModulation(31)
     _data.radios[4].volMode = 0
+    _data.radios[3].encMode = 2
 
 
     _data.radios[5].name = "FM2"
     _data.radios[5].freq = SR.getRadioFrequency(32)
     _data.radios[5].modulation = SR.getRadioModulation(32)
     _data.radios[5].volMode = 0
+    _data.radios[5].encMode = 2
 
     local _seat = SR.lastKnownSeat --get_param_handle("SEAT"):get()
     local _hotMic = 0
@@ -2437,6 +2442,23 @@ function SR.exportRadioOH58D(_data)
     local _cyclicICSPtt = false
     local _cyclicPtt = false
     local _footPtt = false
+
+    local _radioDisplay = SR.getListIndicatorValue(8)
+    local _mpdRight = SR.getListIndicatorValue(3)
+    local _mpdLeft = SR.getListIndicatorValue(4)
+    local _activeRadioParamPrefix = nil
+
+    local _getActiveRadio = function () -- Probably a better way to do this, but it works...
+        for i = 1, 5 do
+            if tonumber(get_param_handle(_activeRadioParamPrefix .. i):get()) == 1 then
+                if i >= 5 then
+                    return i - 1
+                else
+                    return i
+                end
+            end
+        end
+    end
 
     if _seat == 0 then
         _data.radios[1].volume = SR.getRadioVolume(0, 173, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 187, { 0.0, 0.8 }, false) 
@@ -2458,6 +2480,8 @@ function SR.exportRadioOH58D(_data)
         _cyclicPtt = SR.getButtonPosition(401)
         _footPtt = SR.getButtonPosition(404)
 
+        _activeRadioParamPrefix = 'PilotSelect_vis'
+
     else
         _data.radios[1].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 830, { 0.0, 0.8 }, false) 
         _data.radios[2].volume = SR.getRadioVolume(0, 812, { 0.0, 0.8 }, false) * SR.getRadioVolume(0, 814, { 0.0, 0.8 }, false) * SR.getButtonPosition(813)
@@ -2478,25 +2502,77 @@ function SR.exportRadioOH58D(_data)
         _cyclicICSPtt = SR.getButtonPosition(402)
         _cyclicPtt = SR.getButtonPosition(403)
         _footPtt = SR.getButtonPosition(405)
+
+        _activeRadioParamPrefix = 'CopilotSelect_vis'
     end
 
     if _hotMic == 0 or _hotMic == 1 then
         _data.intercomHotMic = true
     end
 
-    if _selector == 1 then
-        _data.selected = 0
-    elseif _selector == 2 then
-        _data.selected = 1
-    elseif _selector == 3 then
-        _data.selected = 2
-     elseif _selector == 4 then
-        _data.selected = 3
-     elseif _selector == 6 then
-        _data.selected = 4
-    else
-        _data.selected = -1
+    -- ACTIVE RADIO START
+    _selector = _selector > 7 and 7 or _selector -- Sometimes _selector == 10 on start; clamp to 7
+    local _mapSelector = {
+        [0] = -1, -- PVT
+        [1] = 0, -- Intercom
+        [2] = 1, -- FM1
+        [3] = 2, -- UHF
+        [4] = 3, -- VHF
+        [5] = -1, -- Radio not implemented (HF/SATCOM)
+        [6] = 4, -- FM2
+        [7] = _getActiveRadio() -- RMT
+    }
+    _data.selected = _mapSelector[_selector]
+    -- ACTIVE RADIO END
+
+    -- ENCRYPTION START
+    for i = 1, 5 do
+        if _radioDisplay == nil then break end -- Probably no battery power so break
+        if i ~= 4 then
+            local _radioTranslate = i < 4 and i + 1 or i
+            local _radioChannel = _radioDisplay["CHNL" .. i]
+            local _channelToEncKey = function ()
+                if _radioChannel == 'M' or _radioChannel == 'C' then
+                    return 1
+                else
+                    return tonumber(_radioChannel)
+                end
+            end
+
+            _data.radios[_radioTranslate].enc = tonumber(get_param_handle('Cipher_vis' .. i):get()) == 1 and 1 or 0
+            _data.radios[_radioTranslate].encKey = _channelToEncKey()
+        end
     end
+    -- ENCRYPTION END
+
+    -- FM RETRAN START
+    if _mpdLeft ~= nil then
+        if _mpdRight["R4_TEXT"] then
+            if _mpdRight["R4_TEXT"] == 'FM' and _mpdRight["R4_BORDERCONTAINER"] then
+                _oh58RetranPersist = true
+            elseif _mpdRight["R4_TEXT"] == 'FM' and _mpdRight["R4_BORDERCONTAINER"] == nil then
+                _oh58RetranPersist = false
+            end
+        end
+
+        if _mpdLeft["R4_TEXT"] then
+            if _mpdLeft["R4_TEXT"] == 'FM' and _mpdLeft["R4_BORDERCONTAINER"] then
+                _oh58RetranPersist = true
+            elseif _mpdLeft["R4_TEXT"] == 'FM' and _mpdLeft["R4_BORDERCONTAINER"] == nil then
+                _oh58RetranPersist = false
+            end
+        end
+
+        if _oh58RetranPersist then
+            _data.radios[2].rtMode = 0
+            _data.radios[5].rtMode = 0
+            _data.radios[2].retransmit = true
+            _data.radios[5].retransmit = true
+            _data.radios[2].rxOnly = true
+            _data.radios[5].rxOnly = true
+        end
+    end
+    -- FM RETRAN END
 
     if _cyclicICSPtt > 0.5 then
         _data.ptt = true
@@ -2510,8 +2586,6 @@ function SR.exportRadioOH58D(_data)
     if _footPtt > 0.5  then
         _data.ptt = true
     end
-
-    -- check for CIPHER
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
