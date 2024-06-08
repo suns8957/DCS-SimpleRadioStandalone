@@ -20,7 +20,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
         private UdpClient _dcsUdpListener;
 
         private volatile bool _stop;
-
+        private static object _lock = new object();
 
         public DCSAutoConnectHandler(MainWindow.ReceivedAutoConnect receivedAutoConnect)
         {
@@ -108,21 +108,25 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
                 new ThreadStart(delegate
                 {
-                    message = message.Trim();
-                    if (message.Contains(':'))
+                    //ensure we only send one autoconnect at a time
+                    lock (_lock)
                     {
-                        try
+                        message = message.Trim();
+                        if (message.Contains(':'))
                         {
-                            _receivedAutoConnect(address[0].Trim(), int.Parse(address[1].Trim()));
+                            try
+                            {
+                                _receivedAutoConnect(address[0].Trim(), int.Parse(address[1].Trim()));
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error(ex, "Exception Parsing DCS AutoConnect Message");
+                            }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Logger.Error(ex, "Exception Parsing DCS AutoConnect Message");
+                            _receivedAutoConnect(message, 5002);
                         }
-                    }
-                    else
-                    {
-                        _receivedAutoConnect(message, 5002);
                     }
                 }));
         }

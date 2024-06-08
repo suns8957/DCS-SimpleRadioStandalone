@@ -1,4 +1,4 @@
--- Version 2.1.0.6
+-- Version 2.1.0.7
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -1931,11 +1931,11 @@ function SR.exportRadioF15ESE(_data)
 
     local _ufc = SR.getListIndicatorValue(9)
 
-    if string.find(_ufc.UFC_SC_05, "G",1,true) and _data.radios[2].freq > 1000 then
+    if _ufc and _ufc.UFC_SC_05 and string.find(_ufc.UFC_SC_05, "G",1,true) and _data.radios[2].freq > 1000 then
          _data.radios[2].secFreq = setGuard(_data.radios[2].freq)
     end
 
-    if string.find(_ufc.UFC_SC_08, "G",1,true) and _data.radios[3].freq > 1000 then
+    if _ufc and _ufc.UFC_SC_08 and string.find(_ufc.UFC_SC_08, "G",1,true) and _data.radios[3].freq > 1000 then
          _data.radios[3].secFreq = setGuard(_data.radios[3].freq)
     end
    
@@ -2427,7 +2427,7 @@ function SR.exportRadioOH58D(_data)
     _data.radios[4].freq = SR.getRadioFrequency(31)
     _data.radios[4].modulation = SR.getRadioModulation(31)
     _data.radios[4].volMode = 0
-    _data.radios[3].encMode = 2
+    _data.radios[4].encMode = 2
 
 
     _data.radios[5].name = "FM2"
@@ -2528,8 +2528,7 @@ function SR.exportRadioOH58D(_data)
     -- ENCRYPTION START
     for i = 1, 5 do
         if _radioDisplay == nil then break end -- Probably no battery power so break
-        if i ~= 4 then
-            local _radioTranslate = i < 4 and i + 1 or i
+            local _radioTranslate = i < 5 and i + 1 or i
             local _radioChannel = _radioDisplay["CHNL" .. i]
             local _channelToEncKey = function ()
                 if _radioChannel == 'M' or _radioChannel == 'C' then
@@ -2541,7 +2540,10 @@ function SR.exportRadioOH58D(_data)
 
             _data.radios[_radioTranslate].enc = tonumber(get_param_handle('Cipher_vis' .. i):get()) == 1 and 1 or 0
             _data.radios[_radioTranslate].encKey = _channelToEncKey()
-        end
+
+            if _radioChannel ~= 'M' and _radioChannel ~= 'C' then
+                _data.radios[_radioTranslate].channel = _data.radios[_radioTranslate].encKey
+            end
     end
     -- ENCRYPTION END
 
@@ -7030,4 +7032,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.6")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.7")

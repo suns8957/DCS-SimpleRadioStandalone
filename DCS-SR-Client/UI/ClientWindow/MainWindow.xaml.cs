@@ -1459,6 +1459,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             if (!enabled)
             {
                 Logger.Info($"Ignored Autoconnect - not Enabled");
+                return;
             }
 
             if (ClientState.IsConnected)
