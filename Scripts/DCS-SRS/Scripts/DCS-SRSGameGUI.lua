@@ -101,9 +101,9 @@ SRS.sendUpdate = function(playerID)
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 9087))
 end
 
-SRS.MESSAGE_PATTERN_OLDER = "This server is running SRS on - (%d+%.%d+%.%d+%.%d+:%d+)" -- DO NOT MODIFY!!!
-SRS.MESSAGE_PATTERN_OLD = "SRS Running @ (%d+%.%d+%.%d+%.%d+:%d+)"                     -- DO NOT MODIFY!!!
-SRS.MESSAGE_PATTERN = "SRS Running on (%d+)"                                           -- DO NOT MODIFY!!!
+SRS.MESSAGE_PATTERN_OLDER = "This server is running SRS on - (%d+%.%d+%.%d+%.%d+:?%d*)" -- DO NOT MODIFY!!!
+SRS.MESSAGE_PATTERN_OLD = "SRS Running @ (%d+%.%d+%.%d+%.%d+:?%d*)"                     -- DO NOT MODIFY!!!
+SRS.MESSAGE_PATTERN = "SRS Running on (%d+)"                                            -- DO NOT MODIFY!!!
 
 function string.startsWith(string, prefix)
     return string.sub(string, 1, string.len(prefix)) == prefix
