@@ -740,9 +740,9 @@ function SR.exportRadioAH64D(_data)
     local _iffEmergency = nil
 
     if _seat == 0 then
-        _eufdDevice = SR.getListIndicatorValue(17)
-        _mpdLeft = SR.getListIndicatorValue(6)
-        _mpdRight = SR.getListIndicatorValue(8)
+        _eufdDevice = SR.getListIndicatorValue(18)
+        _mpdLeft = SR.getListIndicatorValue(7)
+        _mpdRight = SR.getListIndicatorValue(9)
         _iffIdentBtn = SR.getButtonPosition(347) -- PLT comm panel ident button
         _iffEmergency = GetDevice(0):get_argument_value(404) -- PLT Emergency Panel XPNDR Indicator
 
@@ -791,9 +791,9 @@ function SR.exportRadioAH64D(_data)
         end
 
     else
-        _eufdDevice = SR.getListIndicatorValue(18)
-        _mpdLeft = SR.getListIndicatorValue(10)
-        _mpdRight = SR.getListIndicatorValue(12)
+        _eufdDevice = SR.getListIndicatorValue(19)
+        _mpdLeft = SR.getListIndicatorValue(11)
+        _mpdRight = SR.getListIndicatorValue(13)
         _iffIdentBtn = SR.getButtonPosition(388) -- CPG comm panel ident button
         _iffEmergency = GetDevice(0):get_argument_value(428) -- CPG Emergency Panel XPNDR Indicator
 
