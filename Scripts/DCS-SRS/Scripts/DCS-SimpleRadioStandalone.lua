@@ -743,7 +743,7 @@ function SR.exportRadioAH64D(_data)
     -- volume
     local _masterVolume = (_seat == 0) and SR.getRadioVolume(0, 344, { 0.0, 1.0 }, false) or SR.getRadioVolume(0, 385, { 0.0, 1.0 }, false)
     --intercom
-    _data.radios[1].volume = (_seat == 0) and (SR.getRadioVolume(0, 345, { 0.0, 1.0 }, false) * _masterVolume) or ()
+    _data.radios[1].volume = ((_seat == 0) and (SR.getRadioVolume(0, 345, { 0.0, 1.0 }, false)) or (SR.getRadioVolume(0, 386, { 0.0, 1.0 }, false))) * _masterVolume
     
     if _seat == 0 then
         -- VHF
