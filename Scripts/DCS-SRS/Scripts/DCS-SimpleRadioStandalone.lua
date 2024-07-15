@@ -880,14 +880,13 @@ function SR.exportRadioAH64D(_data)
         _data.radios[6].encKey = _eufdDevice["Cipher_HF"] and string.format("%01d", string.match(_eufdDevice["Cipher_HF"], "%d+"))
     end
 
-    if (_mpdLeft or _mpdRight) then
-        if _mpdLeft["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the LEFT MPD
-            _ah64Mode1Persist = _mpdLeft["PB24_9"] == "}1" and -1 or string.format("%02d", _mpdLeft["PB7_23"])
-        end
-
-        if _mpdRight["Mode_S_Codes_Window_text_1"] then -- We're on the XPNDR page on the RIGHT MPD
-            _ah64Mode1Persist = _mpdRight["PB24_9"] == "}1" and -1 or string.format("%02d", _mpdRight["PB7_23"])
-        end
+    if _mpdLeft and _mpdLeft["Mode_S_Codes_Window_text_1"] then
+        -- We're on the XPNDR page on the LEFT MPD
+        -- set to -1 (off) if Mode 1 is disabled, otherwise to mode 1 code
+        _ah64Mode1Persist = _mpdLeft["PB24_9"] == "}1" and -1 or string.format("%02d", _mpdLeft["PB7_23"])
+    elseif _mpdRight and _mpdRight["Mode_S_Codes_Window_text_1"] then
+        -- We're on the XPNDR page on the RIGHT MPD
+        _ah64Mode1Persist = _mpdRight["PB24_9"] == "}1" and -1 or string.format("%02d", _mpdRight["PB7_23"])
     end
 
       --CYCLIC_RTS_SW_LEFT 573 CPG 531 PLT
