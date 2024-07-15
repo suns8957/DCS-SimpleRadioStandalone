@@ -734,7 +734,7 @@ function SR.exportRadioAH64D(_data)
 
     local _seat = get_param_handle("SEAT"):get() -- PLT/CPG ?
     -- devices            -- is plt?       -- plt device                        -- cpg device
-    local _eufdDevice   = (_seat == 0) and SR.getListIndicatorValue(17)         or SR.getListIndicatorValue(18)
+    local _eufdDevice   = (_seat == 0) and SR.getListIndicatorValue(18)         or SR.getListIndicatorValue(19)
     local _mpdLeft      = (_seat == 0) and SR.getListIndicatorValue(7)          or SR.getListIndicatorValue(11)
     local _mpdRight     = (_seat == 0) and SR.getListIndicatorValue(9)          or SR.getListIndicatorValue(13)
     local _iffIdentBtn  = (_seat == 0) and SR.getButtonPosition(347)            or SR.getButtonPosition(388)            -- comm panel ident button
@@ -891,10 +891,7 @@ function SR.exportRadioAH64D(_data)
     end
 
       --CYCLIC_RTS_SW_LEFT 573 CPG 531 PLT
-    local _pttButtonId = 573
-    if _seat == 0 then
-        _pttButtonId = 531
-    end
+    local _pttButtonId = (_seat == 0) and 531 or 573
 
     local _pilotPTT = SR.getButtonPosition(_pttButtonId)
     if _pilotPTT >= 0.5 then
