@@ -733,24 +733,19 @@ function SR.exportRadioAH64D(_data)
     _data.radios[6].encMode = 2 -- As of DCS ver 2.9.4.53627 the HF preset functionality is bugged, but I'll leave this here in hopes ED fixes the bug
 
     local _seat = get_param_handle("SEAT"):get() -- PLT/CPG ?
-    local _eufdDevice = nil
-    local _mpdLeft = nil
-    local _mpdRight = nil
-    local _iffIdentBtn = nil
-    local _iffEmergency = nil
-
+    -- devices
+    local _eufdDevice = (_seat == 0) and SR.getListIndicatorValue(17) or SR.getListIndicatorValue(18)
+    local _mpdLeft = (_seat == 0) and SR.getListIndicatorValue(7) or SR.getListIndicatorValue(11)
+    local _mpdRight = (_seat == 0) and SR.getListIndicatorValue(9) or SR.getListIndicatorValue(13)
+    local _iffIdentBtn = (_seat == 0) and SR.getButtonPosition(347) or SR.getButtonPosition(388) -- comm panel ident button
+    local _iffEmergency = (_seat == 0) and GetDevice(0):get_argument_value(404) or GetDevice(0):get_argument_value(428) -- Emergency Panel XPNDR Indicator
+    
+    -- volume
+    local _masterVolume = (_seat == 0) and SR.getRadioVolume(0, 344, { 0.0, 1.0 }, false) or SR.getRadioVolume(0, 385, { 0.0, 1.0 }, false)
+    --intercom
+    _data.radios[1].volume = (_seat == 0) and (SR.getRadioVolume(0, 345, { 0.0, 1.0 }, false) * _masterVolume) or ()
+    
     if _seat == 0 then
-        _eufdDevice = SR.getListIndicatorValue(17)
-        _mpdLeft = SR.getListIndicatorValue(6)
-        _mpdRight = SR.getListIndicatorValue(8)
-        _iffIdentBtn = SR.getButtonPosition(347) -- PLT comm panel ident button
-        _iffEmergency = GetDevice(0):get_argument_value(404) -- PLT Emergency Panel XPNDR Indicator
-
-        local _masterVolume = SR.getRadioVolume(0, 344, { 0.0, 1.0 }, false) 
-        
-        --intercom 
-        _data.radios[1].volume = SR.getRadioVolume(0, 345, { 0.0, 1.0 }, false) * _masterVolume
-
         -- VHF
         if SR.getButtonPosition(449) == 0 then
             _data.radios[2].volume = SR.getRadioVolume(0, 334, { 0.0, 1.0 }, false) * _masterVolume 
@@ -791,17 +786,6 @@ function SR.exportRadioAH64D(_data)
         end
 
     else
-        _eufdDevice = SR.getListIndicatorValue(18)
-        _mpdLeft = SR.getListIndicatorValue(10)
-        _mpdRight = SR.getListIndicatorValue(12)
-        _iffIdentBtn = SR.getButtonPosition(388) -- CPG comm panel ident button
-        _iffEmergency = GetDevice(0):get_argument_value(428) -- CPG Emergency Panel XPNDR Indicator
-
-        local _masterVolume = SR.getRadioVolume(0, 385, { 0.0, 1.0 }, false) 
-
-        --intercom 
-        _data.radios[1].volume = SR.getRadioVolume(0, 386, { 0.0, 1.0 }, false) * _masterVolume
-
         -- VHF
         if SR.getButtonPosition(459) == 0 then
             _data.radios[2].volume = SR.getRadioVolume(0, 375, { 0.0, 1.0 }, false) * _masterVolume 
