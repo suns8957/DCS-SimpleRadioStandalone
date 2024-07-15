@@ -906,14 +906,6 @@ function SR.exportRadioAH64D(_data)
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
-        _data.ambient = {vol = 0.2,  abType = 'ah64' }
-    else
-        -- engine off
-        _data.ambient = {vol = 0, abType = 'ah64' }
-    end
-
-    if SR.getAmbientVolumeEngine()  > 10 then
-        -- engine on
 
         local _doorLeft = SR.getButtonPosition(795)
         local _doorRight = SR.getButtonPosition(798)
