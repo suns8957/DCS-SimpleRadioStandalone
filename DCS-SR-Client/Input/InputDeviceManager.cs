@@ -880,9 +880,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
 
         private void DeviceError(Device device, Exception e)
         {
-            Logger.Error(e, $"Failed to get current state of input device {device.Information.ProductName.Trim().Replace("\0", "")} " +
+            var deviceName = device.Information.ProductName.Trim().Replace("\0", "");
+            Logger.Error(e, $"Failed to get current state of input device {deviceName} " +
                             $"(ID: {device.Information.ProductGuid}) while retrieving button state, ignoring until next restart/rediscovery");
 
+            
             try
             {
                 device.Unacquire();
@@ -901,14 +903,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
                 // ignored
             }
 
-            Application.Current.Dispatcher.Invoke(new Action(() => {
+            Application.Current.Dispatcher.Invoke(() => {
                 MessageBox.Show(
-                    $"An error occurred while querying your {device.Information.ProductName.Trim().Replace("\0", "")} input device.\nThis could for example be caused by unplugging " +
+                    $"An error occurred while querying your {deviceName} input device.\nThis could for example be caused by unplugging " +
                     $"your joystick or disabling it in the Windows settings.\n\nAll controls bound to this input device will not work anymore until your press 'Rescan Controller Input' in the SRS controls section or restart SRS",
                     "Input device error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
-            }));
+            });
         }
 
         public List<InputBindState> GenerateBindStateList()
