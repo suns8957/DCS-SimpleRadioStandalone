@@ -12,6 +12,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
+using DCS_SR_Client;
 using NLog;
 using SharpDX.DirectInput;
 
@@ -882,13 +883,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             Logger.Error(e, $"Failed to get current state of input device {device.Information.ProductName.Trim().Replace("\0", "")} " +
                             $"(ID: {device.Information.ProductGuid}) while retrieving button state, ignoring until next restart/rediscovery");
 
-            MessageBox.Show(
-                $"An error occurred while querying your {device.Information.ProductName.Trim().Replace("\0", "")} input device.\nThis could for example be caused by unplugging " +
-                $"your joystick or disabling it in the Windows settings.\n\nAll controls bound to this input device will not work anymore until your restart SRS.",
-                "Input device error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-
             try
             {
                 device.Unacquire();
@@ -906,6 +900,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {
                 // ignored
             }
+
+            Application.Current.Dispatcher.Invoke(new Action(() => {
+                MessageBox.Show(
+                    $"An error occurred while querying your {device.Information.ProductName.Trim().Replace("\0", "")} input device.\nThis could for example be caused by unplugging " +
+                    $"your joystick or disabling it in the Windows settings.\n\nAll controls bound to this input device will not work anymore until your press 'Rescan Controller Input' in the SRS controls section or restart SRS",
+                    "Input device error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }));
         }
 
         public List<InputBindState> GenerateBindStateList()
