@@ -4103,6 +4103,39 @@ end
         _data.ambient = {vol = 0, abType = 'fa18' }
     end
 
+    -- Relay (RLY):
+    local commRelaySwitch = 350 -- 3-pos: PLAIN/OFF/CIPHER.
+    local commGuardXmit = 351 -- 3-pos: COMM1/OFF/COMM2.
+
+    -- If relay is not OFF, it creates a 2-way relay between COMM 1 and COMM 2.
+    if  commRelaySwitchPosition ~= 0 then
+        local comm1 = 2
+        local comm2 = 3
+        
+        local spacing = math.abs(_data.radios[comm1].freq - _data.radios[comm2].freq)
+        
+        local cipherDesired = commRelaySwitchPosition == 1
+        local anyRadioEncrypted = _data.radios[comm1].enc or _data.radios[comm2].enc
+        
+        -- we can retransmit if:
+        -- * The two radios are at least 10MHz apart.
+        -- * IF cipher is requested, at least one of the radios has it enabled.
+        if spacing >= 10e6 and (not cipherDesired or anyRadioEncrypted) then
+            -- Apply params on COMM 1 (index 2) and COMM 2 (index 3)
+            for commIdx=2,3 do
+                -- Force in-cockpit
+                _data.radios[commIdx].rtMode = 0
+                -- Set as relay
+                _data.radios[commIdx].retransmit = true
+                -- Pilot can no longer transmit on them.
+                _data.radios[commIdx].rxOnly = true
+
+                -- Keep encryption only if relaying with cipher enabled.
+                _data.radios[commIdx].enc = _data.radios[commIdx].enc and cipherDesired
+            end
+        end
+    end
+
     return _data
 end
 
