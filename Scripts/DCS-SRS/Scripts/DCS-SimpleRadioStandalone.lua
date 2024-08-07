@@ -4108,6 +4108,7 @@ end
     local commGuardXmit = 351 -- 3-pos: COMM1/OFF/COMM2.
 
     -- If relay is not OFF, it creates a 2-way relay between COMM 1 and COMM 2.
+    local commRelaySwitchPosition = SR.getButtonPosition(commRelaySwitch)
     if  commRelaySwitchPosition ~= 0 then
         local comm1 = 2
         local comm2 = 3
