@@ -292,6 +292,12 @@ function SR.exporter()
             iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
         }
 
+        -- Allows for custom radio's using the DCS-Plugin scheme.
+        local aircraftExporter = SR.exporters["CA"]
+        if aircraftExporter then
+            _update = aircraftExporter(_update)
+        end
+        
         local _latLng,_point = SR.exportCameraLocation()
 
         _update.latLng = _latLng
