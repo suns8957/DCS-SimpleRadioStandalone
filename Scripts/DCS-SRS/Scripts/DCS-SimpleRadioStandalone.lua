@@ -2276,89 +2276,60 @@ function SR.exportRadioCH47F(_data)
 
     local _seat = SR.lastKnownSeat
 
+    local _pilotCopilotRadios = function(_offset, _pttArg)
+
+
+        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
+        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
+        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
+        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
+        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
+        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
+
+        local _selector = SR.getSelectorPosition(_offset+22, 0.05) 
+
+
+        if _selector <= 6 then
+            _data.selected = _selector
+        else
+            _data.selected = -1
+        end
+
+        if _pttArg > 0 then
+
+            local _ptt = SR.getButtonPosition(_pttArg)
+
+            if _ptt >= 0.1 then
+
+                if _ptt == 0.5 then
+                    -- intercom
+                    _data.selected = 0
+                end
+
+                _data.ptt = true
+            end
+        end
+
+    end
+
     if _seat == 0 then -- 591
         local _offset = 591
-    -- Check offsets - pull button will be the inbetween numbers after 591 (so the even ones)
-        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
-        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
-        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
-        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
-        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
-        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
 
-        local _selector = SR.getSelectorPosition(_offset+22, 0.05) 
-        local _ptt = SR.getButtonPosition(1271)
-
-        _data.control = 1; -- Full Radio
-
-        if _selector <= 6 then
-            _data.selected = _selector
-        else
-            _data.selected = -1
-        end
-
-
-        if _ptt >= 0.1 then
-
-            if _ptt == 0.5 then
-                -- intercom
-                _data.selected = 0
-            end
-
-            _data.ptt = true
-        end
-
-        _data.control = 1; -- Full Radio
+        _pilotCopilotRadios(591,1271)
 
         _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = false, desc = "" }
+        _data.control = 1; -- Full Radio
 
     elseif _seat == 1 then --624
-        local _offset = 624
-        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
-        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
-        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
-        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
-        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
-        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
 
-        local _selector = SR.getSelectorPosition(_offset+22, 0.05) 
-        local _ptt = SR.getButtonPosition(1283)
-
-        if _selector <= 6 then
-            _data.selected = _selector
-        else
-            _data.selected = -1
-        end
-
-        if _ptt >= 0.1 then
-
-            if _ptt == 0.5 then
-                -- intercom
-                _data.selected = 0
-            end
-
-            _data.ptt = true
-        end
-
-        _data.control = 1; -- Full Radio
-
+        _pilotCopilotRadios(624,1283)
 
         _data.capabilities = { dcsPtt = true, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = false, desc = "" }
+        _data.control = 1; -- Full Radio
+        
     elseif _seat == 2 then --657
-        local _offset = 657
-        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
-        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
-        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
-        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
-        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
-        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
-
-        local _selector = SR.getSelectorPosition(_offset+22, 0.05)        
-        if _selector <= 6 then
-            _data.selected = _selector
-        else
-            _data.selected = -1
-        end
+        
+        _pilotCopilotRadios(591,-1)
 
         _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = false, desc = "" }
     else
@@ -2380,8 +2351,6 @@ function SR.exportRadioCH47F(_data)
 
     end
         
-
-
     -- engine on
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
@@ -2391,9 +2360,6 @@ function SR.exportRadioCH47F(_data)
         -- engine off
         _data.ambient = {vol = 0, abType = 'ch47' }
     end
-
-
-    -- SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
 
     return _data
 
