@@ -569,13 +569,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
             //to stop loops
             //and ignore global frequencies 
             //and only if we can decrypt it (or no encryption)
-            //and not received on Guard
+            //and not received on Guard -- GUARD RELAY ENABLED - TODO put this behind a server setting
             var receivingWithRetransmit = radioReceivingPriorities.Where(receivingRadio => 
                 (receivingRadio.Decryptable || (receivingRadio.Encryption == 0)) 
                 && receivingRadio.ReceivingRadio.retransmit
                 //check global
                 && !globalFrequencies.Any(freq => DCSPlayerRadioInfo.FreqCloseEnough(receivingRadio.ReceivingRadio.freq, freq))
-                && !receivingRadio.ReceivingState.IsSecondary).ToList();
+                //&& !receivingRadio.ReceivingState.IsSecondary -- TODO put this behind a server setting
+                ).ToList();
 
             //didnt receive on any radios that we could decrypt
             //stop
