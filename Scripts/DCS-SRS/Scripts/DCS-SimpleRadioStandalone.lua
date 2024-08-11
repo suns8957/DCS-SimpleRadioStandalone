@@ -150,7 +150,7 @@ function SR.exporter()
     local _data = LoGetSelfData()
 
     -- REMOVE
- --   SR.log(SR.debugDump(_data).."\n\n")
+   -- SR.log(SR.debugDump(_data).."\n\n")
 
     if _data ~= nil and not SR.fc3[_data.Name] then
         -- check for death / eject -- call below returns a number when ejected - ignore FC3
@@ -2185,6 +2185,149 @@ function SR.exportRadioUH1H(_data)
     else
         -- engine off
         _data.ambient = {vol = 0, abType = 'uh1' }
+    end
+
+
+    -- SR.log("ambient STATUS"..SR.JSON:encode(_data.ambient).."\n\n")
+
+    return _data
+
+end
+
+
+function SR.exportRadioCH47F(_data)
+
+    _data.radios[1].name = "Intercom"
+    _data.radios[1].freq = 100.0
+    _data.radios[1].modulation = 2 --Special intercom modulation
+    _data.radios[1].volMode = 0
+
+    -- TODO most radios dont yet work properly so i'll let them use SRS frequencies + Channels but in cockpit volume
+
+    _data.radios[2].name = "ARC-201 FM1" -- ARC 201
+    --_data.radios[2].freq = SR.getRadioFrequency(50)
+    _data.radios[2].freq = 30000000
+    _data.radios[2].modulation = SR.getRadioModulation(50)
+    _data.radios[2].modulation = 1
+    _data.radios[2].volMode = 0
+    _data.radios[2].encMode = 2
+
+    _data.radios[2].volMode = 0
+    _data.radios[2].encMode = 0
+    _data.radios[2].freqMin = 20.0 * 1000000
+    _data.radios[2].freqMax = 60.0 * 1000000
+    _data.radios[2].modulation = 0
+    _data.radios[2].volMode = 0
+    _data.radios[2].freqMode = 1
+
+    _data.radios[3].name = "ARC-164 UHF" -- ARC_164
+    --_data.radios[3].freq = SR.getRadioFrequency(48)
+    _data.radios[3].freq = 251.0 * 1000000 --225-399.975 MHZ
+    _data.radios[3].modulation = SR.getRadioModulation(48)
+    _data.radios[3].volMode = 0
+    _data.radios[3].encMode = 2
+
+    _data.radios[3].modulation = 0
+    _data.radios[3].secFreq = 243.0 * 1000000
+    _data.radios[3].volume = 1.0
+    _data.radios[3].freqMin = 225 * 1000000
+    _data.radios[3].freqMax = 399.975 * 1000000
+    _data.radios[3].freqMode = 1
+    _data.radios[3].encKey = 1
+    _data.radios[3].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+
+
+    _data.radios[4].name = "ARC-186 VHF" -- ARC_186
+    _data.radios[4].freq = SR.getRadioFrequency(49)
+    _data.radios[4].modulation = SR.getRadioModulation(49)
+
+
+    _data.radios[4].encKey = 1
+    _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+
+
+    _data.radios[5].name = "ARC-220 HF" -- ARC_220
+    --_data.radios[5].freq = SR.getRadioFrequency(51)
+    _data.radios[5].modulation = SR.getRadioModulation(51)
+    _data.radios[5].encMode = 0
+    _data.radios[5].freq = 5.0 * 1000000
+    _data.radios[5].volume = 1.0
+
+    _data.radios[5].freqMin = 1.0 * 1000000
+    _data.radios[5].freqMax = 10.0 * 1000000
+    _data.radios[5].modulation = 0
+    _data.radios[5].volMode = 0
+    _data.radios[5].freqMode = 1
+
+
+    _data.radios[6].name = "ARC-201 FM1"
+   -- _data.radios[6].freq = SR.getRadioFrequency(32)
+    _data.radios[6].freq = 32000000
+    _data.radios[6].modulation = 1
+    _data.radios[6].volume = 1.0
+
+    _data.radios[6].volMode = 0
+    _data.radios[6].encMode = 0
+    _data.radios[6].freqMin = 20.0 * 1000000
+    _data.radios[6].freqMax = 60.0 * 1000000
+    _data.radios[6].modulation = 0
+    _data.radios[6].volMode = 0
+    _data.radios[6].freqMode = 1
+
+    local _seat = SR.lastKnownSeat
+
+    if _seat == 0 then -- 591
+        local _offset = 591
+    -- Check offsets - pull button will be the inbetween numbers after 591 (so the even ones)
+        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
+        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
+        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
+        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
+        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
+        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
+    elseif _seat == 2 then --624
+        local _offset = 624
+        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
+        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
+        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
+        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
+        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
+        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
+    elseif _seat == 3 then --657
+        local _offset = 657
+        _data.radios[1].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) -- 23
+        _data.radios[2].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+1) -- +1
+        _data.radios[3].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+2, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+3) -- +3
+        _data.radios[4].volume = SR.getRadioVolume(0, 1219, {0, 1.0}, false) * SR.getRadioVolume(0, _offset + 23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+4, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+5)
+        _data.radios[5].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+6, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+7)
+        _data.radios[6].volume = SR.getRadioVolume(0, _offset+23, {0, 1.0}, false) * SR.getRadioVolume(0, _offset+8, { 0, 1.0 }, false) * SR.getButtonPosition(_offset+9)
+    else
+        _data.radios[1].volume = 1.0
+        _data.radios[2].volume = 1.0
+        _data.radios[3].volume = 1.0
+        _data.radios[4].volume = 1.0
+        _data.radios[5].volume = 1.0
+        _data.radios[6].volume = 1.0
+
+        _data.radios[1].volMode = 1
+        _data.radios[2].volMode = 1
+        _data.radios[3].volMode = 1
+        _data.radios[4].volMode = 1
+        _data.radios[5].volMode = 1
+        _data.radios[6].volMode = 1
+
+    end
+        
+
+
+    -- engine on
+    if SR.getAmbientVolumeEngine()  > 10 then
+        -- engine on
+        _data.ambient = {vol = 0.2, abType = 'ch47' }
+    
+    else
+        -- engine off
+        _data.ambient = {vol = 0, abType = 'ch47' }
     end
 
 
@@ -6873,9 +7016,9 @@ function SR.tableShow(tbl, loc, indent, tableshow_tbls) --based on serialize_slm
 end
 
 
-
 ---- Exporters init ----
 SR.exporters["UH-1H"] = SR.exportRadioUH1H
+SR.exporters["CH-47Fbl1"] = SR.exportRadioCH47F
 SR.exporters["Ka-50"] = SR.exportRadioKA50
 SR.exporters["Ka-50_3"] = SR.exportRadioKA50
 SR.exporters["Mi-8MT"] = SR.exportRadioMI8
