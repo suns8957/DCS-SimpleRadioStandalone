@@ -2220,39 +2220,35 @@ function SR.exportRadioCH47F(_data)
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
-    _data.radios[1].volMode = 0
 
     -- TODO most radios dont yet work properly so i'll let them use SRS frequencies + Channels but in cockpit volume
 
     _data.radios[2].name = "ARC-201 FM1" -- ARC 201
     --_data.radios[2].freq = SR.getRadioFrequency(50)
     _data.radios[2].freq = 30000000
-    _data.radios[2].modulation = SR.getRadioModulation(50)
+   -- _data.radios[2].modulation = SR.getRadioModulation(50)
     _data.radios[2].modulation = 1
-    _data.radios[2].volMode = 0
-    _data.radios[2].encMode = 2
 
-    _data.radios[2].volMode = 0
-    _data.radios[2].encMode = 0
     _data.radios[2].freqMin = 20.0 * 1000000
     _data.radios[2].freqMax = 60.0 * 1000000
-    _data.radios[2].modulation = 0
-    _data.radios[2].volMode = 0
     _data.radios[2].freqMode = 1
+
+    _data.radios[2].encKey = 1
+    _data.radios[2].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+
 
     _data.radios[3].name = "ARC-164 UHF" -- ARC_164
     --_data.radios[3].freq = SR.getRadioFrequency(48)
     _data.radios[3].freq = 251.0 * 1000000 --225-399.975 MHZ
-    _data.radios[3].modulation = SR.getRadioModulation(48)
-    _data.radios[3].volMode = 0
-    _data.radios[3].encMode = 2
-
+   -- _data.radios[3].modulation = SR.getRadioModulation(48)
     _data.radios[3].modulation = 0
+
     _data.radios[3].secFreq = 243.0 * 1000000
-    _data.radios[3].volume = 1.0
+
     _data.radios[3].freqMin = 225 * 1000000
     _data.radios[3].freqMax = 399.975 * 1000000
     _data.radios[3].freqMode = 1
+
     _data.radios[3].encKey = 1
     _data.radios[3].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
@@ -2261,38 +2257,33 @@ function SR.exportRadioCH47F(_data)
     _data.radios[4].freq = SR.getRadioFrequency(49)
     _data.radios[4].modulation = SR.getRadioModulation(49)
 
-
     _data.radios[4].encKey = 1
     _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
 
     _data.radios[5].name = "ARC-220 HF" -- ARC_220
     --_data.radios[5].freq = SR.getRadioFrequency(51)
-    _data.radios[5].modulation = SR.getRadioModulation(51)
-    _data.radios[5].encMode = 0
     _data.radios[5].freq = 5.0 * 1000000
-    _data.radios[5].volume = 1.0
+    --_data.radios[5].modulation = SR.getRadioModulation(51)
+    _data.radios[5].modulation = 0
 
     _data.radios[5].freqMin = 1.0 * 1000000
     _data.radios[5].freqMax = 10.0 * 1000000
-    _data.radios[5].modulation = 0
-    _data.radios[5].volMode = 0
     _data.radios[5].freqMode = 1
 
+    _data.radios[5].encMode = 0
 
-    _data.radios[6].name = "ARC-201 FM1"
+    _data.radios[6].name = "ARC-201 FM2"
    -- _data.radios[6].freq = SR.getRadioFrequency(32)
     _data.radios[6].freq = 32000000
     _data.radios[6].modulation = 1
-    _data.radios[6].volume = 1.0
 
-    _data.radios[6].volMode = 0
-    _data.radios[6].encMode = 0
     _data.radios[6].freqMin = 20.0 * 1000000
     _data.radios[6].freqMax = 60.0 * 1000000
-    _data.radios[6].modulation = 0
-    _data.radios[6].volMode = 0
     _data.radios[6].freqMode = 1
+
+    _data.radios[6].encKey = 1
+    _data.radios[6].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
     local _seat = SR.lastKnownSeat
 
