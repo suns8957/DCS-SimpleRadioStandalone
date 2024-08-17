@@ -1,4 +1,4 @@
--- Version 2.1.0.9
+-- Version 2.1.0.10
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -7226,4 +7226,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.9")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.10")
