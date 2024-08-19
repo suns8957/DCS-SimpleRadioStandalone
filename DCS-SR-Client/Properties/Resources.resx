@@ -257,6 +257,12 @@
   <data name="Donate_OnClick" xml:space="preserve">
     <value>Please Support SRS through Patreon</value>
   </data>
+  <data name="EAMBrowsePresetsButton" xml:space="preserve">
+    <value>Browse Presets Folder...</value>
+  </data>
+  <data name="EAMResetPresetsButton" xml:space="preserve">
+    <value>Reset</value>
+  </data>
   <data name="EffectVolume0" xml:space="preserve">
     <value>0%</value>
   </data>

@@ -254,8 +254,8 @@
                                     </StackPanel>
                                     <StackPanel Margin="0" Orientation="Horizontal" HorizontalAlignment="Right" IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}">
                                         <StackPanel Margin="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                            <Button x:Name="EAMBrowsePresetsButton" Content="Browse Presets Folder..." Click="EAMBrowsePresetsButton_Click" HorizontalAlignment="Right"></Button>
-                                            <Button x:Name="EAMResetPresetsButton" Content="Reset" Click="EAMResetPresetsButton_Click" HorizontalAlignment="Right"></Button>
+                                            <Button x:Name="EAMBrowsePresetsButton" Content="{x:Static p:Resources.EAMBrowsePresetsButton}" Click="EAMBrowsePresetsButton_Click" HorizontalAlignment="Right"></Button>
+                                            <Button x:Name="EAMResetPresetsButton" Content="{x:Static p:Resources.EAMResetPresetsButton}" Click="EAMResetPresetsButton_Click" HorizontalAlignment="Right"></Button>
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
