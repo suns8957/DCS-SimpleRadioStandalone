@@ -208,19 +208,17 @@
                             <converters:BooleanInverterConverter x:Key="BooleanInverterConverter" />
                         </StackPanel.Resources>
                         <StackPanel Margin="0" Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Label x:Name="EAMPresetsLabel" Width="220" HorizontalAlignment="Center"/>
+                            <Label x:Name="PresetsFolderLabel" Width="220" HorizontalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Margin="0" Orientation="Horizontal" HorizontalAlignment="Right" IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}">
-                            <StackPanel Margin="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                <Button x:Name="EAMBrowsePresetsButton" Content="{x:Static p:Resources.EAMBrowsePresetsButton}" Click="EAMBrowsePresetsButton_Click" Style="{DynamicResource SquareButtonStyle}"></Button>
-                                <Button x:Name="EAMResetPresetsButton" Content="{x:Static p:Resources.EAMResetPresetsButton}" Click="EAMResetPresetsButton_Click" Style="{DynamicResource SquareButtonStyle}" Margin="10,0,0,0"></Button>
-                            </StackPanel>
+                            <Button x:Name="PresetsFolderBrowseButton" Content="{x:Static p:Resources.PresetsFolderBrowseButton}" Click="PresetsFolderBrowseButton_Click" Style="{DynamicResource SquareButtonStyle}"></Button>
+                            <Button x:Name="PresetsFolderResetButton" Content="{x:Static p:Resources.PresetsFolderResetButton}" Click="PresetsFolderResetButton_Click" Style="{DynamicResource SquareButtonStyle}" Margin="10,0,0,0"></Button>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Margin="0,15,0,0"
                                 HorizontalAlignment="Center"
                                 Orientation="Horizontal">
-                        <Expander x:Name="EAMGroupBox" Header="External AWACS Mode (EAM)" IsExpanded="True">
+                        <Expander x:Name="EAMExpander" Header="{x:Static p:Resources.EAMExpanderHeader}" IsExpanded="True">
                             <StackPanel Margin="0"
                                         Orientation="Vertical">
                                 <StackPanel.Resources>

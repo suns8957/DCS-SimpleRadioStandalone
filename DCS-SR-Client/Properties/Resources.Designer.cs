@@ -513,20 +513,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Browse Presets Folder....
+        ///   Looks up a localized string similar to External AWACS Mode (EAM).
         /// </summary>
-        public static string EAMBrowsePresetsButton {
+        public static string EAMExpanderHeader {
             get {
-                return ResourceManager.GetString("EAMBrowsePresetsButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reset.
-        /// </summary>
-        public static string EAMResetPresetsButton {
-            get {
-                return ResourceManager.GetString("EAMResetPresetsButton", resourceCulture);
+                return ResourceManager.GetString("EAMExpanderHeader", resourceCulture);
             }
         }
         
@@ -2073,6 +2064,24 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         public static string PlayConnectionSounds {
             get {
                 return ResourceManager.GetString("PlayConnectionSounds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Browse Presets Folder....
+        /// </summary>
+        public static string PresetsFolderBrowseButton {
+            get {
+                return ResourceManager.GetString("PresetsFolderBrowseButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset.
+        /// </summary>
+        public static string PresetsFolderResetButton {
+            get {
+                return ResourceManager.GetString("PresetsFolderResetButton", resourceCulture);
             }
         }
         
