@@ -220,7 +220,7 @@
                     <StackPanel Margin="0,15,0,0"
                                 HorizontalAlignment="Center"
                                 Orientation="Horizontal">
-                        <GroupBox x:Name="EAMGroupBox" Header="External AWACS Mode (EAM)">
+                        <Expander x:Name="EAMGroupBox" Header="External AWACS Mode (EAM)" IsExpanded="True">
                             <StackPanel Margin="0"
                                         Orientation="Vertical">
                                 <StackPanel.Resources>
@@ -276,7 +276,7 @@
                                             Style="{DynamicResource SquareButtonStyle}" />
                                 </StackPanel>
                             </StackPanel>
-                        </GroupBox>
+                        </Expander>
                     </StackPanel>
 
 
