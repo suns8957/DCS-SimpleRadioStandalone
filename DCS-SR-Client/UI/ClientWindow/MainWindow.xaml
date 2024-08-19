@@ -207,12 +207,14 @@
                         <GroupBox x:Name="EAMGroupBox" Header="External AWACS Mode (EAM)">
                             <StackPanel Margin="0"
                                         Orientation="Vertical">
+                                <StackPanel.Resources>
+                                    <converters:BooleanInverterConverter x:Key="BooleanInverterConverter" />
+                                </StackPanel.Resources>
                                 <StackPanel Margin="0"
                                         HorizontalAlignment="Center"
-                                        Orientation="Horizontal">
-                                    <StackPanel.Resources>
-                                        <converters:BooleanInverterConverter x:Key="BooleanInverterConverter" />
-                                    </StackPanel.Resources>
+                                        Orientation="Horizontal"
+                                        IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}">
+
                                     <StackPanel Margin="0"
                                             HorizontalAlignment="Center"
                                             Orientation="Vertical">
@@ -220,14 +222,12 @@
                                            HorizontalAlignment="Center"
                                            HorizontalContentAlignment="Center"
                                            Margin="0,10,10,0"
-                                           Content="{x:Static p:Resources.ExternalAWACSModePasswordLabel}"
-                                           IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}" />
+                                           Content="{x:Static p:Resources.ExternalAWACSModePasswordLabel}" />
                                         <PasswordBox x:Name="ExternalAWACSModePassword"
                                                  Width="200"
                                                  Height="23"
                                                  Margin="0,0,10,0"
-                                                 HorizontalAlignment="Center"
-                                                 IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}" />
+                                                 HorizontalAlignment="Center" />
                                     </StackPanel>
                                     <StackPanel Margin="0"
                                             HorizontalAlignment="Center"
@@ -236,16 +236,14 @@
                                            HorizontalAlignment="Center"
                                            HorizontalContentAlignment="Center"
                                            Margin="0,10,0,0"
-                                           Content="{x:Static p:Resources.ExternalAWACSModeNameLabel}"
-                                           IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}" />
+                                           Content="{x:Static p:Resources.ExternalAWACSModeNameLabel}" />
                                         <TextBox x:Name="ExternalAWACSModeName"
                                              Width="200"
                                              Height="23"
                                              Margin="0,0,0,0"
                                              MaxLines="1"
                                              TextWrapping="Wrap"
-                                             HorizontalAlignment="Center"
-                                             IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}" />
+                                             HorizontalAlignment="Center" />
                                     </StackPanel>
 
                                 </StackPanel>
@@ -254,7 +252,7 @@
                                     <StackPanel Margin="0" Orientation="Horizontal" HorizontalAlignment="Left">
                                         <Label x:Name="EAMPresetsLabel" Width="250" HorizontalAlignment="Center"/>
                                     </StackPanel>
-                                    <StackPanel Margin="0" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <StackPanel Margin="0" Orientation="Horizontal" HorizontalAlignment="Right" IsEnabled="{Binding Path=ClientState.ExternalAWACSModeConnected, Converter={StaticResource BooleanInverterConverter}}">
                                         <StackPanel Margin="0" HorizontalAlignment="Right" Orientation="Horizontal">
                                             <Button x:Name="EAMBrowsePresetsButton" Content="Browse Presets Folder..." Click="EAMBrowsePresetsButton_Click" HorizontalAlignment="Right"></Button>
                                             <Button x:Name="EAMResetPresetsButton" Content="Reset" Click="EAMResetPresetsButton_Click" HorizontalAlignment="Right"></Button>
