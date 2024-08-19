@@ -158,6 +158,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             Mic_VU.Value = -100;
 
             ExternalAWACSModeName.Text = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).RawValue;
+            EAMPresetsLabel.Content = Path.GetFileName(_globalSettings.GetClientSetting(GlobalSettingsKeys.LastPresetsFolder).RawValue);
 
             _audioManager = new AudioManager(AudioOutput.WindowsN);
             _audioManager.SpeakerBoost = VolumeConversionHelper.ConvertVolumeSliderToScale((float)SpeakerBoost.Value);
@@ -2149,6 +2150,23 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
         private void DisableExpansionRadios_OnClick(object sender, RoutedEventArgs e)
         {
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.DisableExpansionRadios, (bool)DisableExpansionRadios.IsChecked);
+        }
+
+        private void EAMBrowsePresetsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectPresetsFolder = new System.Windows.Forms.FolderBrowserDialog();
+            selectPresetsFolder.SelectedPath = (string)EAMPresetsLabel.Content;
+            if (selectPresetsFolder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                _globalSettings.SetClientSetting(GlobalSettingsKeys.LastPresetsFolder, selectPresetsFolder.SelectedPath);
+                EAMPresetsLabel.Content = Path.GetFileName(selectPresetsFolder.SelectedPath);
+            }
+        }
+
+        private void EAMResetPresetsButton_Click(object sender, RoutedEventArgs e)
+        {
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.LastPresetsFolder, string.Empty);
+            EAMPresetsLabel.Content = string.Empty;
         }
     }
 }
