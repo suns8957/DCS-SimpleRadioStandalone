@@ -159,6 +159,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
             ExternalAWACSModeName.Text = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).RawValue;
             EAMPresetsLabel.Content = Path.GetFileName(_globalSettings.GetClientSetting(GlobalSettingsKeys.LastPresetsFolder).RawValue);
+            EAMPresetsLabel.ToolTip = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastPresetsFolder).RawValue;
 
             _audioManager = new AudioManager(AudioOutput.WindowsN);
             _audioManager.SpeakerBoost = VolumeConversionHelper.ConvertVolumeSliderToScale((float)SpeakerBoost.Value);
@@ -2160,6 +2161,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             {
                 _globalSettings.SetClientSetting(GlobalSettingsKeys.LastPresetsFolder, selectPresetsFolder.SelectedPath);
                 EAMPresetsLabel.Content = Path.GetFileName(selectPresetsFolder.SelectedPath);
+                EAMPresetsLabel.ToolTip = selectPresetsFolder.SelectedPath;
             }
         }
 
@@ -2167,6 +2169,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
         {
             _globalSettings.SetClientSetting(GlobalSettingsKeys.LastPresetsFolder, string.Empty);
             EAMPresetsLabel.Content = string.Empty;
+            EAMPresetsLabel.ToolTip = Directory.GetCurrentDirectory();
         }
     }
 }
