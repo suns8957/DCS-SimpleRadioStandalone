@@ -164,8 +164,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Audio
         {
             try
             {
-                string speechKey = opts.AzureCredentials;
-                string speechRegion = "westeurope";
+                string[] connstring = opts.AzureCredentials.Split(';');
+                string speechKey = connstring[0];
+                string speechRegion = connstring[1];
 
                 var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
                 // Set either the `SpeechSynthesisVoiceName` or `SpeechSynthesisLanguage`.

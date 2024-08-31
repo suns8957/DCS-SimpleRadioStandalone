@@ -157,7 +157,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
             public string GoogleCredentials { get; set; }
 
             [Option('a', "azureCredentials",
-                HelpText = "azure key",
+                HelpText = "Use your Azure AI Speech key and region, separated by semicolon",
                 Required = false)]
             public string AzureCredentials { get; set; }
 
@@ -276,6 +276,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
             Console.WriteLine($"Example:\n --text=\"I want any male voice with a French accent \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male --locale=fr-FR --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
 
             Console.WriteLine($"Example:\n --text=\"I want any female voice with a German accent \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male --locale=de-DE --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
+
+            Console.WriteLine($"Example:\n --text=\"I want any female voice with a German accent \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male --locale=de-DE --googleCredentials=\"xxxxxxxxxxxxxxxxxx;westeurope\" ");
 
 
         }
