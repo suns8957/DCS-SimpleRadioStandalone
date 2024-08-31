@@ -156,6 +156,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
                 Required = false)]
             public string GoogleCredentials { get; set; }
 
+            [Option('a', "azureCredentials",
+                HelpText = "azure key",
+                Required = false)]
+            public string AzureCredentials { get; set; }
+
             [Option('L', "latitude",
                 HelpText = "Latitude of transmission",
                 Required = false, Default = 0.0)]
