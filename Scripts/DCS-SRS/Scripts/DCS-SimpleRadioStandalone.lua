@@ -2214,8 +2214,20 @@ function SR.exportRadioUH1H(_data)
 
 end
 
+local _ch47 = {}
+_ch47.radio1 = {enc=0}
+_ch47.radio2 = {guard=0,enc=false}
+_ch47.radio3 = {guard=0,enc=false}
+
 
 function SR.exportRadioCH47F(_data)
+
+    -- RESET
+    if _lastUnitId ~= _data.unitId then
+        _ch47.radio1 = {enc=0}
+        _ch47.radio2 = {guard=0,enc=0}
+        _ch47.radio3 = {guard=0,enc=0}
+    end
 
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
@@ -2226,20 +2238,15 @@ function SR.exportRadioCH47F(_data)
     _data.radios[2].modulation = SR.getRadioModulation(49)
 
     _data.radios[2].encKey = 1
-    _data.radios[2].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[2].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[3].name = "ARC-164 UHF" -- ARC_164
     _data.radios[3].freq = SR.getRadioFrequency(47)
     _data.radios[3].modulation = SR.getRadioModulation(47)
 
-    _data.radios[3].secFreq = 243.0 * 1000000
-
-    _data.radios[3].freqMin = 225 * 1000000
-    _data.radios[3].freqMax = 399.975 * 1000000
-
     _data.radios[3].encKey = 1
-    _data.radios[3].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[3].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[4].name = "ARC-186 VHF" -- ARC_186
@@ -2247,7 +2254,7 @@ function SR.exportRadioCH47F(_data)
     _data.radios[4].modulation = SR.getRadioModulation(48)
 
     _data.radios[4].encKey = 1
-    _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[4].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[5].name = "ARC-220 HF" -- ARC_220
@@ -2355,6 +2362,97 @@ function SR.exportRadioCH47F(_data)
         -- engine off
         _data.ambient = {vol = 0, abType = 'ch47' }
     end
+
+    local _ufc = nil
+    if _seat == 0 then
+        -- RIGHT SEAT (pilot)
+        _ufc = SR.getListIndicatorValue(1)
+    elseif _seat == 1 then
+        -- LEFT SEAT (Copilot)
+        _ufc = SR.getListIndicatorValue(0)
+    end
+
+    if _ufc ~= nil then
+
+        if _ufc["pg_title_F1_FM_FH_COMM"] then
+
+        --   "pg_title_F1_FM_FH_COMM": "F1 CONTROL",
+                -- IF CIPHER
+                --   "F1_FM_FH_COMSEC_MODE_CIPHER": "CIPHER",
+
+            if _ufc["F1_FM_FH_COMSEC_MODE_CIPHER"] then
+                _ch47.radio1.enc = true
+            else
+                _ch47.radio1.enc = false
+            end
+
+        elseif _ufc["pg_title_U2_COMM"] then
+
+        --   "pg_title_U2_COMM": "U2 CONTROL",
+                 --     "U2_VHF_AM_MODE_TR_plus_G": "TR+G",
+                 --   "U2_VHF_AM_COMSEC_MODE_CIPHER": "CIPHER",
+
+            if _ufc["U2_VHF_AM_COMSEC_MODE_CIPHER"] then
+                _ch47.radio2.enc = true
+            else
+                _ch47.radio2.enc = false
+            end
+
+            if _ufc["U2_VHF_AM_MODE_TR_plus_G"] then
+                _ch47.radio2.guard = 243.0 * 1000000
+            else
+                _ch47.radio2.guard = 0
+            end
+
+        elseif _ufc["pg_title_V3_COMM"] then 
+
+        --   "pg_title_V3_COMM": "V3 CONTROL",
+            --   "V3_VHF_AM_FM_COMSEC_MODE_CIPHER": "CIPHER",
+            --   "V3_VHF_AM_FM_MODE_TR_plus_G": "TR+G", 
+
+            if _ufc["V3_VHF_AM_FM_COMSEC_MODE_CIPHER"] then
+                _ch47.radio3.enc = true
+            else
+                _ch47.radio3.enc = false
+            end
+
+            if _ufc["V3_VHF_AM_FM_MODE_TR_plus_G"] then
+                _ch47.radio3.guard = 121.5 * 1000000
+            else
+                _ch47.radio3.guard = 0
+            end
+        
+        elseif _ufc["pg_title_COMM"] then
+
+            --   "F1_COMSEC_MODE_CIPHER": "C",
+            --   "U2_COMSEC_MODE_CIPHER": "C",
+            --   "V3_COMSEC_MODE_CIPHER": "C",
+
+            if _ufc["F1_COMSEC_MODE_CIPHER"] then
+                _ch47.radio1.enc = true
+            else
+                _ch47.radio1.enc = false
+            end
+
+            if _ufc["U2_COMSEC_MODE_CIPHER"] then
+                _ch47.radio2.enc = true
+            else
+                _ch47.radio2.enc = false
+            end
+
+            if _ufc["V3_COMSEC_MODE_CIPHER"] then
+                _ch47.radio3.enc = true
+            else
+                _ch47.radio3.enc = false
+            end
+        end
+    end
+
+    _data.radios[2].enc = _ch47.radio1.enc
+    _data.radios[3].enc = _ch47.radio2.enc
+    _data.radios[3].secFreq = _ch47.radio2.guard
+    _data.radios[4].enc = _ch47.radio3.enc
+    _data.radios[4].secFreq = _ch47.radio3.guard
 
     return _data
 
