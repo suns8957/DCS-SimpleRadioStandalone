@@ -138,7 +138,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
         }
         class CachedAudioEffectFilter : IOnlineFilter
         {
-            public bool Enabled { get; set; } = false;
+            public bool Enabled { get; set; } = true;
             public double Volume { get; set; } = 0;
             public bool Active
             {
@@ -238,7 +238,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
         private readonly Random _random = new Random();
 
         private IOnlineFilter _bandpassFilter = OnlineIirFilter.CreateBandpass(ImpulseResponse.Finite, AudioManager.OUTPUT_SAMPLE_RATE, 560, 3900);
-        private Dictionary<RadioInformation.Modulation, Filters.CachedAudioEffectFilter> _toneFilters;
+        private Dictionary<RadioInformation.Modulation, Filters.CachedAudioEffectFilter> _toneFilters = new Dictionary<RadioInformation.Modulation, Filters.CachedAudioEffectFilter>();
 
         private readonly BiQuadFilter _highPassFilter;
         private readonly BiQuadFilter _lowPassFilter;
@@ -284,12 +284,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
             _hfNoise = new Filters.CachedAudioEffectFilter(effectProvider.HFNoise);
             _fmNoise = new Filters.CachedAudioEffectFilter(effectProvider.FMNoise);
 
+            _amCollision = new Filters.CachedAudioEffectFilter(effectProvider.AMCollision);
+
             _highPassFilter = BiQuadFilter.HighPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 520, 0.97f);
             _lowPassFilter = BiQuadFilter.LowPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 4130, 2.0f);
             RefreshSettings();
-
-            _amCollision = new Filters.CachedAudioEffectFilter(effectProvider.AMCollision);
-            _amCollision.Enabled = true;
         }
 
         private void RefreshSettings()
