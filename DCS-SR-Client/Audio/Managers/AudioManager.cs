@@ -211,7 +211,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
 
                     var sampleProvider = _micWaveOutBuffer.ToSampleProvider();
 
-                    if (micOutput.AudioClient.MixFormat.Channels == 1)
+                    if (_micWaveOut.OutputWaveFormat.Channels == 1)
                     {
                         if (sampleProvider.WaveFormat.Channels == 2)
                         {
