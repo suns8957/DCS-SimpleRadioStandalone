@@ -151,7 +151,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
                     (peak => SpeakerMax = peak));
                 _volumeSampleProvider.Volume = SpeakerBoost;
 
-                if (speakers.AudioClient.MixFormat.Channels == 1)
+                
+
+                if (_waveOut.OutputWaveFormat.Channels == 1)
                 {
                     if (_volumeSampleProvider.WaveFormat.Channels == 2)
                     {
