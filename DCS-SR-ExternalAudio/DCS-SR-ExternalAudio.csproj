@@ -316,10 +316,6 @@
       <Project>{CF8DA5C1-0105-4486-9E28-CB2321D8F122}</Project>
       <Name>DCS-SR-Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NAudio\NAudio.csproj">
-      <Project>{da4f02e3-0b5e-42cd-b8d9-5583fa51d66e}</Project>
-      <Name>NAudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\OpusWrapper\OpusWrapper.csproj">
       <Project>{838bdb0b-5eb1-4c1e-9026-0a8842ac00c6}</Project>
       <Name>OpusWrapper</Name>
