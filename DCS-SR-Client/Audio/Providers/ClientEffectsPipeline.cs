@@ -41,6 +41,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 return samplesRead;
             }
         }
+
         class BiQuadProvider : ISampleProvider
         {
             BiQuadFilter Filter;
@@ -199,128 +200,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
     }
     namespace Filters
     {
-
-        class CompositeFilter : IOnlineFilter
-        {
-            private List<IOnlineFilter> Filters;
-
-            public CompositeFilter(int capacity)
-            {
-                Filters = new List<IOnlineFilter>(capacity);
-            }
-
-            public void Add(IOnlineFilter filter)
-            {
-                Filters.Add(filter);
-            }
-
-            public void AddRange(IEnumerable<IOnlineFilter> filters)
-            {
-                Filters.AddRange(filters);
-            }
-            public double ProcessSample(double sample)
-            {
-                foreach (var filter in Filters)
-                {
-                    sample = filter.ProcessSample(sample);
-                }
-
-                return sample;
-            }
-
-            public double[] ProcessSamples(double[] samples)
-            {
-                if (samples == null)
-                {
-                    return null;
-                }
-
-                double[] array = new double[samples.Length];
-                for (int i = 0; i < samples.Length; i++)
-                {
-                    samples[i] = ProcessSample(samples[i]);
-                }
-
-                return samples;
-            }
-
-            public void Reset()
-            {
-                Filters.Clear();
-            }
-        }
-        class ClippingFilter : IOnlineFilter
-        {
-            private double Min { get; set; }
-            private double Max { get; set; }
-
-            public ClippingFilter(double min, double max)
-            {
-                Min = min;
-                Max = max;
-            }
-
-            public double ProcessSample(double sample)
-            {
-                return Math.Max(Math.Min(sample, Max), Min);
-            }
-
-            public double[] ProcessSamples(double[] samples)
-            {
-                if (samples == null)
-                {
-                    return null;
-                }
-
-                double[] array = new double[samples.Length];
-                for (int i = 0; i < samples.Length; i++)
-                {
-                    array[i] = ProcessSample(samples[i]);
-                }
-
-                return array;
-            }
-
-            public void Reset()
-            {
-            }
-        }
-
-        class NaNFilter : IOnlineFilter
-        {
-            private Random Rng = new Random();
-
-            public double ProcessSample(double sample)
-            {
-                if (!double.IsNaN(sample))
-                {
-                    return sample;
-                }
-
-                // If we get a NaN, generate a bit of noise, scaled down (to avoid screeching sounds).
-                return Rng.NextDouble() / 2 - 0.25; // [0, 1] / 2 - 0.25 --> [-0.25, 0.25]
-            }
-
-            public double[] ProcessSamples(double[] samples)
-            {
-                if (samples == null)
-                {
-                    return null;
-                }
-
-                double[] array = new double[samples.Length];
-                for (int i = 0; i < samples.Length; i++)
-                {
-                    array[i] = ProcessSample(samples[i]);
-                }
-
-                return array;
-            }
-
-            public void Reset()
-            {
-            }
-        }
         class CachedAudioEffectFilter : IOnlineFilter
         {
             public bool Enabled { get; set; } = true;
@@ -383,36 +262,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 Enabled = false;
                 Position = 0;
                 Volume = 0;
-            }
-        }
-
-        class HaveQuickFilter : CachedAudioEffectFilter
-        {
-            private readonly Random _random = new Random();
-            private static readonly double HQ_RESET_CHANCE = 0.8;
-            public HaveQuickFilter(CachedAudioEffect haveQuickTone)
-                : base(haveQuickTone)
-            {
-            }
-
-            protected override int PositionRollover(int position, int toneLength)
-            {
-                if (position == toneLength)
-                {
-                    var reset = _random.NextDouble();
-
-                    if (reset > HQ_RESET_CHANCE)
-                    {
-                        position = 0;
-                    }
-                    else
-                    {
-                        //one back to try again
-                        position -= 1;
-                    }
-                }
-
-                return position;
             }
         }
     }
@@ -734,7 +583,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
 
             voiceProvider = new ClippingProvider(fxMixer, -1, 1);
 
-            // And now we should be able to process our buffer!
+            // Apply the post processing to the voice!
             voiceProvider.Read(buffer, offset, count);
         }
     }
