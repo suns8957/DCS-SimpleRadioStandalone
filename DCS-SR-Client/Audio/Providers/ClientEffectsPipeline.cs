@@ -198,73 +198,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
             }
         }
     }
-    namespace Filters
-    {
-        class CachedAudioEffectFilter : IOnlineFilter
-        {
-            public bool Enabled { get; set; } = true;
-            public double Volume { get; set; } = 0;
-            public bool Active
-            {
-                get
-                {
-                    return Enabled && Effect.Loaded;
-                }
-            }
-
-            private int Position { get; set; } = 0;
-
-
-            private CachedAudioEffect Effect;
-
-            public CachedAudioEffectFilter(CachedAudioEffect Effect)
-            {
-                this.Effect = Effect;
-            }
-
-            public double ProcessSample(double sample)
-            {
-                var tone = Effect.AudioEffectFloat;
-                sample += tone[Position] * Volume;
-                Position++;
-
-                Position = PositionRollover(Position, tone.Length);
-
-                return sample;
-            }
-            public double[] ProcessSamples(double[] samples)
-            {
-                if (samples == null)
-                {
-                    return null;
-                }
-
-                double[] array = new double[samples.Length];
-                for (int i = 0; i < samples.Length; i++)
-                {
-                    array[i] = ProcessSample(samples[i]);
-                }
-
-                return array;
-            }
-
-            protected virtual int PositionRollover(int position, int toneLength)
-            {
-                if (position == toneLength)
-                {
-                    position = 0;
-                }
-
-                return position;
-            }
-            public void Reset()
-            {
-                Enabled = false;
-                Position = 0;
-                Volume = 0;
-            }
-        }
-    }
    
 
     public class ClientEffectsPipeline
@@ -289,8 +222,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
         private bool radioEffects;
         private bool radioBackgroundNoiseEffect;
 
-        private Filters.CachedAudioEffectFilter _amCollision;
-
         private bool irlRadioRXInterference = false;
 
         private readonly SyncedServerSettings serverSettings;
@@ -307,8 +238,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.HF_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.HFNoise)));
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.FM_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.FMNoise)));
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.AM_COLLISION, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.AMCollision)));
-
-            _amCollision = new Filters.CachedAudioEffectFilter(effectProvider.AMCollision);
 
             _highPassFilter = BiQuadFilter.HighPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 520, 0.97f);
             _lowPassFilter = BiQuadFilter.LowPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 4130, 2.0f);
@@ -332,9 +261,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
 
                 radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
-               
-                
-                _amCollision.Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AMCollisionVolume);
 
                 _fxProviders[CachedAudioEffect.AudioEffectTypes.UHF_NOISE].Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume);
                 _fxProviders[CachedAudioEffect.AudioEffectTypes.VHF_NOISE].Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume);
@@ -381,18 +307,18 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 {
                     //All AM is wrecked if more than one transmission
                     //For HQ - only if more than TWO transmissions and its totally fucked
-                    if (lastTransmission.Modulation == RadioInformation.Modulation.HAVEQUICK && transmissions.Count > 2 && _amCollision.Active)
+                    var amCollisionProvider = _fxProviders[CachedAudioEffect.AudioEffectTypes.AM_COLLISION];
+                    if (lastTransmission.Modulation == RadioInformation.Modulation.HAVEQUICK && transmissions.Count > 2 && amCollisionProvider.Active)
                     {
+                        var collisionProvider = new VolumeSampleProvider(amCollisionProvider);
+                        collisionProvider.Volume = lastTransmission.Volume;
+
                         //replace the buffer with our own
-                        int outIndex = 0;
-                        while (outIndex < clientTransmissionLength)
-                        {
-                            tempBuffer[outIndex++] = (float)(_amCollision.ProcessSample(0) * lastTransmission.Volume);
-                        }
+                        collisionProvider.Read(tempBuffer, 0, clientTransmissionLength);
 
                         process = false;
                     }
-                    else if (lastTransmission.Modulation == RadioInformation.Modulation.AM && _amCollision.Active)
+                    else if (lastTransmission.Modulation == RadioInformation.Modulation.AM && amCollisionProvider.Active)
                     {
                         //AM https://www.youtube.com/watch?v=yHRDjhkrDbo
                         //Heterodyne tone AND audio from multiple transmitters in a horrible mess
@@ -404,14 +330,16 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                         process = false;
 
                         //apply heterodyne tone to the mixdown
-                        //replace the buffer with our own
-                        var initialVolume = _amCollision.Volume;
-                        _amCollision.Volume *= lastTransmission.Volume;
-                        for (int outIndex = 0; outIndex < clientTransmissionLength; ++outIndex)
-                        {
-                            tempBuffer[outIndex] = (float)_amCollision.ProcessSample(tempBuffer[outIndex]);
-                        }
-                        _amCollision.Volume = initialVolume;
+                        // TODO: merge into the mixer living in ProcessClientAudioSamples().
+                        var collisionMixer = new MixingSampleProvider(new List<ISampleProvider>{
+                            new VolumeSampleProvider(amCollisionProvider)
+                            {
+                                Volume = lastTransmission.Volume,
+                            },
+                            new TransmissionProvider(tempBuffer, clientTransmissionLength)
+                        });
+
+                        collisionMixer.Read(tempBuffer, 0, clientTransmissionLength);
                     }
                     else if (lastTransmission.Modulation == RadioInformation.Modulation.FM || lastTransmission.Modulation == RadioInformation.Modulation.SINCGARS)
                     {
