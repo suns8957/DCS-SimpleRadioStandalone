@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Media.Effects;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Models;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers.Filters;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers.Wave;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.DSP;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Setting;
-using MahApps.Metro.Controls;
 using MathNet.Filtering;
 using MathNet.Filtering.IIR;
 using NAudio.Dsp;
