@@ -19,7 +19,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
     {
         class OnlineFilterProvider : ISampleProvider
         {
-
             ISampleProvider Source;
             IOnlineFilter Filter;
             public WaveFormat WaveFormat => Source.WaveFormat;
@@ -197,6 +196,80 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 return samplesRead;
             }
         }
+
+        class CVSDProvider : ISampleProvider
+        {
+            private ISampleProvider source;
+            private class CVSD
+            {
+                public int coincidences = 0; // 3-bit coincidence
+                public float step = 0; // Current step size
+                public float product = 0; // comparator for quantization
+                public readonly int coincidenceBits;
+
+                public CVSD()
+                {
+                    coincidenceBits = (1 << (new Random().Next(3, 10))) - 1;// 0b111;
+                }
+
+                
+                // Encoder settings.
+                public float syllabic = 0;
+                public static readonly float BETA_SYLLABIC = 0.9f;
+                public static readonly float DELTA_MAX = 0.1f / Math.Max(AudioManager.OUTPUT_SAMPLE_RATE / (float)AudioManager.MIC_SAMPLE_RATE, 1);
+                public static readonly float DELTA_MIN = DELTA_MAX / 20;
+                public static readonly float DELTA_NAUGHT = DELTA_MAX * (1.0f - BETA_SYLLABIC);
+                public static readonly float BETA_RECONSTRUCTION = 0.9394f;
+                public static readonly float ALPHA_RECONSTRUCTION = 1;
+            }
+
+            private CVSD cvsd = new CVSD();
+
+            public WaveFormat WaveFormat => source.WaveFormat;
+
+            public CVSDProvider(ISampleProvider source)
+            {
+                this.source = source;
+            }
+
+            public double ProcessSample(double sample)
+            {
+                
+
+                // Clamp
+                //cvsd.product = Math.Max(Math.Min(cvsd.product, 1.0), -1.0);
+
+                // Introduce errors
+                //cvsd.product = Math.Round(cvsd.product, 3);
+                return cvsd.product;// Math.Round(cvsd.product, 5);
+            }
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var samplesRead = source.Read(buffer, offset, count);
+                for (int i = 0; i < count; ++i)
+                {
+                    int coincidenceBits = cvsd.coincidenceBits;
+                    // 3-bit accumulator.
+                    cvsd.coincidences = ((cvsd.coincidences << 1) & coincidenceBits);
+                    // Compute coincidence.
+                    var coincidence = buffer[offset + i] > cvsd.product;
+                    // Insert one if the current signal is greater than we have already quantized.
+                    cvsd.coincidences |= coincidence ? 1 : 0;
+
+                    var runOfCoincidences = cvsd.coincidences == coincidenceBits || cvsd.coincidences == 0;
+                    cvsd.syllabic = CVSD.DELTA_NAUGHT * (runOfCoincidences ? 1 : 0) + CVSD.BETA_SYLLABIC * cvsd.syllabic;
+
+
+                    var symbol = (coincidence ? 1 : -1) * (cvsd.syllabic + CVSD.DELTA_MIN);
+                    cvsd.product = CVSD.ALPHA_RECONSTRUCTION * symbol + CVSD.BETA_RECONSTRUCTION * cvsd.product;
+
+                    buffer[offset + i] = cvsd.product;
+                }
+
+                return samplesRead;
+            }
+        }
     }
    
 
@@ -221,6 +294,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
 
         private bool radioEffects;
         private bool radioBackgroundNoiseEffect;
+        private bool radioEncryptionEffect;
 
         private bool irlRadioRXInterference = false;
 
@@ -270,6 +344,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 radioEffects = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
 
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect) ;
+                radioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
 
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
             }
@@ -378,7 +453,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 }
                 else
                 {
-                    AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency);
+                    AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency, transmission.Encryption);
                 }
             }
 
@@ -468,7 +543,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
             return null;
         }
 
-        private void AddRadioEffect(float[] buffer, int count, int offset, RadioInformation.Modulation modulation, double freq)
+        private void AddRadioEffect(float[] buffer, int count, int offset, RadioInformation.Modulation modulation, double freq, short encryption)
         {
             // NAudio version.
             // Chain of effects being applied.
@@ -482,6 +557,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers
                 }
 
                 voiceProvider = new OnlineFilterProvider(voiceProvider, _bandpassFilter);
+            }
+
+            if (radioEncryptionEffect && encryption > 0)
+            {
+                voiceProvider = new CVSDProvider(voiceProvider);
             }
 
             // Mix in the noise, tones, etc.

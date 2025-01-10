@@ -1022,7 +1022,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                         {
                             Frequency = frequencies[0], Modulation = modulations[0],
                             EncodedAudio = bytes,
-                            Encryption = 0,
+                            Encryption = encryptions[0],
                             Volume = 1,
                             Decryptable = true,
                             LineOfSightLoss = 0,
