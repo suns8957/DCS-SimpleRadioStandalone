@@ -108,6 +108,8 @@ SRS.sendUpdate = function(playerID)
 			_update.slotString = "forward_observer" -- "JTAC"
 		elseif string.find(rawSlot, 'observer') then
 			_update.slotString = "observer"
+		else
+			_update.slotString = "??"
 		end
 
 	end
