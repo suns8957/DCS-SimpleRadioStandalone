@@ -72,31 +72,48 @@ SRS.sendUpdate = function(playerID)
         name = "",
         side = 0,
         seat = 0,
+		slotNum = 0,
+		slotString = "?",
     }
 
     _update.name = net.get_player_info(playerID, "name" )
 	_update.side = net.get_player_info(playerID,"side")
 
-	local slot =  net.get_player_info(playerID,"slot")
+	local rawSlot =  net.get_player_info(playerID,"slot")
 
-	if slot and slot ~= '' then 
-		slot = tostring(slot)
+	if rawSlot and rawSlot ~= '' then 
+		slot = tostring(rawSlot)
 	    
 	    -- Slot 2744_2 -- backseat slot is Unit ID  _2 
 	    if string.find(tostring(slot), "_", 1, true) then
 	        --extract substring - get the seat ID
 	        slot = string.sub(slot, string.find(slot, "_", 1, true)+1, string.len(slot))
 
-	        local slotNum = tonumber(slot)
+	        _update.slotNum = tonumber(slot) -- Include our Slot Number in _update. 
 
-	        if slotNum ~= nil and slotNum >= 1 then
+	        if _update.slotNum ~= nil and _update.slotNum >= 1 then
 	        	_update.seat = slotNum -1 -- -1 as seat starts at 2
 	        end
 	    end
+
+		-- Parsing implimentation thanks to Perun and SpecialK
+		-- https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot/blob/695a36824d373e4b92a0559f6466ad566c2ad35b/Scripts/net/DCSServerBot/DCSServerBotUtils.lua#L124
+		
+		-- Deal with the special slots added by Combined Arms and Spectators
+		if string.find(rawSlot, 'artillery_commander') then
+			_update.slotString = "artillery_commander"
+		elseif string.find(rawSlot, 'instructor') then
+			_update.slotString = "instructor" --"Game Master"
+		elseif string.find(rawSlot, 'forward_observer') then
+			_update.slotString = "forward_observer" -- "JTAC"
+		elseif string.find(rawSlot, 'observer') then
+			_update.slotString = "observer"
+		end
+
 	end
 
 	local _jsonUpdate = SRS.JSON:encode(_update).." \n"
-    --SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side.." Seat: ".._update.seat)
+    --SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side.." Seat: ".._update.seat.." slot #: ".._update.slotNum.." slot string: ".._update.slotString)
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 5068))
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 9087))
 end
