@@ -369,7 +369,7 @@ function SR.readSeatSocket()
         if _decoded then
             SR.lastKnownSeat = _decoded.seat
             SR.lastKnownSlotNum = _decoded.slotNum
-            SR.lastKnownSlotName = _decoded.slotString       
+            SR.lastKnownSlotName = _decoded.slotName       
 
             --SR.log("lastKnownSeat: "..SR.lastKnownSeat.." lastKnownSlotNum: "..SR.lastKnownSlotNum.." lastKnownSlotName: "..SR.lastKnownSlotName)
         end
