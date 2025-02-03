@@ -103,9 +103,9 @@ SRS.sendUpdate = function(playerID)
 		if string.find(rawSlot, 'artillery_commander') then
 			_update.slotString = "artillery_commander"
 		elseif string.find(rawSlot, 'instructor') then
-			_update.slotString = "instructor" --"Game Master"
+			_update.slotString = "Game Master" --"Game Master"
 		elseif string.find(rawSlot, 'forward_observer') then
-			_update.slotString = "forward_observer" -- "JTAC"
+			_update.slotString = "JTAC" -- "JTAC"
 		elseif string.find(rawSlot, 'observer') then
 			_update.slotString = "observer"
 		else
