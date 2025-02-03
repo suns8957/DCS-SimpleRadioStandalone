@@ -73,7 +73,7 @@ SRS.sendUpdate = function(playerID)
         side = 0,
         seat = 0,
 		slotNum = 0,
-		slotString = "?",
+		slotName = "?",
     }
 
     _update.name = net.get_player_info(playerID, "name" )
@@ -101,15 +101,15 @@ SRS.sendUpdate = function(playerID)
 		
 		-- Deal with the special slots added by Combined Arms and Spectators
 		if string.find(rawSlot, 'artillery_commander') then
-			_update.slotString = "artillery_commander"
+			_update.slotName = "Ground Commander"
 		elseif string.find(rawSlot, 'instructor') then
-			_update.slotString = "Game Master" --"Game Master"
+			_update.slotName = "Game Master" --"Game Master"
 		elseif string.find(rawSlot, 'forward_observer') then
-			_update.slotString = "JTAC" -- "JTAC"
+			_update.slotName = "JTAC" -- "JTAC"
 		elseif string.find(rawSlot, 'observer') then
-			_update.slotString = "observer"
+			_update.slotName = "Observer"
 		else
-			_update.slotString = "??"
+			_update.slotName = "Spectator"
 		end
 
 	end
