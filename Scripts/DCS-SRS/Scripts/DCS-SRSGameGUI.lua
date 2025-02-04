@@ -87,11 +87,11 @@ SRS.sendUpdate = function(playerID)
     }
 
     _update.name = net.get_player_info(playerID, "name" )
-	_update.side = net.get_player_info(playerID,"side")
+	_update.side = net.get_player_info(playerID, "side")
 
-	local rawSlot =  net.get_player_info(playerID,"slot")
+	local rawSlot =  net.get_player_info(playerID, "slot")
 
-	if rawSlot and rawSlot ~= '' then 
+	if rawSlot and rawSlot ~= '' then
 		slot = tostring(rawSlot)
 	    
 	    -- Slot 2744_2 -- backseat slot is Unit ID  _2 
