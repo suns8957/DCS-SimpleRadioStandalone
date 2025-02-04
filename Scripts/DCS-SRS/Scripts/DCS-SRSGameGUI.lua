@@ -141,7 +141,7 @@ SRS.sendUpdate = function(playerID)
 	end
 
 	local _jsonUpdate = SRS.JSON:encode(_update).." \n"
-    --SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side.." Seat: ".._update.seat.." slot #: ".._update.slotNum.." slot string: ".._update.slotString)
+    --SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side.." Seat: ".._update.seat.." slot #: ".._update.slotNum.." slotName: ".._update.slotName)
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 5068))
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 9087))
 end
