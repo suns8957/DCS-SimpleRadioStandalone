@@ -176,8 +176,7 @@ function SR.exporter()
         end
     end
 
-    -- TODO: Validate the Slot Check Here works as predicted.
-    if _data ~= nil and (SR.lastKnownSlotNum > -1) then
+    if _data ~= nil and SR.lastKnownSlotNum ~=0 then
 
         _update = {
             name = "",
@@ -220,7 +219,7 @@ function SR.exporter()
 
         _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
-     --   SR.log(_update.unit.."\n\n")
+        --SR.log(_update.unit.."\n")
 
         local aircraftExporter = SR.exporters[_update.unit]
 
@@ -369,7 +368,7 @@ function SR.readSeatSocket()
         if _decoded then
             SR.lastKnownSeat = _decoded.seat
             SR.lastKnownSlotNum = _decoded.slotNum
-            SR.lastKnownSlotName = _decoded.slotName       
+            SR.lastKnownSlotName = _decoded.slotName
 
             --SR.log("lastKnownSeat: "..SR.lastKnownSeat.." lastKnownSlotNum: "..SR.lastKnownSlotNum.." lastKnownSlotName: "..SR.lastKnownSlotName)
         end
