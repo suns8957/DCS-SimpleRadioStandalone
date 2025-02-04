@@ -94,34 +94,50 @@ SRS.sendUpdate = function(playerID)
 	if rawSlot and rawSlot ~= '' then
 		slot = tostring(rawSlot)
 	    
-	    -- Slot 2744_2 -- backseat slot is Unit ID  _2 
+	    -- If there is an Underscore in the Slot, then special cases:
 	    if string.find(tostring(slot), "_", 1, true) then
-	        --extract substring - get the seat ID
-	        slot = string.sub(slot, string.find(slot, "_", 1, true)+1, string.len(slot))
+            -- Deal with the special slots added by Combined Arms, Else Aircrew.
+            if string.find(rawSlot, 'artillery_commander') then
+                _update.slotNum = 0
+                _update.slotName = "Tactical Cmdr"
+            elseif string.find(rawSlot, 'instructor') then
+                _update.slotNum = 0
+                _update.slotName = "Game Master" --"Game Master"
+            elseif string.find(rawSlot, 'forward_observer') then
+                _update.slotNum = 0
+                _update.slotName = "JTAC/Operator" -- "JTAC"
+            elseif string.find(rawSlot, 'observer') then
+                _update.slotNum = 0
+                _update.slotName = "Observer"
+            else
+                -- extract Slot # from the start.
+                slotBeginning = string.sub(slot, 0, string.find(slot, "_", 1, true))
+                if slotBeginning ~= nil then
+                    _update.slotNum = tonumber(slotBeginning)
+                    _update.slotName = "Aircrew"
+                end
+            end
+            
+            -- Slot 2744_2 -- backseat slot is Unit ID  _2
+            -- forward_observer_blue_6 -- Seat 6
+            
+            --extract ending substring - get the seat ID
+            local last_underscore = string.find(string.reverse(slot), "_", 1, true)-2
+            slotEnding = string.sub(slot, string.len(slot)-last_underscore, string.len(slot))
 
-	        _update.slotNum = tonumber(slot) -- Include our Slot Number in _update. 
+            seatNum = tonumber(slotEnding)
 
-	        if _update.slotNum ~= nil and _update.slotNum >= 1 then
-	        	_update.seat = slotNum -1 -- -1 as seat starts at 2
-	        end
-	    end
-
-		-- Parsing implimentation thanks to Perun and SpecialK
-		-- https://github.com/Special-K-s-Flightsim-Bots/DCSServerBot/blob/695a36824d373e4b92a0559f6466ad566c2ad35b/Scripts/net/DCSServerBot/DCSServerBotUtils.lua#L124
-		
-		-- Deal with the special slots added by Combined Arms and Spectators
-		if string.find(rawSlot, 'artillery_commander') then
-			_update.slotName = "Ground Commander"
-		elseif string.find(rawSlot, 'instructor') then
-			_update.slotName = "Game Master" --"Game Master"
-		elseif string.find(rawSlot, 'forward_observer') then
-			_update.slotName = "JTAC" -- "JTAC"
-		elseif string.find(rawSlot, 'observer') then
-			_update.slotName = "Observer"
-		else
-			_update.slotName = "Spectator"
-		end
-
+            if seatNum ~= nil and seatNum >= 1 then
+                _update.seat = seatNum -1 -- -1 as seat starts at 2
+            end
+        else
+            -- Slot Data is valid, but does not have an Underscore.
+            _update.slotNum = slot
+            _update.slotName = "Pilot"
+        end
+    else
+        -- If Slot info is invalid, we must be a Spectator or similar.
+        _update.slotName = "Spectator"
 	end
 
 	local _jsonUpdate = SRS.JSON:encode(_update).." \n"
