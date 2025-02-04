@@ -66,6 +66,16 @@ SRS.onSimulationFrame = function()
 
 end
 
+-- Slot Data Examples:
+-- 3271
+-- 12122
+-- 13312_2
+-- 13312_3
+-- forward_observer_blue_6
+-- artillery_commander_blue_1
+-- instructor_red_1
+-- Spectators are Null
+
 SRS.sendUpdate = function(playerID)
   
     local _update = {
