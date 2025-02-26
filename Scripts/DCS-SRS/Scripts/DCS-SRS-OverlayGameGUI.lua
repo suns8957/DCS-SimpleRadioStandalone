@@ -195,7 +195,7 @@ function srsOverlay.updateRadio()
                 end
 
                 if _radioInfo.iff.mode2 == -1 then
-                     _iff = _iff.." M2:0FF"
+                     _iff = _iff.." M2:OFF"
                 else 
                      _iff = _iff .. string.format(" M2:%04d",_radioInfo.iff.mode2)
                 end
