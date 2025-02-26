@@ -4291,6 +4291,17 @@ function SR.exportRadioFA18C(_data)
             else
                 iff.mode1 = -1
             end
+            if _ufc.UFC_OptionCueing2 == ":" then
+                if iff.mode2 == -1 or _fa18.mode2opt ~= _ufc.UFC_OptionDisplay2 then -- just turned on
+                    local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, "2-[0-7][0-7][0-7][0-7]")
+                    if code then
+                        iff.mode2 = code
+                    end
+                    _fa18.mode2opt = _ufc.UFC_OptionDisplay2
+                end
+            else
+                iff.mode2 = -1
+            end
             if _ufc.UFC_OptionCueing3 == ":" then
                 if iff.mode3 == -1 or _fa18.mode3opt ~= _ufc.UFC_OptionDisplay3  then     -- just turned on
                     local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, "3-[0-7][0-7][0-7][0-7]")
@@ -4353,10 +4364,11 @@ function SR.exportRadioFA18C(_data)
         -- Check if on IFF XP page
         elseif _ufc.UFC_OptionDisplay2 == "2   " and _ufc.UFC_ScratchPadString1Display == "X" then
             local editingMode = string.sub(_ufc.UFC_ScratchPadNumberDisplay, 0, 2)
-            if editingMode == "3-" then
-                local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, "3-[0-7][0-7][0-7][0-7]")
+            if editingMode == "3-" or editingMode == "2-" then
+                local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, editingMode .. "[0-7][0-7][0-7][0-7]")
                 if code then
-                    _fa18.iff.mode3 = code
+                    local target = editingMode == "3-" and "mode3" or "mode2"
+                    _fa18.iff[target] = code
                 else
                     _fa18ent = true     -- wait until UFC scratchpad repopulates
                 end
