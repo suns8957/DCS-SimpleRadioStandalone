@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -46,7 +46,7 @@
     <PackageReference Include="Grpc.Core.Api" Version="2.48.0" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.40.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="8.0.0-preview.7.23375.6" />
     <PackageReference Include="NAudio" Version="2.0.1" />
     <PackageReference Include="NAudio.Asio" Version="2.0.0" />
     <PackageReference Include="NAudio.Core" Version="2.0.0" />
@@ -59,7 +59,7 @@
     <PackageReference Include="NLog" Version="5.0.2" />
     <PackageReference Include="NVorbis" Version="0.10.4" />
     <PackageReference Include="System.ComponentModel.Composition" Version="9.0.2" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
     <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />
