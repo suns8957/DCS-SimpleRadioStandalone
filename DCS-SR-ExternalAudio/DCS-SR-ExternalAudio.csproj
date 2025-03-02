@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -59,8 +59,7 @@
     <PackageReference Include="NLog" Version="5.0.2" />
     <PackageReference Include="NVorbis" Version="0.10.4" />
     <PackageReference Include="System.ComponentModel.Composition" Version="9.0.2" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.2" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
     <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />

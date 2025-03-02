@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.Common</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -33,7 +33,6 @@
     <PackageReference Include="NLog" Version="5.0.2" />
     <PackageReference Include="Octokit" Version="2.0.1" />
     <PackageReference Include="SourceLink.Create.GitHub" Version="2.8.3" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.2" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.1" />
     <PackageReference Include="System.ServiceModel.Http" Version="8.1.1" />
