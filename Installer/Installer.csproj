@@ -139,8 +139,8 @@ if not exist "$(SolutionDir)install-build\Scripts\DCS-SRS\bin\" mkdir "$(Solutio
 copy /Y "$(SolutionDir)x64\Release\srs.dll" "$(SolutionDir)install-build\Scripts\DCS-SRS\bin\srs.dll"
 
 if not exist "$(SolutionDir)install-build\zh-CN" mkdir "$(SolutionDir)install-build\zh-CN"
-copy /Y "$(SolutionDir)DCS-SR-Client\bin\x64\Release\zh-CN\SR-ClientRadio.resources.dll" "$(SolutionDir)install-build\zh-CN\SR-ClientRadio.resources.dll"
-copy /Y "$(SolutionDir)DCS-SimpleRadio Server\bin\x64\Release\zh-CN\SR-Server.resources.dll" "$(SolutionDir)install-build\zh-CN\SR-Server.resources.dll"
+copy /Y "$(SolutionDir)DCS-SR-Client\bin\Release\$(TargetFramework)\zh-CN\SR-ClientRadio.resources.dll" "$(SolutionDir)install-build\zh-CN\SR-ClientRadio.resources.dll"
+copy /Y "$(SolutionDir)DCS-SimpleRadio Server\bin\Release\$(TargetFramework)\zh-CN\SR-Server.resources.dll" "$(SolutionDir)install-build\zh-CN\SR-Server.resources.dll"
 copy /Y "$(SolutionDir)DCS-SR-Client\bin\x64\Release\zh-CN\DCS-SR-Common.resources.dll" "$(SolutionDir)install-build\zh-CN\DCS-SR-Common.resources.dll"
 copy /Y "$(SolutionDir)Installer\bin\x64\Release\zh-CN\Installer.resources.dll" "$(SolutionDir)install-build\zh-CN\Installer.resources.dll"</PostBuildEvent>
   </PropertyGroup>
