@@ -356,6 +356,7 @@
     <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(SolutionDir)DCS-SR-Common\bin\x64\Release\zh-CN\DCS-SR-Common.resources.dll" "$(SolutionDir)DCS-SR-Client\bin\x64\Release\zh-CN\DCS-SR-Common.resources.dll"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(SolutionDir)DCS-SR-Common\bin\Release\$(TargetFramework)\zh-CN\DCS-SR-Common.resources.dll" "$(OutDir)zh-CN\DCS-SR-Common.resources.dll"</PostBuildEvent>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 </Project>
