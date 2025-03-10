@@ -1,4 +1,4 @@
--- Version 2.1.0.10
+-- Version 2.1.1.0
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -18,6 +18,8 @@ SR.unicast = true --DONT CHANGE THIS
 
 SR.lastKnownPos = { x = 0, y = 0, z = 0 }
 SR.lastKnownSeat = 0
+SR.lastKnownSlotNum = 0
+SR.lastKnownSlotName = "?"
 
 SR.MIDS_FREQ = 1030.0 * 1000000 -- Start at UHF 300
 SR.MIDS_FREQ_SEPARATION = 1.0 * 100000 -- 0.1 MHZ between MIDS channels
@@ -78,7 +80,6 @@ local _prevLuaExportBeforeNextFrame = LuaExportBeforeNextFrame
 
 local _lastUnitId = "" -- used for a10c volume
 local _lastUnitType = ""    -- used for F/A-18C ENT button
-local _fa18ent = false      -- saves ENT button state (needs to be declared before LuaExportBeforeNextFrame)
 local _tNextSRS = 0
 
 SR.exporters = {}   -- exporter table. Initialized at the end
@@ -114,18 +115,31 @@ end
 
 -- Function to load mods' SRS plugin script
 function SR.LoadModsPlugins()
-    local mode, errmsg
+    -- Check the 3 main Mods sub-folders
+    local aircraftModsPath = lfs.writedir() .. [[Mods\Aircraft]]
+    SR.ModsPuginsRecursiveSearch(aircraftModsPath)
 
-    -- Mod folder's path
-    local modsPath = lfs.writedir() .. [[Mods\Aircraft]]
-   
+    local TechModsPath = lfs.writedir() .. [[Mods\Tech]]
+    SR.ModsPuginsRecursiveSearch(TechModsPath)
+    
+    -- local ServicesModsPath = lfs.writedir() .. [[Mods\Services]]
+    -- SR.ModsPuginsRecursiveSearch(ServicesModsPath)
+end
+
+-- Performs a search of subfolders for SRS/autoload.lua
+-- compainion function to SR.LoadModsPlugins()
+function SR.ModsPuginsRecursiveSearch(modsPath)
+    local mode, errmsg
     mode, errmsg = lfs.attributes (modsPath, "mode")
    
     -- Check that Mod folder actually exists, if not then do nothing
     if mode == nil or mode ~= "directory" then
+        SR.log("Error: SR.RecursiveSearch(): modsPath is not a directory or is null: '"..modsPath)
         return
     end
-
+    
+    SR.log("Searching for mods in '"..modsPath)
+    
     -- Process each available Mod
     for modFolder in lfs.dir(modsPath) do
         modAutoloadPath = modsPath..[[\]]..modFolder..[[\SRS\autoload.lua]]
@@ -161,7 +175,7 @@ function SR.exporter()
         end
     end
 
-    if _data ~= nil then
+    if _data ~= nil and SR.lastKnownSlotNum ~=0 then
 
         _update = {
             name = "",
@@ -204,7 +218,7 @@ function SR.exporter()
 
         _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
-     --   SR.log(_update.unit.."\n\n")
+        --SR.log(_update.unit.."\n")
 
         local aircraftExporter = SR.exporters[_update.unit]
 
@@ -263,11 +277,11 @@ function SR.exporter()
         _lastUnitId = _update.unitId
         _lastUnitType = _data.Name
     else
-        --Ground Commander or spectator
+        -- spectator
         _update = {
             name = "Unknown",
             ambient = {vol = 0.0, abType = ''},
-            unit = "CA",
+            unit = "Spectator",
             selected = 1,
             ptt = false,
             capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" },
@@ -293,9 +307,11 @@ function SR.exporter()
         }
 
         -- Allows for custom radio's using the DCS-Plugin scheme.
+        -- Combined Arms Overrides spectators.
         local aircraftExporter = SR.exporters["CA"]
         if aircraftExporter then
             _update = aircraftExporter(_update)
+            _update.unit = SR.lastKnownSlotName
         end
         
         local _latLng,_point = SR.exportCameraLocation()
@@ -350,7 +366,10 @@ function SR.readSeatSocket()
 
         if _decoded then
             SR.lastKnownSeat = _decoded.seat
-            --SR.log("lastKnownSeat "..SR.lastKnownSeat)
+            SR.lastKnownSlotNum = _decoded.slotNum
+            SR.lastKnownSlotName = _decoded.slotName
+
+            --SR.log("lastKnownSeat: "..SR.lastKnownSeat.." lastKnownSlotNum: "..SR.lastKnownSlotNum.." lastKnownSlotName: "..SR.lastKnownSlotName)
         end
 
     end
@@ -2214,8 +2233,20 @@ function SR.exportRadioUH1H(_data)
 
 end
 
+local _ch47 = {}
+_ch47.radio1 = {enc=0}
+_ch47.radio2 = {guard=0,enc=false}
+_ch47.radio3 = {guard=0,enc=false}
+
 
 function SR.exportRadioCH47F(_data)
+
+    -- RESET
+    if _lastUnitId ~= _data.unitId then
+        _ch47.radio1 = {enc=0}
+        _ch47.radio2 = {guard=0,enc=0}
+        _ch47.radio3 = {guard=0,enc=0}
+    end
 
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
@@ -2226,20 +2257,15 @@ function SR.exportRadioCH47F(_data)
     _data.radios[2].modulation = SR.getRadioModulation(49)
 
     _data.radios[2].encKey = 1
-    _data.radios[2].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[2].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[3].name = "ARC-164 UHF" -- ARC_164
     _data.radios[3].freq = SR.getRadioFrequency(47)
     _data.radios[3].modulation = SR.getRadioModulation(47)
 
-    _data.radios[3].secFreq = 243.0 * 1000000
-
-    _data.radios[3].freqMin = 225 * 1000000
-    _data.radios[3].freqMax = 399.975 * 1000000
-
     _data.radios[3].encKey = 1
-    _data.radios[3].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[3].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[4].name = "ARC-186 VHF" -- ARC_186
@@ -2247,7 +2273,17 @@ function SR.exportRadioCH47F(_data)
     _data.radios[4].modulation = SR.getRadioModulation(48)
 
     _data.radios[4].encKey = 1
-    _data.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+    _data.radios[4].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
+
+    -- Handle GUARD freq selection for the VHF Backup head.
+    local arc186FrequencySelectionDial = SR.getSelectorPosition(1221, 0.1)
+    if arc186FrequencySelectionDial == 0 then
+        _data.radios[4].freq = 40.5e6
+        _data.radios[4].modulation = 1
+    elseif arc186FrequencySelectionDial == 1 then
+        _data.radios[4].freq = 121.5e6
+        _data.radios[4].modulation = 0
+    end
 
 
     _data.radios[5].name = "ARC-220 HF" -- ARC_220
@@ -2286,7 +2322,18 @@ function SR.exportRadioCH47F(_data)
 
         if _selector <= 6 then
             _data.selected = _selector
-        else
+        elseif _offset ~= 657 and _selector == 9 then -- BU
+            -- Look up the BKUP RAD SEL switch to know which radio we have.
+            local bkupRadSel = SR.getButtonPosition(1466)
+            if bkupRadSel < 0.5 then
+                -- Switch facing down: Pilot gets V3, Copilot U2.
+                _data.selected = _offset == 591 and 3 or 2
+            else
+                -- Other way around.
+                _data.selected = _offset == 591 and 2 or 3
+            end
+                
+        else -- 8 = RMT, TODO
             _data.selected = -1
         end
 
@@ -2324,7 +2371,7 @@ function SR.exportRadioCH47F(_data)
         
     elseif _seat == 2 then --657
         
-        _pilotCopilotRadios(591,-1)
+        _pilotCopilotRadios(657,-1)
 
         _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = true, intercomHotMic = false, desc = "" }
     else
@@ -2345,6 +2392,34 @@ function SR.exportRadioCH47F(_data)
         _data.capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
 
     end
+
+    -- EMER Guard switch.
+    -- If enabled, forces F1, U2, and V3 to GUARDs.
+    local manNormGuard = SR.getSelectorPosition(583, 0.1)
+    if manNormGuard > 1 then
+        _data.radios[2].freq = 40.5e6 -- F1
+        _data.radios[3].freq = 243e6 -- U2
+        _data.radios[4].freq = 121.5e6 -- V3
+    end
+
+    -- EMER IFF.
+    -- When enabled, toggles all transponders ON.
+    -- Since we currently can't change M1 and M2 codes in cockpit,
+    -- Set 3A to 7700, and enable S.
+    --[[ FIXME: Having issues handing over the controls back to the overlay.
+    local holdOffEmer = SR.getSelectorPosition(585, 0.1)
+    if holdOffEmer > 1 then
+        _data.iff = {
+        status = 1,
+        mode3 = 7700,
+        mode4 = true,
+        control = 0
+        }
+    else
+        -- Release control back to overlay.
+        _data.iff.control = 1
+    end
+    ]]
         
     -- engine on
     if SR.getAmbientVolumeEngine()  > 10 then
@@ -2355,6 +2430,97 @@ function SR.exportRadioCH47F(_data)
         -- engine off
         _data.ambient = {vol = 0, abType = 'ch47' }
     end
+
+    local _ufc = nil
+    if _seat == 0 then
+        -- RIGHT SEAT (pilot)
+        _ufc = SR.getListIndicatorValue(1)
+    elseif _seat == 1 then
+        -- LEFT SEAT (Copilot)
+        _ufc = SR.getListIndicatorValue(0)
+    end
+
+    if _ufc ~= nil then
+
+        if _ufc["pg_title_F1_FM_FH_COMM"] then
+
+        --   "pg_title_F1_FM_FH_COMM": "F1 CONTROL",
+                -- IF CIPHER
+                --   "F1_FM_FH_COMSEC_MODE_CIPHER": "CIPHER",
+
+            if _ufc["F1_FM_FH_COMSEC_MODE_CIPHER"] then
+                _ch47.radio1.enc = true
+            else
+                _ch47.radio1.enc = false
+            end
+
+        elseif _ufc["pg_title_U2_COMM"] then
+
+        --   "pg_title_U2_COMM": "U2 CONTROL",
+                 --     "U2_VHF_AM_MODE_TR_plus_G": "TR+G",
+                 --   "U2_VHF_AM_COMSEC_MODE_CIPHER": "CIPHER",
+
+            if _ufc["U2_VHF_AM_COMSEC_MODE_CIPHER"] then
+                _ch47.radio2.enc = true
+            else
+                _ch47.radio2.enc = false
+            end
+
+            if _ufc["U2_VHF_AM_MODE_TR_plus_G"] then
+                _ch47.radio2.guard = 243.0 * 1000000
+            else
+                _ch47.radio2.guard = 0
+            end
+
+        elseif _ufc["pg_title_V3_COMM"] then 
+
+        --   "pg_title_V3_COMM": "V3 CONTROL",
+            --   "V3_VHF_AM_FM_COMSEC_MODE_CIPHER": "CIPHER",
+            --   "V3_VHF_AM_FM_MODE_TR_plus_G": "TR+G", 
+
+            if _ufc["V3_VHF_AM_FM_COMSEC_MODE_CIPHER"] then
+                _ch47.radio3.enc = true
+            else
+                _ch47.radio3.enc = false
+            end
+
+            if _ufc["V3_VHF_AM_FM_MODE_TR_plus_G"] then
+                _ch47.radio3.guard = 121.5 * 1000000
+            else
+                _ch47.radio3.guard = 0
+            end
+        
+        elseif _ufc["pg_title_COMM"] then
+
+            --   "F1_COMSEC_MODE_CIPHER": "C",
+            --   "U2_COMSEC_MODE_CIPHER": "C",
+            --   "V3_COMSEC_MODE_CIPHER": "C",
+
+            if _ufc["F1_COMSEC_MODE_CIPHER"] then
+                _ch47.radio1.enc = true
+            else
+                _ch47.radio1.enc = false
+            end
+
+            if _ufc["U2_COMSEC_MODE_CIPHER"] then
+                _ch47.radio2.enc = true
+            else
+                _ch47.radio2.enc = false
+            end
+
+            if _ufc["V3_COMSEC_MODE_CIPHER"] then
+                _ch47.radio3.enc = true
+            else
+                _ch47.radio3.enc = false
+            end
+        end
+    end
+
+    _data.radios[2].enc = _ch47.radio1.enc
+    _data.radios[3].enc = _ch47.radio2.enc
+    _data.radios[3].secFreq = _ch47.radio2.guard
+    _data.radios[4].enc = _ch47.radio3.enc
+    _data.radios[4].secFreq = _ch47.radio3.guard
 
     return _data
 
@@ -3977,10 +4143,10 @@ function SR.exportRadioFA18C(_data)
         _fa18.radio3.channel = 127 --127 is disabled for MIDS
         _fa18.radio4.channel = 127
         _fa18.iff = {status=-1,mode1=-1,mode2=-1,mode3=-1,mode4=true,control=0,expansion=false}
-        _fa18ent = false
-        _fa18.enttries = 0
         _fa18.mode3opt = ""
         _fa18.identEnd = 0
+        _fa18.link16 = false
+        _fa18.scratchpad = {}
     end
 
     local getGuardFreq = function (freq,currentGuard,modulation)
@@ -4123,7 +4289,7 @@ function SR.exportRadioFA18C(_data)
     _radio.encMode = 2 -- Mode 2 is set by aircraft
 
     local midsAChannel = _fa18.radio3.channel
-    if midsAChannel < 127 then
+    if midsAChannel < 127 and _fa18.link16 then
         _radio.freq = SR.MIDS_FREQ +  (SR.MIDS_FREQ_SEPARATION * midsAChannel)
         _radio.channel = midsAChannel
     else
@@ -4139,7 +4305,7 @@ function SR.exportRadioFA18C(_data)
     _radio.encMode = 2 -- Mode 2 is set by aircraft
 
     local midsBChannel = _fa18.radio4.channel
-    if midsBChannel < 127 then
+    if midsBChannel < 127 and _fa18.link16 then
         _radio.freq = SR.MIDS_FREQ +  (SR.MIDS_FREQ_SEPARATION * midsBChannel)
         _radio.channel = midsBChannel
     else
@@ -4148,10 +4314,9 @@ function SR.exportRadioFA18C(_data)
     end
 
     -- IFF
-    local iff = _fa18.iff
 
     -- set initial IFF status based on cold/hot start since it can't be read directly off the panel
-    if iff.status == -1 then
+    if _fa18.iff.status == -1 then
         local batterySwitch = SR.getButtonPosition(404)
 
         if batterySwitch == 0 then
@@ -4161,46 +4326,113 @@ function SR.exportRadioFA18C(_data)
             -- hot start, M4 on
             _fa18.iff = {status=1,mode1=-1,mode2=-1,mode3=-1,mode4=true,control=0,expansion=false}
         end
-
-        iff = _fa18.iff
     end
 
-    -- Check if XP UFC is being displayed
-    if _ufc and _ufc.UFC_OptionDisplay2 == "2   " then
-        -- Check if on XP
-        if _ufc.UFC_ScratchPadString1Display == "X" then
-            if iff.status <= 0 then
-                iff.status = 1
-            end
-            if _ufc.UFC_OptionCueing1 == ":" then
-                local code = string.match(_ufc.UFC_OptionDisplay1, "1-%d%d")    -- actual code is displayed in the option display
-                if code then
-                    iff.mode1 = code
-                end
-            else
-                iff.mode1 = -1
-            end
-            if _ufc.UFC_OptionCueing3 == ":" then
-                if iff.mode3 == -1 or _fa18.mode3opt ~= _ufc.UFC_OptionDisplay3  then     -- just turned on
-                    local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, "3-[0-7][0-7][0-7][0-7]")
-                    if code then
-                        iff.mode3 = code
-                    end
-                    _fa18.mode3opt = _ufc.UFC_OptionDisplay3
-                end
-            else
-                iff.mode3 = -1
-            end
-            iff.mode4 = _ufc.UFC_OptionCueing4 == ":"
+    local iff = _fa18.iff
 
-        -- Check if on AI
-        elseif _ufc.UFC_ScratchPadString1Display == "A" then
-            if iff.status <= 0 then
-                iff.status = 1
+    if _ufc then
+        -- Update current state.
+        local scratchpadString = _ufc.UFC_ScratchPadString1Display .. _ufc.UFC_ScratchPadString2Display
+        if _ufc.UFC_OptionDisplay4 == "VOCA" then
+            -- Link16
+            _fa18.link16 = scratchpadString == "ON"
+        elseif _ufc.UFC_OptionDisplay2 == "2   " then
+            -- IFF transponder
+            if scratchpadString == "XP" then
+                if iff.status <= 0 then
+                    iff.status = 1
+                end
+
+                -- Update Mode 1
+                if _ufc.UFC_OptionCueing1 == ":" then
+                    -- 3-bit digit, followed by a 2-bit one, 5-bit total.
+                    local code = string.match(_ufc.UFC_OptionDisplay1, "1%-([0-7][0-3])")    -- actual code is displayed in the option display
+                    if code then
+                        iff.mode1 = tonumber(code)
+                    end
+                else
+                    iff.mode1 = -1
+                end
+
+                -- Update Mode 2 and 3
+                for modeNumber = 2,3 do
+                    local mode = "mode" .. modeNumber
+                    if _ufc["UFC_OptionCueing" .. modeNumber] == ":" then
+                        local optionDisplay = _ufc["UFC_OptionDisplay" .. modeNumber]
+                        if iff[mode] == -1 or _fa18[mode .. "opt"] ~= optionDisplay then -- just turned on
+                            local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, modeNumber .. "%-([0-7]+)")
+                            if code then
+                                iff[mode] = tonumber(code)
+                            end
+                            _fa18[mode .. "opt"] = optionDisplay
+                        end
+                    else
+                        iff[mode] = -1
+                    end
+                end
+
+                -- Update Mode 4
+                iff.mode4 = _ufc.UFC_OptionCueing4 == ":"
+
+            elseif scratchpadString == "AI" then
+                if iff.status <= 0 then
+                    iff.status = 1
+                end
+            else
+                iff.status = 0
             end
-        -- Check if it is OFF
+        end
+
+        -- Process any updates.
+        local clrPressed = SR.getButtonPosition(121) > 0
+        if not clrPressed then
+            local scratchpad = _ufc.UFC_ScratchPadNumberDisplay
+            if scratchpad ~= "" then
+                local scratchError = scratchpad == "ERROR"
+                if _fa18.scratchpad.blanked then
+                    _fa18.scratchpad.blanked = false
+                    if not scratchError then
+                        -- Updated value valid, try and parse based on what's currently required.
+                        -- Find what we're updating.
+                        if _ufc.UFC_OptionDisplay4 == "VOCA" then
+                            -- Link16
+                            if scratchpadString == "ON" then
+                                -- Link16 ON
+                                local targetRadio = nil
+
+                                if _ufc.UFC_OptionCueing4 == ":" then
+                                    targetRadio = "radio3"
+                                elseif _ufc.UFC_OptionCueing5 == ":" then
+                                    targetRadio = "radio4"
+                                end
+
+                                if targetRadio then
+                                    local channel = tonumber(scratchpad)
+                                    if channel then
+                                        _fa18[targetRadio].channel = channel
+                                    end
+                                end
+                            end
+                        elseif scratchpadString == "XP" then
+                            -- IFF
+                            local mode, code = string.match(scratchpad, "([23])%-([0-7]+)")
+                            if mode and code then
+                                _fa18.iff["mode".. mode] = tonumber(code)
+                            end
+                            -- Mode 1 is read from the 'cueing' panels (see above)
+                        end
+                    end
+                elseif not scratchError then
+                    -- Register that a value is pending confirmation.
+                    _fa18.scratchpad.pending = true
+                end
+            elseif not _fa18.scratchpad.blanked and _fa18.scratchpad.pending then
+                -- Hold value until the screen flashes back
+                _fa18.scratchpad.blanked = true
+            end
         else
-            iff.status = 0
+            -- CLR pressed, reset scratchpad.
+            _fa18.scratchpad = {}
         end
     end
 
@@ -4216,54 +4448,6 @@ function SR.exportRadioFA18C(_data)
 
     -- set current IFF settings
     _data.iff = _fa18.iff
-
-    -- Parse ENT keypress
-    if _fa18ent and _ufc then
-        _fa18ent = false
-        -- Check if on D/L page and D/L ON
-        if _ufc.UFC_OptionDisplay4 == "VOCA" and _ufc.UFC_ScratchPadString1Display == "O" and _ufc.UFC_ScratchPadString2Display == "N" then
-            -- Check if setting VOCA
-            if _ufc.UFC_OptionCueing4 ==":" then
-                local chan = tonumber(_ufc.UFC_ScratchPadNumberDisplay)
-                if chan then
-                    _fa18.radio3.channel = chan
-                else
-                    _fa18ent = true     -- wait until UFC scratchpad repopulates
-                end
-            -- Check if setting VOCB
-            elseif _ufc.UFC_OptionCueing5 ==":" then
-                local chan = tonumber(_ufc.UFC_ScratchPadNumberDisplay)
-                if chan then
-                    _fa18.radio4.channel = chan
-                else
-                    _fa18ent = true     -- wait until UFC scratchpad repopulates
-                end
-            end
-        -- Check if on IFF XP page
-        elseif _ufc.UFC_OptionDisplay2 == "2   " and _ufc.UFC_ScratchPadString1Display == "X" then
-            local editingMode = string.sub(_ufc.UFC_ScratchPadNumberDisplay, 0, 2)
-            if editingMode == "3-" then
-                local code = string.match(_ufc.UFC_ScratchPadNumberDisplay, "3-[0-7][0-7][0-7][0-7]")
-                if code then
-                    _fa18.iff.mode3 = code
-                else
-                    _fa18ent = true     -- wait until UFC scratchpad repopulates
-                end
-            elseif editingMode == "" then
-                _fa18ent = true     -- wait until UFC scratchpad repopulates
-            end
-        end
-
-        if _fa18ent then
-            _fa18.enttries = _fa18.enttries + 1
-            if _fa18.enttries > 5 then
-                _fa18ent = 0
-                _fa18.enttries = 0
-            end
-        else
-            _fa18.enttries = 0
-        end
-    end
 
     if SR.getAmbientVolumeEngine()  > 10 then
         -- engine on
@@ -6146,23 +6330,121 @@ function SR.exportRadioF1BE(_data)
     return _data
 end
 
-local newJF17Interface = nil
-
+local _jf17 = nil
 function SR.exportRadioJF17(_data)
 
     _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
 
-    _data.radios[2].name = "COMM1 VHF Radio"
-    _data.radios[2].freq = SR.getRadioFrequency(25)
-    _data.radios[2].modulation = SR.getRadioModulation(25)
-    _data.radios[2].volume = SR.getRadioVolume(0, 934, { 0.0, 1.0 }, false)
-    _data.radios[2].secFreq = GetDevice(25):get_guard_plus_freq()
+    -- reset state on aircraft switch
+    if _lastUnitId ~= _data.unitId or not _jf17 then
+        _jf17 = {
+            radios = {
+                [2] = {
+                    channel = 1,
+                    deviceId = 25,
+                    volumeKnobId = 934,
+                    enc = false,
+                    guard = false,
+                },
+                [3] = {
+                    channel = 1,
+                    deviceId = 26,
+                    volumeKnobId = 938,
+                    enc = false,
+                    guard = false,
+                },
+            }
+        }
+    end
 
-    _data.radios[3].name = "COMM2 UHF Radio"
-    _data.radios[3].freq = SR.getRadioFrequency(26)
-    _data.radios[3].modulation = SR.getRadioModulation(26)
-    _data.radios[3].volume = SR.getRadioVolume(0, 938, { 0.0, 1.0 }, false)
-    _data.radios[3].secFreq = GetDevice(26):get_guard_plus_freq()
+    -- Read ufcp lines.
+    local ufcp = {}
+
+    for line=3,6 do
+        ufcp[#ufcp + 1] = SR.getListIndicatorValue(line)["txt_win" .. (line - 2)]
+    end
+
+    -- Check the last line to see if we're editing a radio (and which one!)
+    -- Looking for "123   ." (editing left radio) or ".   123" (right radio)
+    local displayedRadio = nil
+
+    -- Most likely case - radio channels being displayed.
+    local comm1Channel, comm2Channel = string.match(ufcp[#ufcp], "^(%d%d%d)%s+(%d%d%d)$")
+    comm1Channel = tonumber(comm1Channel)
+    comm2Channel = tonumber(comm2Channel)
+    if comm1Channel == nil or comm2Channel == nil then
+        -- Check if we have a radio page up.
+        local commDot = nil
+        comm1Channel, commDot = string.match(ufcp[#ufcp], "^(%d%d%d)%s+(%.)$")
+        comm1Channel = tonumber(comm1Channel)
+        if comm1Channel ~= nil and commDot ~= nil then
+            -- COMM1 being showed on the UFCP.
+            displayedRadio = _jf17.radios[2]
+        else
+            commDot, comm2Channel = string.match(ufcp[#ufcp], "^(%.)%s+(%d%d%d)$")
+            comm2Channel = tonumber(comm2Channel)
+            if commDot ~= nil and comm2Channel ~= nil then
+                -- COMM2 showed on the UFCP.
+                displayedRadio = _jf17.radios[3]
+            end
+        end
+    end
+
+    -- Update channels if we have the info.
+    if comm1Channel ~= nil then
+        _jf17.radios[2].channel = comm1Channel
+    end
+    if comm2Channel ~= nil then
+        _jf17.radios[3].channel = comm2Channel
+    end
+
+    if displayedRadio then
+        -- Line 1: encryption.
+        -- Treat CMS as fixed frequency encryption only,
+        -- TRS as HAVEQUICK (frequency hopping) + encryption.
+        -- For encryption, use Line 3 MAST/SLAV to change encryption key.
+        if string.match(ufcp[1], "^PLN") then
+            displayedRadio.enc = false
+            displayedRadio.encKey = nil
+            displayedRadio.modulation = nil
+        elseif string.match(ufcp[1], "^CMS") then
+            displayedRadio.enc = true
+            displayedRadio.encKey = string.match(ufcp[3], "MAST$") and 2 or 1
+            displayedRadio.modulation = nil
+        elseif string.match(ufcp[1], "^TRS") then
+            displayedRadio.enc = true
+            displayedRadio.encKey = string.match(ufcp[3], "MAST$") and 4 or 3
+            -- treat as HAVEQUICK
+            displayedRadio.modulation = 4
+        elseif string.match(ufcp[1], "^DATA") then
+            displayedRadio.enc = false
+            displayedRadio.encKey = nil
+            -- Forcibly set to DISABLED - Datalink has the radio, can't talk on it!
+            displayedRadio.modulation = 3
+        end
+
+        -- Look at line 2 for RT+G.
+        displayedRadio.guard = string.match(ufcp[2], "^RT%+G%s+") ~= nil
+    end
+
+    for radioId=2,3 do
+        local state = _jf17.radios[radioId]
+        local dataRadio = _data.radios[radioId]
+        dataRadio.name = "R&S M3AR COMM" .. (radioId - 1)
+        dataRadio.freq = SR.getRadioFrequency(state.deviceId)
+        dataRadio.modulation = state.modulation or SR.getRadioModulation(state.deviceId)
+        dataRadio.volume = SR.getRadioVolume(0, state.volumeKnobId, { 0.0, 1.0 }, false)
+        dataRadio.encMode = 2 -- Controlled by aircraft.
+        dataRadio.channel = state.channel
+
+        -- NOTE: Used to be GetDevice(state.deviceId):get_guard_plus_freq(), but that seems borked.
+        if state.guard then
+            -- Figure out if we want VHF or UHF guard based on current freq.
+            dataRadio.secFreq = dataRadio.freq < 224e6 and 121.5e6 or 243e6
+        end
+        dataRadio.enc = state.enc
+        dataRadio.encKey = state.encKey
+    end
 
     -- Expansion Radio - Server Side Controlled
     _data.radios[4].name = "VHF/UHF Expansion"
@@ -7210,19 +7492,6 @@ LuaExportBeforeNextFrame = function()
         SR.log('ERROR LuaExportBeforeNextFrame readSeatSocket SRS: ' .. SR.debugDump(_result))
     end
 
-    -- Check F/A-18C ENT keypress (needs to be checked in LuaExportBeforeNextFrame not to be missed)
-    if _lastUnitType == "FA-18C_hornet" 
-        or _lastUnitType == "FA-18E"
-        or _lastUnitType == "FA-18F"
-        or _lastUnitType == "EA-18G" then
-        if not _fa18ent then
-            local st, rv = pcall(SR.getButtonPosition, 122)     -- pcall to prevent dcs.log error after ejection
-            if st and rv > 0 then
-                _fa18ent = true
-            end
-        end
-    end
-
     -- call original
     if _prevLuaExportBeforeNextFrame then
         _status, _result = pcall(_prevLuaExportBeforeNextFrame)
@@ -7235,4 +7504,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.0.10")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.1.1.0")
