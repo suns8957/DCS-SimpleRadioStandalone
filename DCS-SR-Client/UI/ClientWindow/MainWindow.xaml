@@ -346,8 +346,8 @@
                     <Button Content="{x:Static p:Resources.Donate_OnClick}"
                             Click="Donate_OnClick"
                             Width="220"
-                            Margin="0,5,0,0" controls:ButtonHelper.PreserveTextCase="True"
-                            Style="{StaticResource AccentedSquareButtonStyle}" />
+                            Margin="0,5,0,0" controls:ControlsHelper.ContentCharacterCasing="Normal"
+                            Style="{StaticResource MahApps.Styles.Button.Square.Accent}" />
 
                 </StackPanel>
             </GroupBox>
