@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ExternalAudio": {
+      "commandName": "Project",
+      "commandLineArgs": "--name=\"Ciaran\" --freqs=151 --modulations=AM --text=\"Hello this is a test and some really long text to test with\" --gender=male"
+    }
+  }
+}

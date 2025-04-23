@@ -345,7 +345,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
                             decodeErrors = 0; //reset counter
                             if (serverMessage != null)
                             {
-                                //Logger.Debug("Received "+serverMessage.MsgType);
+                                Logger.Debug($"Received {serverMessage.MsgType}: {line}");
                                 switch (serverMessage.MsgType)
                                 {
                                     case NetworkMessage.MessageType.PING:
