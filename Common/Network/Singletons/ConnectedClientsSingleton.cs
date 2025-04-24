@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 
-public sealed class ConnectedClientsSingleton : PropertyChangedBase
+public sealed class ConnectedClientsSingleton : PropertyChangedBaseClass
 {
     private static volatile ConnectedClientsSingleton _instance;
     private static readonly object _lock = new();
+    private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
 
     private ConnectedClientsSingleton()
     {

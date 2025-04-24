@@ -5,7 +5,14 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Caliburn.Micro;
+using Ciribob.DCS.SimpleRadio.Standalone.Common;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
+using Ciribob.DCS.SimpleRadio.Standalone.Server.Properties;
 using Ciribob.DCS.SimpleRadio.Standalone.Server.UI.ClientAdmin;
 using Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow;
 using NLog;
@@ -56,6 +63,13 @@ public class Bootstrapper : BootstrapperBase
         config.AddTarget("asyncFileTarget", wrapper);
         config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, wrapper));
 
+        // only add transmission logging at launch if its enabled, defer rule and target creation otherwise
+        if (ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue)
+        {
+            config = LoggingHelper.GenerateTransmissionLoggingConfig(config,
+                ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_RETENTION).IntValue);
+        }
+
         LogManager.Configuration = config;
         loggingReady = true;
     }
@@ -97,6 +111,9 @@ public class Bootstrapper : BootstrapperBase
         _simpleContainer.GetInstance(typeof(ServerState), null);
 
         DisplayRootViewFor<MainViewModel>(settings);
+        
+        //TODO make this a singleton with a callback to check for updates
+        UpdaterChecker.CheckForUpdate(ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue);
     }
 
     protected override void BuildUp(object instance)

@@ -2,17 +2,23 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using Caliburn.Micro;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models.EventMessages;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
 using Newtonsoft.Json;
 using NLog;
 using LogManager = NLog.LogManager;
+using Timer = System.Timers.Timer;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 
@@ -36,12 +42,18 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private volatile bool _stop;
     private TcpClient _tcpClient;
+    
+    private readonly Timer _idleTimeout;
 
     public TCPClientHandler(string guid, SRClientBase playerUnitState)
     {
         _clients.Clear();
         _guid = guid;
         _playerUnitState = playerUnitState;
+        
+        _idleTimeout = new Timer();
+        _idleTimeout.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
+        _idleTimeout.Elapsed += CheckIfIdleTimeOut;
     }
 
     public bool TCPConnected
@@ -50,6 +62,15 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
         {
             if (_tcpClient != null) return _tcpClient.Connected;
             return false;
+        }
+    }
+    private void CheckIfIdleTimeOut(object state, ElapsedEventArgs elapsedEventArgs)
+    {
+        var timeout = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.IdleTimeOut).IntValue;
+        if (_lastSent != -1 && TimeSpan.FromTicks(DateTime.Now.Ticks - _lastSent).TotalSeconds > timeout)
+        {
+            Logger.Warn("Disconnecting - Idle Time out");
+            Disconnect();
         }
     }
 
@@ -69,7 +90,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
         return Task.CompletedTask;
     }
-
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void TryConnect(IPEndPoint endpoint)
     {
         _serverEndpoint = endpoint;
@@ -82,6 +103,8 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     private void Connect()
     {
         _lastSent = DateTime.Now.Ticks;
+        _idleTimeout.Enabled = true;
+        _idleTimeout.Start();
 
         var connectionError = false;
 
@@ -120,6 +143,9 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 Disconnect();
             }
         }
+        
+        _idleTimeout.Enabled = false;
+        _idleTimeout.Stop();
     }
 
     private void ClientRadioUpdated(SRClientBase updatedUnitState)
@@ -135,6 +161,15 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 Client = updatedUnitState,
                 MsgType = NetworkMessage.MessageType.RADIO_UPDATE
             };
+            
+            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
+                                    _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
+
+            if (needValidPosition)
+                message.Client.LatLngPosition = updatedUnitState.LatLngPosition;
+            else
+                message.Client.LatLngPosition = new LatLngPosition();
+
 
             SendToServer(message);
         }
@@ -155,6 +190,14 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 Client = updatedMetadata,
                 MsgType = NetworkMessage.MessageType.UPDATE
             };
+            
+            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
+                                    _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
+
+            if (needValidPosition)
+                message.Client.LatLngPosition = updatedMetadata.LatLngPosition;
+            else
+                message.Client.LatLngPosition = new LatLngPosition();
 
             //update state
             SendToServer(message);
@@ -193,7 +236,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                         var serverMessage = JsonConvert.DeserializeObject<NetworkMessage>(line);
                         decodeErrors = 0; //reset counter
                         if (serverMessage != null)
-                            //Logger.Debug("Received "+serverMessage.MsgType);
+                            Logger.Debug("Received "+serverMessage.MsgType);
                             switch (serverMessage.MsgType)
                             {
                                 case NetworkMessage.MessageType.PING:

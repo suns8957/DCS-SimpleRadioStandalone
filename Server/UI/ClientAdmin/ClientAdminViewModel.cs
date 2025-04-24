@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Caliburn.Micro;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using NLog;
 using LogManager = NLog.LogManager;
 

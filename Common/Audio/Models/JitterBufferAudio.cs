@@ -1,4 +1,4 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using NAudio.Utils;
 using NAudio.Wave;
 using NLog;
-using CircularFloatBuffer = Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers.CircularFloatBuffer;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 

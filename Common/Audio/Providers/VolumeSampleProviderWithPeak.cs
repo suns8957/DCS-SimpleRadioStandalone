@@ -1,4 +1,6 @@
-﻿using NAudio.Wave;
+﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
+using NAudio.Wave;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
@@ -42,7 +44,6 @@ public class VolumeSampleProviderWithPeak : ISampleProvider
     {
         var samplesRead = source.Read(buffer, offset, sampleCount);
 
-        float peak = 0;
         for (var n = 0; n < sampleCount; n++)
         {
             var sample = buffer[offset + n];
@@ -53,12 +54,10 @@ public class VolumeSampleProviderWithPeak : ISampleProvider
                 sample = 1.0F;
             else if (sample < -1.0F) sample = -1.0F;
 
-            if (sample > peak) peak = sample;
-
             buffer[offset + n] = sample;
         }
 
-        _samplePeak(peak);
+        _samplePeak((float)VolumeConversionHelper.CalculateRMS(buffer, offset, sampleCount));
 
         return samplesRead;
     }

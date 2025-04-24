@@ -14,6 +14,7 @@ public enum GlobalSettingsKeys
     MinimiseToTray,
     StartMinimised,
 
+    RefocusDCS,
     ExpandControls,
     AutoConnectPrompt, //message about auto connect
     RadioOverlayTaskbarHide,
@@ -37,6 +38,13 @@ public enum GlobalSettingsKeys
 
     CliendIdShort, // not used anymore
     ClientIdLong,
+    DCSLOSOutgoingUDP, //9086
+    DCSIncomingUDP, //9084
+    CommandListenerUDP, //=9040,
+    OutgoingDCSUDPInfo, //7080
+    OutgoingDCSUDPOther, //7082
+    DCSIncomingGameGUIUDP, // 5068
+    DCSLOSIncomingUDP, //9085
 
     AGC,
     AGCTarget,
@@ -46,7 +54,7 @@ public enum GlobalSettingsKeys
     Denoise,
     DenoiseAttenuation,
 
-    LastUsedName,
+    LastSeenName,
 
     CheckForBetaUpdates,
 
@@ -59,136 +67,154 @@ public enum GlobalSettingsKeys
 
     RequireAdmin,
 
+    //LotATC
+    LotATCIncomingUDP, //10710
+    LotATCOutgoingUDP, //10711
 
     SettingsProfiles,
     AutoSelectSettingsProfile,
 
+    VAICOMIncomingUDP, //33501 
+    VAICOMTXInhibitEnabled,
+
+    LotATCHeightOffset,
+
+    DCSAutoConnectUDP, // 5069
     ShowTransmitterName,
 
     IdleTimeOut,
     AutoConnect,
-    LastUsedID,
-    UDPCommandListenerPort,
-    UDPExternalSenderPort,
 
+    AllowRecording,
+    RecordAudio,
+    SingleFileMixdown,
+    RecordingQuality,
+    DisallowedAudioTone,
     VOX,
     VOXMode,
     VOXMinimumTime,
-    VOXMinimumDB
+    VOXMinimumDB,
+
+    AllowXInputController,
+
+    LastPresetsFolder
 }
 
 public enum InputBinding
 {
-    Intercom = 100,
-    ModifierIntercom = 200,
+        Intercom = 100,
+        ModifierIntercom = 200,
 
-    Switch1 = 101,
-    ModifierSwitch1 = 201,
+        Switch1 = 101,
+        ModifierSwitch1 = 201,
 
-    Switch2 = 102,
-    ModifierSwitch2 = 202,
+        Switch2 = 102,
+        ModifierSwitch2 = 202,
 
-    Switch3 = 103,
-    ModifierSwitch3 = 203,
+        Switch3 = 103,
+        ModifierSwitch3 = 203,
 
-    Switch4 = 104,
-    ModifierSwitch4 = 204,
+        Switch4 = 104,
+        ModifierSwitch4 = 204,
 
-    Switch5 = 105,
-    ModifierSwitch5 = 205,
+        Switch5 = 105,
+        ModifierSwitch5 = 205,
 
-    Switch6 = 106,
-    ModifierSwitch6 = 206,
+        Switch6 = 106,
+        ModifierSwitch6 = 206,
 
-    Switch7 = 107,
-    ModifierSwitch7 = 207,
+        Switch7 = 107,
+        ModifierSwitch7 = 207,
 
-    Switch8 = 108,
-    ModifierSwitch8 = 208,
+        Switch8 = 108,
+        ModifierSwitch8 = 208,
 
-    Switch9 = 109,
-    ModifierSwitch9 = 209,
+        Switch9 = 109,
+        ModifierSwitch9 = 209,
 
-    Switch10 = 110,
-    ModifierSwitch10 = 210,
+        Switch10 = 110,
+        ModifierSwitch10 = 210,
 
-    Ptt = 111,
-    ModifierPtt = 211,
+        Ptt = 111,
+        ModifierPtt = 211,
 
-    OverlayToggle = 112,
-    ModifierOverlayToggle = 212,
+        OverlayToggle = 112,
+        ModifierOverlayToggle = 212,
 
-    Up100 = 113,
-    ModifierUp100 = 213,
+        Up100 = 113,
+        ModifierUp100 = 213,
 
-    Up10 = 114,
-    ModifierUp10 = 214,
+        Up10 = 114,
+        ModifierUp10 = 214,
 
-    Up1 = 115,
-    ModifierUp1 = 215,
+        Up1 = 115,
+        ModifierUp1 = 215,
 
-    Up01 = 116,
-    ModifierUp01 = 216,
+        Up01 = 116,
+        ModifierUp01 = 216,
 
-    Up001 = 117,
-    ModifierUp001 = 217,
+        Up001 = 117,
+        ModifierUp001 = 217,
 
-    Up0001 = 118,
-    ModifierUp0001 = 218,
+        Up0001 = 118,
+        ModifierUp0001 = 218,
 
-    Down100 = 119,
-    ModifierDown100 = 219,
+        Down100 = 119,
+        ModifierDown100 = 219,
 
-    Down10 = 120,
-    ModifierDown10 = 220,
+        Down10 = 120,
+        ModifierDown10 = 220,
 
-    Down1 = 121,
-    ModifierDown1 = 221,
+        Down1 = 121,
+        ModifierDown1 = 221,
 
-    Down01 = 122,
-    ModifierDown01 = 222,
+        Down01 = 122,
+        ModifierDown01 = 222,
 
-    Down001 = 123,
-    ModifierDown001 = 223,
+        Down001 = 123,
+        ModifierDown001 = 223,
 
-    Down0001 = 124,
-    ModifierDown0001 = 224,
+        Down0001 = 124,
+        ModifierDown0001 = 224,
 
-    NextRadio = 125,
-    ModifierNextRadio = 225,
+        NextRadio = 125,
+        ModifierNextRadio = 225,
 
-    PreviousRadio = 126,
-    ModifierPreviousRadio = 226,
+        PreviousRadio = 126,
+        ModifierPreviousRadio = 226,
 
-    ToggleGuard = 127,
-    ModifierToggleGuard = 227,
+        ToggleGuard = 127,
+        ModifierToggleGuard = 227,
 
-    ToggleEncryption = 128,
-    ModifierToggleEncryption = 228,
+        ToggleEncryption = 128,
+        ModifierToggleEncryption = 228,
 
-    EncryptionKeyIncrease = 129,
-    ModifierEncryptionKeyIncrease = 229,
+        EncryptionKeyIncrease = 129,
+        ModifierEncryptionKeyIncrease = 229,
 
-    EncryptionKeyDecrease = 130,
-    ModifierEncryptionEncryptionKeyDecrease = 230,
+        EncryptionKeyDecrease = 130,
+        ModifierEncryptionEncryptionKeyDecrease = 230,
 
-    RadioChannelUp = 131,
-    ModifierRadioChannelUp = 231,
+        RadioChannelUp = 131,
+        ModifierRadioChannelUp = 231,
 
-    RadioChannelDown = 132,
-    ModifierRadioChannelDown = 232,
+        RadioChannelDown = 132,
+        ModifierRadioChannelDown = 232,
 
-    TransponderIDENT = 133,
-    ModifierTransponderIDENT = 233,
+        TransponderIDENT = 133,
+        ModifierTransponderIDENT = 233,
 
-    VolumeUp = 134,
-    ModifierVolumeUp = 234,
+        RadioVolumeUp = 134,
+        ModifierRadioVolumeUp = 234,
 
-    VolumeDown = 135,
-    ModifierVolumeDown = 235,
+        RadioVolumeDown = 135,
+        ModifierRadioVolumeDown = 235,
 
-    ToggleHotMic = 136,
-    ModifierToggleHotMic = 236
+        IntercomPTT = 136,
+        ModifierIntercomPTT = 236,
+
+        AwacsOverlayToggle = 137,
+        ModifierAwacsOverlayToggle = 237
 }
 
 public class GlobalSettingsStore
@@ -217,6 +243,7 @@ public class GlobalSettingsStore
         { GlobalSettingsKeys.AutoConnectPrompt.ToString(), "false" },
         { GlobalSettingsKeys.AutoConnectMismatchPrompt.ToString(), "true" },
         { GlobalSettingsKeys.RadioOverlayTaskbarHide.ToString(), "false" },
+        { GlobalSettingsKeys.RefocusDCS.ToString(), "false" },
         { GlobalSettingsKeys.ExpandControls.ToString(), "false" },
 
         { GlobalSettingsKeys.MinimiseToTray.ToString(), "false" },
@@ -249,6 +276,16 @@ public class GlobalSettingsStore
         //    {GlobalSettingsKeys.CliendIdShort.ToString(), ShortGuid.NewGuid().ToString()},
         { GlobalSettingsKeys.ClientIdLong.ToString(), Guid.NewGuid().ToString() },
 
+        { GlobalSettingsKeys.DCSLOSOutgoingUDP.ToString(), "9086" },
+        { GlobalSettingsKeys.DCSIncomingUDP.ToString(), "9084" },
+        { GlobalSettingsKeys.CommandListenerUDP.ToString(), "9040" },
+        { GlobalSettingsKeys.OutgoingDCSUDPInfo.ToString(), "7080" },
+        { GlobalSettingsKeys.OutgoingDCSUDPOther.ToString(), "7082" },
+        { GlobalSettingsKeys.DCSIncomingGameGUIUDP.ToString(), "5068" },
+        { GlobalSettingsKeys.DCSLOSIncomingUDP.ToString(), "9085" },
+        { GlobalSettingsKeys.DCSAutoConnectUDP.ToString(), "5069" },
+
+
         { GlobalSettingsKeys.AGC.ToString(), "true" },
         { GlobalSettingsKeys.AGCTarget.ToString(), "30000" },
         { GlobalSettingsKeys.AGCDecrement.ToString(), "-60" },
@@ -257,8 +294,7 @@ public class GlobalSettingsStore
         { GlobalSettingsKeys.Denoise.ToString(), "true" },
         { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
 
-        { GlobalSettingsKeys.LastUsedName.ToString(), "FS3D Client" },
-        { GlobalSettingsKeys.LastUsedID.ToString(), "1" },
+        { GlobalSettingsKeys.LastSeenName.ToString(), "" },
 
         { GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false" },
 
@@ -271,24 +307,40 @@ public class GlobalSettingsStore
 
         { GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(), "false" },
 
+        { GlobalSettingsKeys.LotATCIncomingUDP.ToString(), "10710" },
+        { GlobalSettingsKeys.LotATCOutgoingUDP.ToString(), "10711" },
+        { GlobalSettingsKeys.LotATCHeightOffset.ToString(), "50" },
+
+
+        { GlobalSettingsKeys.VAICOMIncomingUDP.ToString(), "33501" },
+        { GlobalSettingsKeys.VAICOMTXInhibitEnabled.ToString(), "false" },
         { GlobalSettingsKeys.ShowTransmitterName.ToString(), "true" },
 
         { GlobalSettingsKeys.IdleTimeOut.ToString(), "600" }, // 10 mins
 
-        { GlobalSettingsKeys.UDPCommandListenerPort.ToString(), "8050" },
-
-        { GlobalSettingsKeys.UDPExternalSenderPort.ToString(), "8051" },
+        { GlobalSettingsKeys.AllowRecording.ToString(), "false" },
+        { GlobalSettingsKeys.RecordAudio.ToString(), "false" },
+        { GlobalSettingsKeys.SingleFileMixdown.ToString(), "false" },
+        { GlobalSettingsKeys.RecordingQuality.ToString(), "V3" },
+        { GlobalSettingsKeys.DisallowedAudioTone.ToString(), "false" },
 
         { GlobalSettingsKeys.VOX.ToString(), "false" },
         { GlobalSettingsKeys.VOXMode.ToString(), "3" },
         { GlobalSettingsKeys.VOXMinimumTime.ToString(), "300" },
-        { GlobalSettingsKeys.VOXMinimumDB.ToString(), "-59.0" }
+        { GlobalSettingsKeys.VOXMinimumDB.ToString(), "-59.0" },
+
+
+        { GlobalSettingsKeys.AllowXInputController.ToString(), "false" },
+        { GlobalSettingsKeys.LastPresetsFolder.ToString(), string.Empty }
     };
 
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private GlobalSettingsStore()
     {
+        //Try migrating
+        MigrateSettings();
+
         //check commandline
         var args = Environment.GetCommandLineArgs();
 
@@ -311,7 +363,7 @@ public class GlobalSettingsStore
 
             _configuration = Configuration.LoadFromFile(Path + ConfigFileName);
         }
-        catch (FileNotFoundException ex)
+        catch (FileNotFoundException)
         {
             Logger.Info(
                 $"Did not find client config file at path ${Path}/${ConfigFileName}, initialising with default config");
@@ -328,6 +380,7 @@ public class GlobalSettingsStore
             Logger.Error(ex,
                 "Failed to parse client config, potentially corrupted. Creating backing and re-initialising with default config");
 
+            //TODO show error?
             // MessageBox.Show("Failed to read client config, it might have become corrupted.\n" +
             //                 "SRS will create a backup of your current config file (client.cfg.bak) and initialise using default settings.",
             //     "Config error",
@@ -395,21 +448,26 @@ public class GlobalSettingsStore
         return false;
     }
 
+    private void MigrateSettings()
+    {
+        try
+        {
+            if (File.Exists(Path + PREVIOUS_CFG_FILE_NAME) && !File.Exists(Path + CFG_FILE_NAME))
+            {
+                Logger.Info($"Migrating {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
+                File.Copy(Path + PREVIOUS_CFG_FILE_NAME, Path + CFG_FILE_NAME, true);
+                Logger.Info($"Migrated {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error migrating global settings");
+        }
+    }
+
     public void SetClientSetting(GlobalSettingsKeys key, string[] strArray)
     {
         SetSetting("Client Settings", key.ToString(), strArray);
-    }
-
-
-    public void SetUnitID(uint value)
-    {
-        SetSetting("Client Settings", GlobalSettingsKeys.LastUsedID.ToString(),
-            value.ToString(CultureInfo.InvariantCulture));
-    }
-
-    public uint GetUnitId()
-    {
-        return uint.Parse(GetSetting("Client Settings", GlobalSettingsKeys.LastUsedID.ToString()).RawValue);
     }
 
     public SharpConfig.Setting GetPositionSetting(GlobalSettingsKeys key)
@@ -551,6 +609,10 @@ public class GlobalSettingsStore
                 _configuration[section][key].StringValue = setting as string;
             else if (setting is string[])
                 _configuration[section][key].StringValueArray = setting as string[];
+            else if (setting is int)
+                _configuration[section][key].IntValue = (int)setting;
+            else if (setting is double)
+                _configuration[section][key].DoubleValue = (double)setting;
             else
                 Logger.Error("Unknown Setting Type - Not Saved ");
         }
@@ -567,7 +629,7 @@ public class GlobalSettingsStore
             {
                 _configuration.SaveToFile(Path + ConfigFileName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Logger.Error("Unable to save settings!");
             }

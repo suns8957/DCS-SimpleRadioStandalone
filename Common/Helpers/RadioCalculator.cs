@@ -1,10 +1,11 @@
 ﻿using System;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 
 public class RadioCalculator
 {
+    public static readonly double HF_FREQUENCY_LOS_IGNORED = 3e+7;
     public static readonly int TransmissonPowerdBm = 40; //10 watts
     public static readonly int RxAntennaGain = 1;
     public static readonly int TxAntennaGain = 1;

@@ -1,4 +1,4 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 
@@ -7,12 +7,12 @@ public struct DeJitteredTransmission
 {
     public int ReceivedRadio { get; set; }
 
-    public Modulation Modulation { get; internal set; }
+    public Modulation Modulation { get; set; }
 
-    public bool Decryptable { get; internal set; }
-    public short Encryption { get; internal set; }
+    public bool Decryptable { get; set; }
+    public short Encryption { get; set; }
 
-    public float Volume { get; internal set; }
+    public float Volume { get; set; }
     public bool IsSecondary { get; set; }
 
     public double Frequency { get; set; }

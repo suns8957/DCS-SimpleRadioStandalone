@@ -4,7 +4,8 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using NLog;
 using LogManager = NLog.LogManager;
 

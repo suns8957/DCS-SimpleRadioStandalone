@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Utils;
 using NAudio.Wave;
-using CircularFloatBuffer = Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers.CircularFloatBuffer;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
 public class RadioMixingProvider : ISampleProvider
 {
+    //TODO handle recording
+    //private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
+
     private readonly CachedAudioEffectProvider _cachedAudioEffectsProvider;
     private readonly List<DeJitteredTransmission> _mainAudio = new();
     private readonly List<DeJitteredTransmission> _secondaryAudio = new();
@@ -26,6 +29,7 @@ public class RadioMixingProvider : ISampleProvider
 
     private readonly int radioId;
     private readonly List<ClientAudioProvider> sources;
+
 
     // put these in a struct? 
     private bool hasPlayedTransmissionEnd = true;
@@ -88,6 +92,8 @@ public class RadioMixingProvider : ISampleProvider
         ClearArray(mixBuffer);
         ClearArray(secondaryMixBuffer);
 
+        var ky58Tone = false;
+
         lock (sources)
         {
             var index = sources.Count - 1;
@@ -105,6 +111,8 @@ public class RadioMixingProvider : ISampleProvider
                     else
                         _mainAudio.Add(transmission);
 
+                    if (transmission.Decryptable && transmission.Encryption > 0) ky58Tone = true;
+
                     lastModulation = transmission.Modulation;
                     lastVolume = transmission.Volume;
                 }
@@ -119,6 +127,8 @@ public class RadioMixingProvider : ISampleProvider
         {
             lastReceivedAt = DateTime.Now.Ticks;
             hasPlayedTransmissionEnd = false;
+            //TODO handle recording
+            //_audioRecordingManager.AppendClientAudio(_mainAudio, _secondaryAudio, radioId);
         }
 
         if (_mainAudio.Count > 0)
@@ -135,7 +145,7 @@ public class RadioMixingProvider : ISampleProvider
 
         //Now mix in start and end tones, Beeps etc
         mixBuffer = HandleStartEndTones(mixBuffer, count / 2, _mainAudio.Count > 0 || _secondaryAudio.Count > 0,
-            lastModulation, out var effectOutputSamples); //divide by 2 as we're not yet in stereo
+            lastModulation, ky58Tone, out var effectOutputSamples); //divide by 2 as we're not yet in stereo
 
         //now clip post all mixing
         mixBuffer = AudioManipulationHelper.ClipArray(mixBuffer, count / 2);
@@ -192,7 +202,7 @@ public class RadioMixingProvider : ISampleProvider
     }
 
     private float[] HandleStartEndTones(float[] mixBuffer, int count, bool transmisson,
-        Modulation modulation, out int outputSamples)
+        Modulation modulation, bool encryption, out int outputSamples)
     {
         //enqueue
         if (transmisson && !hasPlayedTransmissionStart)
@@ -200,14 +210,14 @@ public class RadioMixingProvider : ISampleProvider
             hasPlayedTransmissionStart = true;
             hasPlayedTransmissionEnd = false;
 
-            PlaySoundEffectStartReceive(modulation);
+            PlaySoundEffectStartReceive(encryption, modulation);
         }
         else if (!transmisson && !hasPlayedTransmissionEnd && IsEndOfTransmission)
         {
             hasPlayedTransmissionStart = false;
             hasPlayedTransmissionEnd = true;
 
-
+            //TODO not sure about simultaneous
             //We used to have this logic https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/cd8fcbf7e2b2fafcf30875fc958276e3083e0ebb/DCS-SR-Client/Network/UDPVoiceHandler.cs#L135
             //if (!radioReceivingState.IsSimultaneous)
             PlaySoundEffectEndReceive(modulation);
@@ -236,10 +246,17 @@ public class RadioMixingProvider : ISampleProvider
     {
         if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End)) return;
 
+        var midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
         if (radioId == 0)
         {
             var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionEndEffect;
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
+        else if (modulation == Modulation.MIDS && midsTone)
+        {
+            //end receive tone for MIDS
+            var effect = _cachedAudioEffectsProvider.MIDSEndTone;
             if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
         }
         else
@@ -249,14 +266,27 @@ public class RadioMixingProvider : ISampleProvider
         }
     }
 
-    public void PlaySoundEffectStartReceive(Modulation modulation)
+    public void PlaySoundEffectStartReceive(bool encrypted, Modulation modulation)
     {
         if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start)) return;
+
+        var midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+
+        if (modulation == Modulation.MIDS && midsTone)
+            //no tone for MIDS
+            return;
 
 
         if (radioId == 0)
         {
             var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionStartEffect;
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
+        else if (encrypted &&
+                 profileSettings.GetClientSettingBool(ProfileSettingsKeys
+                     .RadioEncryptionEffects))
+        {
+            var effect = _cachedAudioEffectsProvider.KY58EncryptionEndTone;
             if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
         }
         else
@@ -273,9 +303,29 @@ public class RadioMixingProvider : ISampleProvider
 
         if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start)) return;
 
-        var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
+        var midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-        if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        if (radioId == 0)
+        {
+            var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionStartEffect;
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
+        else if (encrypted && profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects))
+        {
+            var effect = _cachedAudioEffectsProvider.KY58EncryptionTransmitTone;
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
+        else if (modulation == Modulation.MIDS && midsTone)
+        {
+            var effect = _cachedAudioEffectsProvider.MIDSTransmitTone;
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
+        else
+        {
+            var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
+
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
     }
 
     public void PlaySoundEffectEndTransmit(float volume, Modulation modulation)
@@ -285,10 +335,16 @@ public class RadioMixingProvider : ISampleProvider
 
         if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End)) return;
 
+        var midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
         if (radioId == 0)
         {
             var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionEndEffect;
+            if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
+        }
+        else if (modulation == Modulation.MIDS && midsTone)
+        {
+            var effect = _cachedAudioEffectsProvider.MIDSEndTone;
             if (effect.Loaded) effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
         }
         else

@@ -668,9 +668,9 @@ public class LibMp3Lame : IDisposable
 		}
 #endif
 
-	/// <summary>Utility to obtain a list of genre names with numbers</summary>
-	/// <returns>Dictionary containing genres</returns>
-	public static Dictionary<int, string> ID3GenreList()
+    /// <summary>Utility to obtain a list of genre names with numbers</summary>
+    /// <returns>Dictionary containing genres</returns>
+    public static Dictionary<int, string> ID3GenreList()
     {
         var res = new Dictionary<int, string>();
         var cbsave = id3GenreCallback;

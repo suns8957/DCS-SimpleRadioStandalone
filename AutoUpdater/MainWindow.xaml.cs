@@ -14,351 +14,301 @@ using Octokit;
 using MessageBox = System.Windows.MessageBox;
 using Path = System.IO.Path;
 
-namespace AutoUpdater
+namespace AutoUpdater;
+
+/// <summary>
+///     Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public static readonly string GITHUB_USERNAME = "ciribob";
+
+    public static readonly string GITHUB_REPOSITORY = "DCS-SimpleRadioStandalone";
+
+    // Required for all requests against the GitHub API, as per https://developer.github.com/v3/#user-agent-required
+    public static readonly string GITHUB_USER_AGENT = $"{GITHUB_USERNAME}_{GITHUB_REPOSITORY}";
+    private bool _cancel;
+    private string _directory;
+    private string _file;
+
+    private bool _finished;
+    private double _lastValue = -1;
+    private DispatcherTimer _progressCheckTimer;
+    private Uri _uri;
+
+    private string changelogURL = "";
+
+    public MainWindow()
     {
-        public static readonly string GITHUB_USERNAME = "ciribob";
-        public static readonly string GITHUB_REPOSITORY = "DCS-SimpleRadioStandalone";
-        // Required for all requests against the GitHub API, as per https://developer.github.com/v3/#user-agent-required
-        public static readonly string GITHUB_USER_AGENT = $"{GITHUB_USERNAME}_{GITHUB_REPOSITORY}";
-        private Uri _uri;
-        private string _directory;
-        private string _file;
-        private bool _cancel = false;
-        private DispatcherTimer _progressCheckTimer;
-        private double _lastValue = -1;
-
-        private bool _finished = false;
-
-        private string changelogURL = "";
-
-        public MainWindow()
+        InitializeComponent();
+        QuitSimpleRadio();
+        if (IsAnotherRunning())
         {
-            InitializeComponent();
-            QuitSimpleRadio();
-            if (IsAnotherRunning())
-            {
-                MessageBox.Show("Please close DCS-SimpleRadio Standalone before running", "SRS Auto Updater",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                Environment.Exit(0);
+            MessageBox.Show("Please close DCS-SimpleRadio Standalone before running", "SRS Auto Updater",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            Environment.Exit(0);
 
-                return;
-            }
-
-            try
-            {
-                DownloadLatestVersion();
-            }
-            catch (Exception ex)
-            {
-                ShowError();
-            }
-            
+            return;
         }
 
-        private bool IsDCSRunning()
+        try
         {
-            foreach (var clsProcess in Process.GetProcesses())
-            {
-                if (clsProcess.ProcessName.ToLower().Trim().Equals("dcs"))
-                {
-                    return true;
-                }
-            }
-            return false;
+            DownloadLatestVersion();
         }
-
-        private void QuitSimpleRadio()
+        catch (Exception ex)
         {
-            foreach (var clsProcess in Process.GetProcesses())
-            {
-                if (clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-server") || clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-client"))
-                {
-                    clsProcess.Kill();
-                    clsProcess.WaitForExit(5000);
-                    clsProcess.Dispose();
-                }
-            }
+            ShowError();
         }
+    }
 
-        private bool IsAnotherRunning()
-        {
-            Process currentProcess = Process.GetCurrentProcess();
-            string currentProcessName = currentProcess.ProcessName.ToLower().Trim();
+    private bool IsDCSRunning()
+    {
+        foreach (var clsProcess in Process.GetProcesses())
+            if (clsProcess.ProcessName.ToLower().Trim().Equals("dcs"))
+                return true;
 
-            foreach (Process clsProcess in Process.GetProcesses())
+        return false;
+    }
+
+    private void QuitSimpleRadio()
+    {
+        foreach (var clsProcess in Process.GetProcesses())
+            if (clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-server") ||
+                clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-client"))
             {
-                if (clsProcess.Id != currentProcess.Id &&
-                    clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
-                {
-                    return true;
-                }
+                clsProcess.Kill();
+                clsProcess.WaitForExit(5000);
+                clsProcess.Dispose();
             }
+    }
 
-            return false;
-        }
+    private bool IsAnotherRunning()
+    {
+        var currentProcess = Process.GetCurrentProcess();
+        var currentProcessName = currentProcess.ProcessName.ToLower().Trim();
 
-        private async Task<Uri> GetPathToLatestVersion()
-        {
-            Status.Content = "Finding Latest SRS Version";
-            var githubClient = new GitHubClient(new ProductHeaderValue(GITHUB_USER_AGENT, "1.0.0.0"));
+        foreach (var clsProcess in Process.GetProcesses())
+            if (clsProcess.Id != currentProcess.Id &&
+                clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
+                return true;
 
-            var releases = await githubClient.Repository.Release.GetAll(GITHUB_USERNAME, GITHUB_REPOSITORY);
+        return false;
+    }
 
-            bool allowBeta = AllowBeta();
+    private async Task<Uri> GetPathToLatestVersion()
+    {
+        Status.Content = "Finding Latest SRS Version";
+        var githubClient = new GitHubClient(new ProductHeaderValue(GITHUB_USER_AGENT, "1.0.0.0"));
 
-            // Retrieve last stable and beta branch release as tagged on GitHub
-            foreach (Release release in releases)
+        var releases = await githubClient.Repository.Release.GetAll(GITHUB_USERNAME, GITHUB_REPOSITORY);
+
+        var allowBeta = AllowBeta();
+
+        // Retrieve last stable and beta branch release as tagged on GitHub
+        foreach (var release in releases)
+            if ((release.Prerelease && allowBeta) || !release.Prerelease)
             {
-                if ((release.Prerelease && allowBeta) || !release.Prerelease)
-                {
-                    var releaseAsset = release.Assets.First();
+                var releaseAsset = release.Assets.First();
 
-                    foreach (var asset in release.Assets)
+                foreach (var asset in release.Assets)
+                    if (asset.Name.ToLower().StartsWith("dcs-simpleradiostandalone") &&
+                        asset.Name.ToLower().Contains(".zip"))
                     {
-                        if (asset.Name.ToLower().StartsWith("dcs-simpleradiostandalone") &&
-                            asset.Name.ToLower().Contains(".zip"))
+                        changelogURL = release.HtmlUrl;
+                        Status.Content = "Downloading Version " + release.TagName;
+
+                        if (ServerInstall())
                         {
-                            changelogURL = release.HtmlUrl;
-                            Status.Content = "Downloading Version "+release.TagName;
+                            //check the path and version
+                            var path = ServerPath();
 
-                            if (ServerInstall())
+                            if (path.Length > 0)
                             {
-                                //check the path and version
-                                var path = ServerPath();
+                                var latestVersion = new Version(release.TagName.Replace("v", ""));
+                                var serverVersion = Assembly.LoadFile(Path.Combine(path, "SR-Server.exe")).GetName()
+                                    .Version;
 
-                                if (path.Length > 0)
-                                {
-                                    var latestVersion = new Version(release.TagName.Replace("v", ""));
-                                    var serverVersion = Assembly.LoadFile(Path.Combine(path, "SR-Server.exe")).GetName().Version;
+                                if (serverVersion < latestVersion) return new Uri(releaseAsset.BrowserDownloadUrl);
 
-                                    if (serverVersion < latestVersion)
-                                    {
-                                        return new Uri(releaseAsset.BrowserDownloadUrl);
-                                    }
-                                    else
-                                    {
-                                        //no update
-                                        return null;
-                                    }
-
-                                }
+                                //no update
+                                return null;
                             }
-                            return new Uri(releaseAsset.BrowserDownloadUrl);
                         }
 
+                        return new Uri(releaseAsset.BrowserDownloadUrl);
                     }
-                }
             }
 
-            return null;
-        }
+        return null;
+    }
 
-        private bool AllowBeta()
-        {
-            foreach (var arg in Environment.GetCommandLineArgs())
+    private bool AllowBeta()
+    {
+        foreach (var arg in Environment.GetCommandLineArgs())
+            if (arg.Trim().Equals("-beta"))
+                return true;
+
+        return false;
+    }
+
+    private string ServerPath()
+    {
+        foreach (var commandLineArg in Environment.GetCommandLineArgs())
+            if (commandLineArg.Trim().StartsWith("-path="))
             {
-                if (arg.Trim().Equals("-beta"))
-                {
-                    return true;
-                }
-                
+                var line = commandLineArg.Trim();
+                line = line.Replace("-path=", "");
+
+                return line;
             }
 
-            return false;
+        return "";
+    }
 
-        }
+    private bool ServerInstall()
+    {
+        foreach (var arg in Environment.GetCommandLineArgs())
+            if (arg.Trim().Equals("-server"))
+                return true;
 
-        private string ServerPath()
+        return false;
+    }
+
+    public void ShowError()
+    {
+        MessageBox.Show(
+            "Error Auto Updating SRS - Please check internet connection and try again \n\nAlternatively: \n1. Download the latest DCS-SimpleRadioStandalone.zip from the SRS Github Release page\n2. Extract all the files to a temporary directory\n3. Run the installer.",
+            "Auto Updater Error",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+
+        Close();
+    }
+
+    public async void DownloadLatestVersion()
+    {
+        try
         {
-            foreach (var commandLineArg in Environment.GetCommandLineArgs())
+            _uri = await GetPathToLatestVersion();
+
+            if (_uri == null) Environment.Exit(0);
+
+
+            _directory = GetTemporaryDirectory();
+            _file = _directory + "\\temp.zip";
+
+            using (WebClient wc = new MyWebClient())
             {
-                if (commandLineArg.Trim().StartsWith("-path="))
-                {
-                    var line = commandLineArg.Trim();
-                    line = line.Replace("-path=", "");
+                wc.Headers.Add("user-agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)");
+                wc.DownloadProgressChanged += DownloadProgressChanged;
+                wc.DownloadFileAsync(_uri, _file);
+                wc.DownloadFileCompleted += DownloadComplete;
 
-                    return line;
-                }
+                //check download progress periodically - if the download is stalled we dont get told by anything
+                _progressCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+                _progressCheckTimer.Tick += CheckProgress;
+                _progressCheckTimer.Start();
             }
-
-            return "";
         }
-
-        private bool ServerInstall()
+        catch (Exception ex)
         {
-            foreach (var arg in Environment.GetCommandLineArgs())
+            ShowError();
+        }
+    }
+
+    private void CheckProgress(object sender, EventArgs e)
+    {
+        if (_lastValue == DownloadProgress.Value && _finished == false)
+            //no progress
+            ShowError();
+
+        _lastValue = DownloadProgress.Value;
+    }
+
+    private bool ShouldRestart()
+    {
+        foreach (var arg in Environment.GetCommandLineArgs())
+            if (arg.Trim().Equals("-restart"))
+                return true;
+
+        return false;
+    }
+
+    private void DownloadComplete(object sender, AsyncCompletedEventArgs e)
+    {
+        _finished = true;
+        if (!_cancel)
+        {
+            ZipFile.ExtractToDirectory(_file, Path.Combine(_directory, "extract"));
+
+            Thread.Sleep(400);
+
+            if (!ServerInstall())
             {
-                if (arg.Trim().Equals("-server"))
-                {
-                    return true;
-                }
+                while (IsDCSRunning())
+                    MessageBox.Show(
+                        "Please Close DCS \n\nSRS cannot be installed - please close DCS before hitting OK \n\n",
+                        "Close DCS",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
 
+                var releaseNotes = MessageBox.Show(
+                    "Do you want to read the release notes? \n\nHighly recommended before installing! \n\n",
+                    "Read Release Notes?",
+                    MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (releaseNotes == MessageBoxResult.Yes) Process.Start(changelogURL);
             }
 
-            return false;
-        }
-
-        public void ShowError()
-        {
-            MessageBox.Show("Error Auto Updating SRS - Please check internet connection and try again \n\nAlternatively: \n1. Download the latest DCS-SimpleRadioStandalone.zip from the SRS Github Release page\n2. Extract all the files to a temporary directory\n3. Run the installer.",
-                "Auto Updater Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-
-            Close();
-        }
-
-        public async void DownloadLatestVersion()
-        {
-            try
+            var procInfo = new ProcessStartInfo();
+            procInfo.WorkingDirectory = Path.Combine(_directory, "extract");
+            if (ServerInstall())
             {
-                _uri = await GetPathToLatestVersion();
+                procInfo.Arguments = "-autoupdate";
+                procInfo.Arguments += " -server ";
+                procInfo.Arguments += " -path=\"" + ServerPath() + "\"";
 
-                if (_uri == null)
-                {
-                    Environment.Exit(0);
-                }
-
-
-                _directory = GetTemporaryDirectory();
-                _file = _directory + "\\temp.zip";
-
-                using (WebClient wc = new MyWebClient())
-                {
-
-                    wc.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)");
-                    wc.DownloadProgressChanged += DownloadProgressChanged;
-                    wc.DownloadFileAsync(_uri, _file);
-                    wc.DownloadFileCompleted += DownloadComplete;
-
-                    //check download progress periodically - if the download is stalled we dont get told by anything
-                    _progressCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-                    _progressCheckTimer.Tick += CheckProgress;
-                    _progressCheckTimer.Start();
-
-                }
+                if (ShouldRestart()) procInfo.Arguments += " -restart ";
             }
-            catch (Exception ex)
+            else
             {
-               ShowError();
-            }
-        }
-
-        private void CheckProgress(object sender, EventArgs e)
-        {
-            if (_lastValue == DownloadProgress.Value && _finished == false) 
-            {
-                //no progress
-                ShowError();
+                procInfo.Arguments = "-autoupdate";
             }
 
-            _lastValue = DownloadProgress.Value;
+            procInfo.FileName = Path.Combine(Path.Combine(_directory, "extract"), "installer.exe");
+            procInfo.UseShellExecute = false;
+            Process.Start(procInfo);
 
 
+            //Process.Start(changelogURL);
         }
 
-        private bool ShouldRestart()
-        {
-            foreach (var arg in Environment.GetCommandLineArgs())
-            {
-                if (arg.Trim().Equals("-restart"))
-                {
-                    return true;
-                }
+        Close();
+    }
 
-            }
+    public string GetTemporaryDirectory()
+    {
+        var tempFolder = Path.GetTempFileName();
+        File.Delete(tempFolder);
+        Directory.CreateDirectory(tempFolder);
 
-            return false;
-        }
+        return tempFolder;
+    }
 
-        private void DownloadComplete(object sender, AsyncCompletedEventArgs e)
-        {
-            _finished = true;
-            if (!_cancel)
-            {
-                ZipFile.ExtractToDirectory(_file, Path.Combine(_directory, "extract"));
+    private void DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+    {
+        DownloadProgress.Value = e.ProgressPercentage;
+    }
 
-                Thread.Sleep(400);
+    private void CancelButtonClick(object sender, RoutedEventArgs e)
+    {
+        _cancel = true;
+        Close();
+    }
 
-                if (!ServerInstall())
-                {
-
-                    while (IsDCSRunning())
-                    {
-                        MessageBox.Show(
-                            "Please Close DCS \n\nSRS cannot be installed - please close DCS before hitting OK \n\n",
-                            "Close DCS",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-
-                    var releaseNotes = MessageBox.Show(
-                        "Do you want to read the release notes? \n\nHighly recommended before installing! \n\n",
-                        "Read Release Notes?",
-                        MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                    if (releaseNotes == MessageBoxResult.Yes)
-                    {
-                        Process.Start(changelogURL);
-                    }
-                }
-
-                ProcessStartInfo procInfo = new ProcessStartInfo();
-                procInfo.WorkingDirectory = Path.Combine(_directory, "extract");
-                if (ServerInstall())
-                {
-                    procInfo.Arguments = "-autoupdate";
-                    procInfo.Arguments += " -server ";
-                    procInfo.Arguments += " -path=\"" + ServerPath() + "\"";
-
-                    if (ShouldRestart())
-                    {
-                        procInfo.Arguments += " -restart ";
-                    }
-                }
-                else
-                {
-                    procInfo.Arguments = "-autoupdate";
-                }
-                procInfo.FileName = Path.Combine(Path.Combine(_directory, "extract"), "installer.exe");
-                procInfo.UseShellExecute = false;
-                Process.Start(procInfo);
-
-
-                //Process.Start(changelogURL);
-            }
-            
-            Close();
-        }
-
-        public string GetTemporaryDirectory()
-        {
-            string tempFolder = Path.GetTempFileName();
-            File.Delete(tempFolder);
-            Directory.CreateDirectory(tempFolder);
-
-            return tempFolder;
-        }
-
-        private void DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            DownloadProgress.Value = e.ProgressPercentage;
-        }
-
-        private void CancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            _cancel = true;
-            Close();
-        }
-
-        private void OnClosing(object sender, CancelEventArgs e)
-        {
-            _cancel = true;
-            _progressCheckTimer?.Stop();
-        }
+    private void OnClosing(object sender, CancelEventArgs e)
+    {
+        _cancel = true;
+        _progressCheckTimer?.Stop();
     }
 }

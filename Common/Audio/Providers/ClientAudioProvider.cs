@@ -1,13 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Wave;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
 public class ClientAudioProvider : AudioProvider
 {
+    private readonly Random _random = new();
+
+    //progress per radio
+    private readonly Dictionary<string, int>[] ambientEffectProgress;
+
+    private readonly CachedAudioEffectProvider audioEffectProvider = CachedAudioEffectProvider.Instance;
+
+    private readonly bool passThrough;
+
+    private readonly ProfileSettingsStore settingsStore = GlobalSettingsStore.Instance.ProfileSettingsStore;
+    private bool ambientCockpitEffectEnabled = true;
+
+    private float ambientCockpitEffectVolume = 1.0f;
+    private bool ambientCockpitIntercomEffectEnabled = true;
+
+    private double lastLoaded;
+
     //   private readonly WaveFileWriter waveWriter;
     public ClientAudioProvider(bool passThrough = false) : base(passThrough)
     {
@@ -59,6 +78,26 @@ public class ClientAudioProvider : AudioProvider
 
         audio.PcmAudioFloat = tmp;
 
+        var
+            decrytable =
+                audio.Decryptable /* || (audio.Encryption == 0) <--- this test has already been performed by all callers and would require another call to check for STRICT_AUDIO_ENCRYPTION */;
+
+        if (decrytable)
+        {
+            //adjust for LOS + Distance + Volume
+            AdjustVolumeForLoss(audio);
+
+            //Add cockpit effect - but not for Intercom unless you specifically opt in
+            if ((ambientCockpitEffectEnabled && audio.Modulation != (short)Modulation.INTERCOM)
+                || (ambientCockpitEffectEnabled && audio.Modulation == (short)Modulation.INTERCOM &&
+                    ambientCockpitIntercomEffectEnabled))
+                AddCockpitAmbientAudio(audio);
+        }
+        else
+        {
+            AddEncryptionFailureEffect(audio);
+        }
+
         if (newTransmission)
         {
             // System.Diagnostics.Debug.WriteLine(audio.ClientGuid+"ADDED");
@@ -77,34 +116,201 @@ public class ClientAudioProvider : AudioProvider
             {
                 Audio = audio.PcmAudioFloat,
                 PacketNumber = audio.PacketNumber,
+                Decryptable = decrytable,
                 Modulation = (Modulation)audio.Modulation,
                 ReceivedRadio = audio.ReceivedRadio,
                 Volume = audio.Volume,
                 IsSecondary = audio.IsSecondary,
                 Frequency = audio.Frequency,
+                NoAudioEffects = audio.NoAudioEffects,
                 Guid = audio.ClientGuid,
-                OriginalClientGuid = audio.OriginalClientGuid
-                //TODO fix this
-                //comapre with ClientAudioProvider
+                OriginalClientGuid = audio.OriginalClientGuid,
+                Encryption = audio.Encryption
             };
 
         JitterBufferProviderInterface[audio.ReceivedRadio].AddSamples(new JitterBufferAudio
         {
             Audio = audio.PcmAudioFloat,
             PacketNumber = audio.PacketNumber,
+            Decryptable = decrytable,
             Modulation = (Modulation)audio.Modulation,
             ReceivedRadio = audio.ReceivedRadio,
             Volume = audio.Volume,
             IsSecondary = audio.IsSecondary,
             Frequency = audio.Frequency,
+            NoAudioEffects = audio.NoAudioEffects,
             Guid = audio.ClientGuid,
-            OriginalClientGuid = audio.OriginalClientGuid
-            //TODO fix this
-            //comapre with ClientAudioProvider
+            OriginalClientGuid = audio.OriginalClientGuid,
+            Encryption = audio.Encryption
         });
 
         return null;
 
+
+        //TODO check this - this is the old logic from the client
+        // if (audio.OriginalClientGuid == ClientStateSingleton.Instance.ShortGUID)
+        // {
+        //     // catch own transmissions and prevent them from being added to JitterBuffer unless its passthrough
+        //     if (passThrough)
+        //         //return MONO PCM 16 as bytes
+        //         return new JitterBufferAudio
+        //         {
+        //             Audio = audio.PcmAudioFloat,
+        //             PacketNumber = audio.PacketNumber,
+        //             Decryptable = decrytable,
+        //             Modulation = (Modulation)audio.Modulation,
+        //             ReceivedRadio = audio.ReceivedRadio,
+        //             Volume = audio.Volume,
+        //             IsSecondary = audio.IsSecondary,
+        //             Frequency = audio.Frequency,
+        //             NoAudioEffects = audio.NoAudioEffects,
+        //             Guid = audio.ClientGuid,
+        //             OriginalClientGuid = audio.OriginalClientGuid,
+        //             Encryption = audio.Encryption
+        //         };
+        //
+        //     return null;
+        // }
+        //
+        // if (!passThrough)
+        // {
+        //     JitterBufferProviderInterface[audio.ReceivedRadio].AddSamples(new JitterBufferAudio
+        //     {
+        //         Audio = audio.PcmAudioFloat,
+        //         PacketNumber = audio.PacketNumber,
+        //         Decryptable = decrytable,
+        //         Modulation = (Modulation)audio.Modulation,
+        //         ReceivedRadio = audio.ReceivedRadio,
+        //         Volume = audio.Volume,
+        //         IsSecondary = audio.IsSecondary,
+        //         Frequency = audio.Frequency,
+        //         NoAudioEffects = audio.NoAudioEffects,
+        //         Guid = audio.ClientGuid,
+        //         OriginalClientGuid = audio.OriginalClientGuid,
+        //         Encryption = audio.Encryption
+        //     });
+        //
+        //     return null;
+        // }
+        //
+        // //return MONO PCM 32 as bytes
+        // return new JitterBufferAudio
+        // {
+        //     Audio = audio.PcmAudioFloat,
+        //     PacketNumber = audio.PacketNumber,
+        //     Decryptable = decrytable,
+        //     Modulation = (Modulation)audio.Modulation,
+        //     ReceivedRadio = audio.ReceivedRadio,
+        //     Volume = audio.Volume,
+        //     IsSecondary = audio.IsSecondary,
+        //     Frequency = audio.Frequency,
+        //     NoAudioEffects = audio.NoAudioEffects,
+        //     Guid = audio.ClientGuid,
+        //     OriginalClientGuid = audio.OriginalClientGuid,
+        //     Encryption = audio.Encryption
+        // };
+
         //timer.Stop();
+    }
+
+    //high throughput - cache these settings for 3 seconds
+    private void ReLoadSettings()
+    {
+        var now = DateTime.Now.Ticks;
+        if (now - lastLoaded > 30000000)
+        {
+            lastLoaded = now;
+            ambientCockpitEffectEnabled =
+                settingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitNoiseEffect);
+            ambientCockpitEffectVolume =
+                settingsStore.GetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume);
+            ambientCockpitIntercomEffectEnabled =
+                settingsStore.GetClientSettingBool(ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect);
+        }
+    }
+
+    private void AddCockpitAmbientAudio(ClientAudio clientAudio)
+    {
+        //           clientAudio.Ambient.abType = "uh1";
+        //           clientAudio.Ambient.vol = 0.35f;
+
+        var abType = clientAudio.Ambient?.abType;
+
+        if (string.IsNullOrEmpty(abType)) return;
+
+        var effect = audioEffectProvider.GetAmbientEffect(clientAudio.Ambient.abType);
+
+        var vol = clientAudio.Ambient.vol;
+
+        if (clientAudio.Modulation == (short)Modulation.MIDS)
+            //for MIDS - half volume again - just for ambient vol
+            vol = vol / 0.50f;
+
+        var ambientEffectProg = ambientEffectProgress[clientAudio.ReceivedRadio];
+
+        if (effect.Loaded)
+        {
+            var effectLength = effect.AudioEffectFloat.Length;
+
+            if (!ambientEffectProg.TryGetValue(clientAudio.Ambient.abType, out var progress))
+            {
+                progress = 0;
+                ambientEffectProg[clientAudio.Ambient.abType] = 0;
+            }
+
+            var audio = clientAudio.PcmAudioFloat;
+            for (var i = 0; i < audio.Length; i++)
+            {
+                audio[i] += effect.AudioEffectFloat[progress] * (vol * ambientCockpitEffectVolume);
+
+                progress++;
+
+                if (progress >= effectLength) progress = 0;
+            }
+
+            ambientEffectProg[clientAudio.Ambient.abType] = progress;
+        }
+    }
+
+    private void AdjustVolumeForLoss(ClientAudio clientAudio)
+    {
+        if (clientAudio.Modulation == (short)Modulation.MIDS || clientAudio.Modulation == (short)Modulation.SATCOM
+                                                             || clientAudio.Modulation == (short)Modulation.INTERCOM)
+            return;
+
+        var audio = clientAudio.PcmAudioFloat;
+        for (var i = 0; i < audio.Length; i++)
+        {
+            var audioFloat = audio[i];
+
+            //add in radio loss
+            //if less than loss reduce volume
+            if (clientAudio.RecevingPower > 0.85) // less than 20% or lower left
+                //gives linear signal loss from 15% down to 0%
+                audioFloat = (float)(audioFloat * (1.0f - clientAudio.RecevingPower));
+
+            //0 is no loss so if more than 0 reduce volume
+            if (clientAudio.LineOfSightLoss > 0) audioFloat = audioFloat * (1.0f - clientAudio.LineOfSightLoss);
+
+            audio[i] = audioFloat;
+        }
+    }
+
+    private void AddEncryptionFailureEffect(ClientAudio clientAudio)
+    {
+        var mixedAudio = clientAudio.PcmAudioFloat;
+
+        for (var i = 0; i < mixedAudio.Length; i++) mixedAudio[i] = RandomFloat();
+    }
+
+
+    private float RandomFloat()
+    {
+        //random float at max volume at eights
+        var f = _random.Next(-32768 / 8, 32768 / 8) / (float)32768;
+        if (f > 1) f = 1;
+        if (f < -1) f = -1;
+
+        return f;
     }
 }
