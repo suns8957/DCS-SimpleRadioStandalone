@@ -97,28 +97,22 @@ public static class VolumeConversionHelper
         return 20 * Math.Log10(rms);
     }
 
-        public static float ConvertRadioVolumeSlider(float sliderValue)
-        {
-            double dB = ConvertSliderToVolume(sliderValue);
-            return dBToLinearScale(dB);
-        }
+    public static float ConvertRadioVolumeSlider(float sliderValue)
+    {
+        var dB = ConvertSliderToVolume(sliderValue);
+        return dBToLinearScale(dB);
+    }
 
-        static double ConvertSliderToVolume(double sliderValue)
-        {
-            if (sliderValue <= 0)
-            {
-                sliderValue = 0.000001;
-            }
-            else if (sliderValue > 1)
-            {
-                sliderValue = 1;
-            }
-            return 20 * Math.Log10(sliderValue);
-        }
+    private static double ConvertSliderToVolume(double sliderValue)
+    {
+        if (sliderValue <= 0)
+            sliderValue = 0.000001;
+        else if (sliderValue > 1) sliderValue = 1;
+        return 20 * Math.Log10(sliderValue);
+    }
 
-        static float dBToLinearScale(double dB)
-        {
-            return (float)Math.Pow(10, dB / 20);
-        }
-    
+    private static float dBToLinearScale(double dB)
+    {
+        return (float)Math.Pow(10, dB / 20);
+    }
 }

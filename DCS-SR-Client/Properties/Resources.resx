@@ -1059,7 +1059,7 @@ Requires Tx or Rx Effects On</value>
     <value>Show Tuned Client Count</value>
   </data>
     <data name="Startminimised" xml:space="preserve">
-    <value>Startminimised</value>
+    <value>Start Minimised</value>
   </data>
     <data name="StartStop" xml:space="preserve">
     <value>Connect</value>

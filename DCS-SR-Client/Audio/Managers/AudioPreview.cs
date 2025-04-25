@@ -85,7 +85,10 @@ internal class AudioPreview
 
             //add final volume boost to all mixed audio
             _volumeSampleProvider = new VolumeSampleProviderWithPeak(filter,
-                peak => SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak));
+                peak =>
+                {
+                    SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak);
+                });
             _volumeSampleProvider.Volume = SpeakerBoost;
 
             if (speakers.AudioClient.MixFormat.Channels == 1)

@@ -1,22 +1,27 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl.Model;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NLog;
+using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.RadioOverlayWindow;
 
 /// <summary>
 ///     Interaction logic for RadioOverlayWindow.xaml
 /// </summary>
-public partial class RadioOverlayWindow : Window
+public partial class RadioOverlayWindow : Window,IHandle<CloseRadioOverlayMessage>
 {
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
@@ -345,4 +350,17 @@ public partial class RadioOverlayWindow : Window
     }
 
     #endregion
+
+    public Task HandleAsync(CloseRadioOverlayMessage message, CancellationToken cancellationToken)
+    {
+        Close();
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioX, 300);
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioY, 300);
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioWidth, 122);
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioHeight, 270);
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioOpacity, 1.0);
+        
+        return Task.CompletedTask;
+        
+    }
 }

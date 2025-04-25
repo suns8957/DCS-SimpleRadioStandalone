@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.NAudioLame;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using NAudio.Wave;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording;

@@ -90,7 +90,7 @@ public class PlayerRadioInfoBase
         clone.iff = iff.Copy();
         clone.ambient = ambient.Copy();
         //ignore position
-        
+
         clone.radios = new RadioBase[Constants.MAX_RADIOS];
 
         for (var i = 0; i < clone.radios.Length; i++) clone.radios[i] = radios[i].DeepClone();
@@ -181,7 +181,7 @@ public class PlayerRadioInfoBase
                     };
                     bestMatchingDecryptable = isDecryptable;
                 }
-                
+
                 //within 1khz
                 if (RadioBase.FreqCloseEnough(receivingRadio.secFreq, frequency)
                     && receivingRadio.secFreq > 10000)

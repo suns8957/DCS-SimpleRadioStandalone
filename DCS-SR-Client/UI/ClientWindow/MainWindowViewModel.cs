@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -10,8 +11,10 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
@@ -29,7 +32,7 @@ using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
 
-public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>
+public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>, IHandle<ProfileChangedMessage>
 {
     private readonly AudioManager _audioManager;
 
@@ -47,11 +50,26 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
     private ServerSettingsWindow.ServerSettingsWindow _serverSettingsWindow;
 
     private RadioOverlayWindow.RadioOverlayWindow _singleRadioOverlay;
+    private ServerAddress _selectedServerAddress;
 
     public MainWindowViewModel()
     {
         _audioManager = new AudioManager(AudioOutput.WindowsN);
 
+        PositionClickCommand = new DelegateCommand(() =>
+        {
+            var pos = ClientState.PlayerCoaltionLocationMetadata.LngLngPosition;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo($"https://maps.google.com/maps?q=loc:{pos.lat},{pos.lng}")
+                    { UseShellExecute = true });
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        });
         PreviewCommand = new DelegateCommand(PreviewAudio);
 
         ConnectCommand = new DelegateCommand(Connect);
@@ -62,9 +80,9 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
             Application.Current.MainWindow.WindowState = WindowState.Normal;
         });
 
-        HandheldRadioOverlayCommand = new DelegateCommand(HandheldRadioOverlay);
+        SingleStackOverlayCommand = new DelegateCommand(HandheldRadioOverlay);
 
-        MultiRadioOverlayCommand = new DelegateCommand(MultiRadioOverlay);
+        AwacsRadioOverlayCommand = new DelegateCommand(MultiRadioOverlay);
 
         TrayIconQuitCommand = new DelegateCommand(() => { Application.Current.Shutdown(); });
 
@@ -79,6 +97,24 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         ServerSettingsCommand = new DelegateCommand(ToggleServerSettings);
 
         ClientListCommand = new DelegateCommand(ToggleClientList);
+
+        EAMConnectCommand = new DelegateCommand(() =>
+        {
+            //TODO handle EAM connect
+        });
+        
+        DonateCommand = new DelegateCommand(() =>
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("https://www.patreon.com/ciribob")
+                    { UseShellExecute = true });
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        });
     }
 
 
@@ -86,7 +122,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     public ICommand ServerSettingsCommand { get; set; }
 
-    public DelegateCommand MultiRadioOverlayCommand { get; set; }
+    public DelegateCommand AwacsRadioOverlayCommand { get; set; }
 
     public ClientStateSingleton ClientState { get; } = ClientStateSingleton.Instance;
     public ConnectedClientsSingleton Clients { get; } = ConnectedClientsSingleton.Instance;
@@ -111,7 +147,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     public ICommand PreviewCommand { get; set; }
 
-    public ICommand HandheldRadioOverlayCommand { get; set; }
+    public ICommand SingleStackOverlayCommand { get; set; }
 
     public bool PreviewEnabled => AudioInput.MicrophoneAvailable && !IsConnected;
 
@@ -205,6 +241,20 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         }
     }
 
+    public ServerAddress SelectedServerAddress
+    {
+        get => _selectedServerAddress;
+        set
+        {
+            ServerAddress = value.Address;
+            EAMPassword = value.EAMCoalitionPassword;
+            
+            _selectedServerAddress = value;
+        }
+    }
+    
+    public string EAMPassword { get; set; }
+
     public string ServerAddress
     {
         get
@@ -224,6 +274,21 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
             }
         }
     }
+    
+    public string EAMName
+    {
+        get
+        {
+            return ClientState.LastSeenName;
+        }
+        set
+        {
+            if (value != null)
+            {
+                ClientState.LastSeenName = value;
+            }
+        }
+    }
 
     public bool AudioSettingsEnabled
     {
@@ -235,11 +300,19 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         }
     }
 
+    public String CurrentProfile
+    {
+        get
+        {
+            return _globalSettings.ProfileSettingsStore.CurrentProfileName;
+        }
+    }
 
     public async Task HandleAsync(TCPClientStatusMessage obj, CancellationToken cancellationToken)
     {
         if (obj.Connected)
         {
+            ConnectIsEnabled = true;
             //TODO dont let this trigger again
             IsConnected = true;
             //connection sound
@@ -257,6 +330,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                 StartAudio(obj.Address);
             else
                 Logger.Error("TCPClientStatusMessage - Connect sent without address and safely ignored.");
+            
         }
         else
         {
@@ -273,19 +347,36 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     private void UpdatePlayerCountAndVUMeters(object sender, EventArgs e)
     {
-        NotifyPropertyChanged("SpeakerVU");
-        NotifyPropertyChanged("MicVU");
+        NotifyPropertyChanged(nameof(SpeakerVU));
+        NotifyPropertyChanged(nameof(MicVU));
+        NotifyPropertyChanged(nameof(CurrentUnit));
+        NotifyPropertyChanged(nameof(LastKnownPosition));
+        
         ConnectedClientsSingleton.Instance.NotifyAll();
     }
+    
+    public bool ConnectIsEnabled { get; set; } = true;
+    public FavouriteServersViewModel FavouriteServersViewModel { get; set; }
+
+    public string CurrentUnit => ClientState.DcsPlayerRadioInfo.unit;
+
+    public string LastKnownPosition =>
+        ClientState.PlayerCoaltionLocationMetadata.LngLngPosition.ToString();
+
+    public DelegateCommand PositionClickCommand { get; }
+    public DelegateCommand EAMConnectCommand { get; }
+    public DelegateCommand DonateCommand { get; }
 
     public void Connect()
     {
         if (IsConnected)
         {
+            ConnectIsEnabled = false;
             Stop();
         }
         else
         {
+            ConnectIsEnabled = false;
             //stop preview
             _audioPreview?.StopEncoding();
             _audioPreview = null;
@@ -308,7 +399,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                     var port = GetPortFromTextBox();
 
 
-                    _client = new TCPClientHandler(ClientStateSingleton.Instance.ShortGUID,
+                    _client = new TCPClientHandler(ClientState.ShortGUID,
                         new SRClientBase
                         {
                             LatLngPosition = new LatLngPosition(),
@@ -317,7 +408,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                             ClientGuid = ClientStateSingleton.Instance.ShortGUID,
                             Coalition = 0,
                             Name = Name,
-                            RadioInfo = ClientStateSingleton.Instance.DcsPlayerRadioInfo.ConvertToRadioBase(),
+                            RadioInfo = ClientState.DcsPlayerRadioInfo.ConvertToRadioBase(),
                             Seat = 0
                         });
                     _client.TryConnect(new IPEndPoint(resolvedIp, port));
@@ -339,6 +430,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                 IsConnected = false;
             }
         }
+        ConnectIsEnabled = true;
     }
 
     private void Stop(TCPClientStatusMessage.ErrorCode connectionError = TCPClientStatusMessage.ErrorCode.TIMEOUT)
@@ -366,9 +458,9 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         _client?.Disconnect();
         _client = null;
 
-        //TODO
-        // ClientState.DcsPlayerRadioInfo.Reset();
-        // ClientState.PlayerCoaltionLocationMetadata.Reset();
+        ClientState.DcsPlayerRadioInfo.Reset();
+        ClientState.PlayerCoaltionLocationMetadata.Reset();
+        ConnectIsEnabled = true;
     }
 
     private string GetAddressFromTextBox()
@@ -489,7 +581,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         {
             try
             {
-                _audioManager.StartEncoding(ClientStateSingleton.Instance.ShortGUID, InputManager, endPoint);
+                _audioManager.StartEncoding(ClientState.ShortGUID, InputManager, endPoint);
             }
             catch (Exception ex)
             {
@@ -628,5 +720,11 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
         _serverSettingsWindow?.Close();
         _serverSettingsWindow = null;
+    }
+
+    public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
+    {
+        NotifyPropertyChanged(nameof(CurrentProfile));
+        return Task.CompletedTask;
     }
 }

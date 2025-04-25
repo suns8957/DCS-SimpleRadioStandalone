@@ -7,16 +7,21 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 public class SRClientBase : PropertyChangedBaseClass
 {
-    private int _coalition;
-    [JsonIgnore] private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
-
-    private string _name = "";
-
+  
+    [JsonIgnore] 
+    private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
+    
     //TODO move all these references out to a different class!
     //These should not be here / the model doubled up on
 
     // Used by server client list to display last frequency client transmitted on
+    [JsonIgnore]
     private string _transmittingFrequency;
+    
+    private int _coalition;
+    
+    private string _name = "";
+    
     public string ClientGuid { get; set; }
 
     public string Name
@@ -110,19 +115,21 @@ public class SRClientBase : PropertyChangedBaseClass
             : Name + " - " + side + " LOS Loss " + _lineOfSightLoss + " Pos" + LatLngPosition;
     }
 
-    public bool MetaDataEquals(SRClientBase other)
+    public bool MetaDataEquals(SRClientBase other, bool usePosition)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
         if (other.GetType() != GetType()) return false;
 
+        if (usePosition && !LatLngPosition.Equals(other))
+        {
+            return false;
+        }
+        
         return Coalition == other.Coalition
-               && LatLngPosition.Equals(other)
                && Seat == other.Seat
                && Name == other.Name
-               //TODO change this so we just compare the metadata (so not the radios)
-               //only transponder & location
-               && RadioInfo.Equals(other.RadioInfo)
+               //RadioInfo is ignored!
                && AllowRecord == other.AllowRecord
                && ClientGuid == other.ClientGuid;
     }

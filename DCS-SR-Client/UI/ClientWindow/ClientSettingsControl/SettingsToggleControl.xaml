@@ -4,15 +4,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     mc:Ignorable="d"
+    Width="100"
     Name="ToggleSettingsControl">
 
-    <ToggleButton
+    <mah:ToggleSwitch
         Name="Toggle"
         HorizontalContentAlignment="Center"
         VerticalContentAlignment="Center"
-        IsChecked="{Binding ElementName=ToggleSettingsControl, Path=ToggleValue, Mode=TwoWay}"
-        Content="OFF">
+        IsOn="{Binding ElementName=ToggleSettingsControl, Path=ToggleValue, Mode=TwoWay}"
+        Width="100"
+        OffContent="Off"
+        OnContent="On">
 
         <!-- <ToggleButton.Style > -->
         <!--     <Style TargetType="{x:Type ToggleButton}"> -->
@@ -27,5 +31,6 @@
         <!--         </Style.Triggers> -->
         <!--     </Style> -->
         <!-- </ToggleButton.Style> -->
-    </ToggleButton>
+    </mah:ToggleSwitch>
+
 </UserControl>

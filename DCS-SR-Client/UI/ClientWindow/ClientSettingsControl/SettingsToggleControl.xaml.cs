@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using MahApps.Metro.Controls;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl;
 
@@ -61,8 +62,17 @@ public partial class SettingsToggleControl : UserControl
 
         InitializeComponent();
 
-        Toggle.Checked += (sender, args) => Toggle.Content = "ON";
-        Toggle.Unchecked += (sender, args) => Toggle.Content = "OFF";
+        Toggle.Toggled += (sender, args) =>
+        {
+
+            var toggle = (ToggleSwitch)sender;
+
+            if (toggle.IsOn)
+                Toggle.Content = "ON";
+            else
+                Toggle.Content = "Off";
+        };
+       
     }
 
 

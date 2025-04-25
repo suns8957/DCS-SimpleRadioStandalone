@@ -106,8 +106,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     public float MicMax { get; set; } = -100;
     public float SpeakerMax { get; set; } = -100;
 
-    public float MicBoost { get; set; } = 1.0f;
-
     public float SpeakerBoost
     {
         get => _speakerBoost;

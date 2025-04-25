@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using NAudio.Utils;
 using NAudio.Wave;
 

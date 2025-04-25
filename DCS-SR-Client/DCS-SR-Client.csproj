@@ -325,6 +325,7 @@
         <PackageReference Include="MvvmEventBinding" Version="1.0.0"/>
         <PackageReference Include="NAudio.Lame" Version="2.1.0"/>
         <PackageReference Include="NAudio.Wasapi" Version="2.1.0"/>
+        <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
         <PackageReference Include="Sentry" Version="5.6.0"/>
         <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1"/>
         <PackageReference Include="Sentry.Protocol" Version="2.1.8"/>

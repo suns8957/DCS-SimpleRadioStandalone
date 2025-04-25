@@ -1,7 +1,6 @@
 ﻿using System;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Core;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using NLog;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;

@@ -16,6 +16,11 @@ public partial class InputSettings : UserControl
 
     private void Rescan_OnClick(object sender, RoutedEventArgs e)
     {
+        MessageBox.Show(Application.Current.MainWindow,
+            Properties.Resources.MsgBoxRescanText,
+            Properties.Resources.MsgBoxRescan,
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
         InputDeviceManager.Instance.InitDevices();
     }
 }
