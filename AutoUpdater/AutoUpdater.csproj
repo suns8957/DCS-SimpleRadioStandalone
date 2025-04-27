@@ -23,6 +23,10 @@
         <UseWPF>true</UseWPF>
         <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
         <PlatformTarget>x64</PlatformTarget>
+        <AssemblyVersion>2.1.1.0</AssemblyVersion>
+        <FileVersion>2.1.1.0</FileVersion>
+        <Company>Ciribob - GitHub.com/Ciribob</Company>
+        <Product>DCS-SRS-AutoUpdater</Product>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationIcon>system_software_update.ico</ApplicationIcon>

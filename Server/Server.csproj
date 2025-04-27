@@ -18,9 +18,10 @@
         <LangVersion>11</LangVersion>
         <Nullable>disable</Nullable>
         <IsPackable>false</IsPackable>
-        <Company>Ciribob/SRS</Company>
-        <AssemblyVersion>1.0.0.5</AssemblyVersion>
-        <FileVersion>1.0.0.5</FileVersion>
+        <Company>Ciribob - GitHub.com/Ciribob</Company>
+        <AssemblyVersion>2.1.1.0</AssemblyVersion>
+        <FileVersion>2.1.1.0</FileVersion>
+        <Product>DCS-SimpleRadio Standalone</Product>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationIcon>server-10.ico</ApplicationIcon>

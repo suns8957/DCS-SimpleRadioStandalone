@@ -13,7 +13,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 public class RadioMixingProvider : ISampleProvider
 {
     //TODO handle recording
-    //private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
+    private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
 
     private readonly CachedAudioEffectProvider _cachedAudioEffectsProvider;
     private readonly List<DeJitteredTransmission> _mainAudio = new();
@@ -127,8 +127,7 @@ public class RadioMixingProvider : ISampleProvider
         {
             lastReceivedAt = DateTime.Now.Ticks;
             hasPlayedTransmissionEnd = false;
-            //TODO handle recording
-            //_audioRecordingManager.AppendClientAudio(_mainAudio, _secondaryAudio, radioId);
+            _audioRecordingManager.AppendClientAudio(_mainAudio, _secondaryAudio, radioId);
         }
 
         if (_mainAudio.Count > 0)

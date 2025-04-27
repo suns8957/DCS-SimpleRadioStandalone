@@ -1,0 +1,145 @@
+﻿[
+  {
+    "Config": {
+      "MinimumFrequency": 10000,
+      "MaxFrequency": 10002,
+      "FrequencyControl": 0,
+      "VolumeControl": 1,
+      "GuardFrequency": 0
+    },
+    "Freq": 10001,
+    "SecFreq": 0,
+    "Modulation": 2,
+    "Name": "Intercom"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
+  }
+]

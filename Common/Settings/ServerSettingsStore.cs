@@ -82,6 +82,20 @@ public class ServerSettingsStore
         }
     }
 
+    public List<string> GetAllSettings()
+    {
+        var list = new List<string>();
+        foreach (var section in _configuration)
+        {
+            foreach (var setting in section)
+            {
+                list.Add($"{setting.Name} = {setting.RawValue}");
+            }
+        }
+
+        return list;
+    }
+
     public SharpConfig.Setting GetGeneralSetting(ServerSettingsKeys key)
     {
         return GetSetting("General Settings", key.ToString());
@@ -102,14 +116,14 @@ public class ServerSettingsStore
         return GetSetting("Server Settings", key.ToString());
     }
 
-    public void SetServerSetting(ServerSettingsKeys key, int value)
-    {
-        SetSetting("Server Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
-    }
-
     public void SetServerSetting(ServerSettingsKeys key, bool value)
     {
         SetSetting("Server Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
+    }
+    
+    public void SetServerSetting(ServerSettingsKeys key, string value)
+    {
+        SetSetting("Server Settings", key.ToString(), value.Trim());
     }
 
     public SharpConfig.Setting GetExternalAWACSModeSetting(ServerSettingsKeys key)
