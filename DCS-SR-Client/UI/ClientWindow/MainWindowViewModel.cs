@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
@@ -51,6 +52,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     private RadioOverlayWindow.RadioOverlayWindow _singleRadioOverlay;
     private ServerAddress _selectedServerAddress;
+    private DCSRadioSyncManager _dcsManager;
 
     public MainWindowViewModel()
     {
@@ -102,6 +104,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         EAMConnectCommand = new DelegateCommand(() =>
         {
             //TODO handle EAM connect
+            
         });
         
         DonateCommand = new DelegateCommand(() =>
@@ -331,7 +334,13 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                 StartAudio(obj.Address);
             else
                 Logger.Error("TCPClientStatusMessage - Connect sent without address and safely ignored.");
+
+            _dcsManager?.Stop();
             
+            _dcsManager = new DCSRadioSyncManager(ClientStateSingleton.Instance.ShortGUID);
+            _dcsManager.Start();
+            
+
         }
         else
         {
@@ -455,7 +464,11 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         catch (Exception ex)
         {
         }
-
+        
+        
+        _dcsManager?.Stop();
+        _dcsManager = null;
+        
         _client?.Disconnect();
         _client = null;
 

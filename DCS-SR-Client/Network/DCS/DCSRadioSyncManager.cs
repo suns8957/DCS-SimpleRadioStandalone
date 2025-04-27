@@ -4,14 +4,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Newtonsoft.Json;
 using NLog;
+using LogManager = NLog.LogManager;
 
 /**
 Keeps radio information in Sync Between DCS and
@@ -20,7 +24,7 @@ Keeps radio information in Sync Between DCS and
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 
-public class DCSRadioSyncManager
+public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>
 {
     public delegate void ClientSideUpdate();
 
@@ -45,16 +49,13 @@ public class DCSRadioSyncManager
 
     private volatile bool _stopExternalAWACSMode;
 
-    public DCSRadioSyncManager(SendRadioUpdate clientRadioUpdate, ClientSideUpdate clientSideUpdate,
-        string guid, DCSRadioSyncHandler.NewAircraft _newAircraftCallback)
+    public DCSRadioSyncManager(string guid)
     {
-        _clientRadioUpdate = clientRadioUpdate;
-        _clientSideUpdate = clientSideUpdate;
         IsListening = false;
         _lineOfSightHandler = new DCSLineOfSightHandler(guid);
         _udpCommandHandler = new UDPCommandHandler();
-        _dcsGameGuiHandler = new DCSGameGuiHandler(clientSideUpdate);
-        _dcsRadioSyncHandler = new DCSRadioSyncHandler(clientRadioUpdate, _newAircraftCallback);
+        _dcsGameGuiHandler = new DCSGameGuiHandler();
+        _dcsRadioSyncHandler = new DCSRadioSyncHandler();
 
         _clearRadio = new DispatcherTimer(DispatcherPriority.Background, Application.Current.Dispatcher)
             { Interval = TimeSpan.FromSeconds(1) };
@@ -84,6 +85,7 @@ public class DCSRadioSyncManager
     {
         DcsListener();
         IsListening = true;
+        EventBus.Instance.SubscribeOnBackgroundThread(this);
     }
 
     public void StartExternalAWACSModeLoop()
@@ -219,6 +221,7 @@ public class DCSRadioSyncManager
 
     public void Stop()
     {
+        EventBus.Instance.Unsubcribe(this);
         _stopExternalAWACSMode = true;
         IsListening = false;
 
@@ -227,5 +230,17 @@ public class DCSRadioSyncManager
         _dcsGameGuiHandler.Stop();
         _lineOfSightHandler.Stop();
         _udpCommandHandler.Stop();
+    }
+
+    public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
+    {
+        StartExternalAWACSModeLoop();
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(EAMDisconnectMessage message, CancellationToken cancellationToken)
+    {
+        StopExternalAWACSModeLoop();
+        return Task.CompletedTask;
     }
 }

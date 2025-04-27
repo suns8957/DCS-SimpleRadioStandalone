@@ -147,7 +147,7 @@ public class SRSClientSyncHandler
 
         var connectionError = false;
 
-        _radioDCSSync = new DCSRadioSyncManager(ClientRadioUpdated, ClientCoalitionUpdate, _guid, _newAircraft);
+        _radioDCSSync = new DCSRadioSyncManager( _guid);
         _lotATCSync = new LotATCSyncHandler(ClientCoalitionUpdate, _guid);
         _vaicomSync = new VAICOMSyncHandler();
 

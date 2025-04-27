@@ -17,7 +17,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 public class DCSGameGuiHandler
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly DCSRadioSyncManager.ClientSideUpdate _clientSideUpdate;
 
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
@@ -25,9 +24,8 @@ public class DCSGameGuiHandler
     private UdpClient _dcsGameGuiUdpListener;
     private volatile bool _stop;
 
-    public DCSGameGuiHandler(DCSRadioSyncManager.ClientSideUpdate clientSideUpdate)
+    public DCSGameGuiHandler()
     {
-        _clientSideUpdate = clientSideUpdate;
     }
 
     public void Start()
@@ -82,7 +80,11 @@ public class DCSGameGuiHandler
 
                         //only update if position is changed 
                         if (_clientStateSingleton.DcsPlayerRadioInfo.IsCurrent() && (changed || shouldUpdate))
-                            _clientSideUpdate();
+                        {
+                            //TODO broadcast this update on background thread
+                            //_clientSideUpdate();
+                        }
+                           
 
                         //     count = 0;
                         _clientStateSingleton.DcsGameGuiLastReceived = DateTime.Now.Ticks;

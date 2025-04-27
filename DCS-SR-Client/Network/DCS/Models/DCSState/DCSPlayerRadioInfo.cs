@@ -197,7 +197,8 @@ public class DCSPlayerRadioInfo
             ambient = ambient.Copy(),
             iff = iff.Copy(),
             unit = unit,
-            unitId = unitId
+            unitId = unitId,
+            radios = radiosBase
         };
     }
 

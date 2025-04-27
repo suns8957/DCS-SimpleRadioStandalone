@@ -8,6 +8,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
@@ -29,9 +30,7 @@ public class DCSRadioSyncHandler
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-
-    private readonly NewAircraft _newAircraftCallback;
-    private readonly DCSRadioSyncManager.SendRadioUpdate _radioUpdate;
+    
     private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
     private UdpClient _dcsRadioUpdateSender;
 
@@ -42,10 +41,9 @@ public class DCSRadioSyncHandler
 
     private volatile bool _stop;
 
-    public DCSRadioSyncHandler(DCSRadioSyncManager.SendRadioUpdate radioUpdate, NewAircraft _newAircraft)
+    public DCSRadioSyncHandler()
     {
-        _radioUpdate = radioUpdate;
-        _newAircraftCallback = _newAircraft;
+
     }
 
     public void Start()
@@ -134,7 +132,25 @@ public class DCSRadioSyncHandler
         {
             Logger.Debug("Sending Radio Info To Server - Update");
             _clientStateSingleton.LastSent = DateTime.Now.Ticks;
-            _radioUpdate();
+            
+            //TODO do this through the singleton so its not a mess
+            //Full Update send over TCP
+            EventBus.Instance.PublishOnCurrentThreadAsync(new UnitUpdateMessage()
+            {
+                FullUpdate = true,
+                UnitUpdate = new SRClientBase()
+                {
+                    RadioInfo = _clientStateSingleton.DcsPlayerRadioInfo.ConvertToRadioBase(),
+                    ClientGuid = _clientStateSingleton.ShortGUID,
+                    Coalition = _clientStateSingleton.PlayerCoaltionLocationMetadata.side,
+                    LatLngPosition = _clientStateSingleton.PlayerCoaltionLocationMetadata.LngLngPosition,
+                    Seat = _clientStateSingleton.PlayerCoaltionLocationMetadata.seat,
+                    Name = _clientStateSingleton.LastSeenName,
+                    AllowRecord = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording)
+                }
+
+            });
+
         }
     }
 
@@ -254,7 +270,12 @@ public class DCSRadioSyncHandler
         if (newAircraft)
         {
             if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.AutoSelectSettingsProfile))
-                _newAircraftCallback(message.unit, message.seat);
+            {
+                //TODO handle profile selection when switching aircraft
+                //  _newAircraftCallback(message.unit, message.seat);
+                //send message to UI thread on event bus and switch the profile
+            }
+              
 
             playerRadioInfo.iff = message.iff;
         }
