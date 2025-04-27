@@ -80,12 +80,13 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
             Application.Current.MainWindow.WindowState = WindowState.Normal;
         });
 
-        SingleStackOverlayCommand = new DelegateCommand(HandheldRadioOverlay);
+        SingleStackOverlayCommand = new DelegateCommand(SingleRadioStackOverlay);
 
         AwacsRadioOverlayCommand = new DelegateCommand(MultiRadioOverlay);
 
         TrayIconQuitCommand = new DelegateCommand(() => { Application.Current.Shutdown(); });
 
+        //TODO might not need to do this - should be triggered by notifyproperty
         _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _updateTimer.Tick += UpdatePlayerCountAndVUMeters;
         _updateTimer.Start();
@@ -599,7 +600,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         });
     }
 
-    public void HandheldRadioOverlay()
+    public void SingleRadioStackOverlay()
     {
         ToggleSingleRadioStack();
     }

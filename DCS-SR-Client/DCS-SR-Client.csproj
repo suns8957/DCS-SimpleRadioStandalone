@@ -24,6 +24,10 @@
         <UseWPF>true</UseWPF>
         <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Company>Ciribob - GitHub.com/Ciribob</Company>
+        <Product>DCS-SimpleRadio Standalone</Product>
+        <AssemblyVersion>2.1.1.0</AssemblyVersion>
+        <FileVersion>2.1.1.0</FileVersion>
     </PropertyGroup>
     <PropertyGroup>
         <StartupObject>Ciribob.DCS.SimpleRadio.Standalone.Client.App</StartupObject>
@@ -63,7 +67,9 @@
         <None Update="awacs-radios.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <Content Include="AudioEffects\Ambient\A10.wav"/>
+        <Content Include="AudioEffects\Ambient\A10.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="AudioEffects\Ambient\A29.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -103,7 +109,9 @@
         <Content Include="AudioEffects\Ambient\F16.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="AudioEffects\Ambient\F4.wav"/>
+        <Content Include="AudioEffects\Ambient\F4.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="AudioEffects\Ambient\F5.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -122,8 +130,12 @@
         <Content Include="AudioEffects\Ambient\Hercules.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="AudioEffects\Ambient\I16.wav"/>
-        <Content Include="AudioEffects\Ambient\J11.wav"/>
+        <Content Include="AudioEffects\Ambient\I16.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Content Include="AudioEffects\Ambient\J11.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="AudioEffects\Ambient\JET.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -139,7 +151,9 @@
         <Content Include="AudioEffects\Ambient\M2000.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="AudioEffects\Ambient\MB339.wav"/>
+        <Content Include="AudioEffects\Ambient\MB339.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="AudioEffects\Ambient\Mi24.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -179,7 +193,9 @@
         <Content Include="AudioEffects\Ambient\SA342.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="AudioEffects\Ambient\SK60.wav"/>
+        <Content Include="AudioEffects\Ambient\SK60.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="AudioEffects\Ambient\Spitfire.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -189,7 +205,9 @@
         <Content Include="AudioEffects\Ambient\Su27.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="AudioEffects\Ambient\Su33.wav"/>
+        <Content Include="AudioEffects\Ambient\Su33.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="AudioEffects\Ambient\UH1.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -323,7 +341,6 @@
         <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2"/>
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37"/>
         <PackageReference Include="MvvmEventBinding" Version="1.0.0"/>
-        <PackageReference Include="NAudio.Lame" Version="2.1.0"/>
         <PackageReference Include="NAudio.Wasapi" Version="2.1.0"/>
         <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
         <PackageReference Include="Sentry" Version="5.6.0"/>

@@ -86,7 +86,7 @@ public partial class ServerSettingsWindow : MetroWindow
                 ? Properties.Resources.ValueON
                 : Properties.Resources.ValueOFF;
 
-            ServerVersion.Content = SRSClientSyncHandler.ServerVersion;
+            ServerVersion.Content = SyncedServerSettings.Instance.ServerVersion;
 
             NodeLimit.Content = settings.RetransmitNodeLimit;
         }

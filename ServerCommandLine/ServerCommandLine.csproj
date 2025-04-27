@@ -12,11 +12,12 @@
         <AssemblyName>SRS-Server-Commandline</AssemblyName>
         <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.Server</RootNamespace>
         <Version>1.0.0.5</Version>
-        <AssemblyVersion>1.0.0.5</AssemblyVersion>
-        <FileVersion>1.0.0.5</FileVersion>
+        <AssemblyVersion>2.1.1.0</AssemblyVersion>
+        <FileVersion>2.1.1.0</FileVersion>
         <LangVersion>11</LangVersion>
         <IsPackable>false</IsPackable>
-        <Company>Ciribob/SRS</Company>
+        <Company>Ciribob - GitHub.com/Ciribob</Company>
+        <Product>DCS-SimpleRadio Standalone</Product>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Common\Common.csproj" />

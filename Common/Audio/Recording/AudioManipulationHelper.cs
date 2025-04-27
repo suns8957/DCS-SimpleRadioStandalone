@@ -121,6 +121,7 @@ public static class AudioManipulationHelper
             if (array[i] > 1f)
                 array[i] = 1.0f;
             else if (array[i] < -1.0f) array[i] = -1.0f;
+
         return array;
     }
 }

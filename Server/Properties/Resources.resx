@@ -232,4 +232,32 @@
   <data name="TitleServer" xml:space="preserve">
     <value>DCS-SRS Server</value>
   </data>
+  <data name="MsgBoxUpdate1" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="MsgBoxUpdate2" xml:space="preserve">
+    <value>version</value>
+  </data>
+  <data name="MsgBoxUpdate3" xml:space="preserve">
+    <value>available!</value>
+  </data>
+  <data name="MsgBoxUpdate4" xml:space="preserve">
+    <value>Do you want to Auto update?
+    
+If DCS is running this will wait until DCS has stopped running and automatically update after as the SRS installer requires DCS to be stopped. 
+It will also close SRS automatically if DCS is no longer running.
+
+Yes - Auto Update (and wait for DCS to Close automatically)
+No - Manual Update
+Cancel - Ignore</value>
+  </data>
+  <data name="MsgBoxUpdateFailed" xml:space="preserve">
+    <value>Unable to Auto Update - please download latest version manually</value>
+  </data>
+  <data name="MsgBoxUpdateFailedTitle" xml:space="preserve">
+    <value>Auto Update Error</value>
+  </data>
+  <data name="MsgBoxUpdateTitle" xml:space="preserve">
+    <value>Update available</value>
+  </data>
 </root>

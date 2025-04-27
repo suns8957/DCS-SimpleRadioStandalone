@@ -5,8 +5,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.NetCoreServer;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Newtonsoft.Json;
 using NLog;
 
@@ -22,6 +24,9 @@ public class SRSClientSession : TcpSession
     // Received data string.
     private readonly StringBuilder _receiveBuffer = new();
 
+    private string _ip;
+    private int _port;
+
     public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClientBase> client,
         HashSet<IPAddress> bannedIps) : base(server)
     {
@@ -35,6 +40,16 @@ public class SRSClientSession : TcpSession
     {
         var clientIp = (IPEndPoint)Socket.RemoteEndPoint;
 
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new SRSClientStatus()
+        {
+            Connected = true,
+            ClientIP = clientIp.ToString(),
+            SRSGuid = SRSGuid
+        });
+        
+        _ip = clientIp.Address.ToString();
+        _port = clientIp.Port;
+        
         if (_bannedIps.Contains(clientIp.Address))
         {
             Logger.Warn("Disconnecting Banned Client -  " + clientIp.Address + " " + clientIp.Port);
@@ -55,6 +70,13 @@ public class SRSClientSession : TcpSession
 
     protected override void OnDisconnected()
     {
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new SRSClientStatus()
+        {
+            Connected = false,
+            SRSGuid = SRSGuid,
+            ClientIP = $"{_ip}:{_port}"
+        });
+        
         _receiveBuffer.Clear();
         ((ServerSync)Server).HandleDisconnect(this);
     }

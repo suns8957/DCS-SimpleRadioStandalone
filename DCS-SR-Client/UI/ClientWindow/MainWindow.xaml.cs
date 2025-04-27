@@ -545,6 +545,43 @@ public partial class MainWindow : MetroWindow
 
         FavouriteServersView.DataContext = ((MainWindowViewModel)DataContext).FavouriteServersViewModel;
         
+        //TODO make this a singleton with a callback to check for updates
+        UpdaterChecker.Instance.CheckForUpdate(_globalSettings.GetClientSettingBool(GlobalSettingsKeys.CheckForBetaUpdates),
+            result =>
+            {
+                //TODO fix resources - it should work!
+                // if (result.UpdateAvailable)
+                // {
+                //         var choice = MessageBox.Show($"{Properties.Resources.MsgBoxUpdate1} {result.Branch} {Properties.Resources.MsgBoxUpdate2} {result.Branch} {Properties.Resources.MsgBoxUpdate3}\n\n{Properties.Resources.MsgBoxUpdate4}",
+                //             Properties.Resources.MsgBoxUpdateTitle, MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
+                //
+                //         if (choice == MessageBoxResult.Yes)
+                //         {
+                //             try
+                //             {
+                //                 UpdaterChecker.Instance.LaunchUpdater(result.Beta);
+                //             }
+                //             catch (Exception)
+                //             {
+                //                 MessageBox.Show($"{Properties.Resources.MsgBoxUpdateFailed}",
+                //                     Properties.Resources.MsgBoxUpdateFailedTitle, MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
+                //
+                //                 Process.Start( new ProcessStartInfo(result.Url)
+                //                     { UseShellExecute = true });
+                //             }
+                //
+                //         }
+                //         else if (choice == MessageBoxResult.No)
+                //         {
+                //             Process.Start( new ProcessStartInfo(result.Url)
+                //                 { UseShellExecute = true });
+                //            
+                //         }
+                //     
+                // }
+            });
+
+        
         //TODO move this
         UpdatePresetsFolderLabel();
 

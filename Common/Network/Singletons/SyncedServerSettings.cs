@@ -49,7 +49,6 @@ public class SyncedServerSettings
     public string GetSetting(ServerSettingsKeys key)
     {
         var setting = key.ToString();
-
         return _settings.GetOrAdd(setting, defaults.ContainsKey(setting) ? defaults[setting] : "");
     }
 

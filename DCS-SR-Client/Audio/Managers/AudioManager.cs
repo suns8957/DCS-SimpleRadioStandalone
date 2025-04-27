@@ -13,6 +13,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Core;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
@@ -43,6 +44,8 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+    
+    private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
 
     private readonly string _guid;
 
@@ -281,6 +284,8 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         _udpClientAudioProcessor.Start();
 
         EventBus.Instance.SubscribeOnBackgroundThread(this);
+        
+        AudioRecordingManager.Instance.Start(ClientStateSingleton.Instance.ShortGUID);
     }
 
 
@@ -402,12 +407,11 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                     _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, tempFloat.Length * 4);
                                 }
 
-                                //TODO handle recording
-                                // if (GlobalSettingsStore.Instance.GetClientSettingBool(
-                                //         GlobalSettingsKeys.RecordAudio))
-                                //     ///TODO cache this to avoid the contant lookup
-                                //     _audioRecordingManager.AppendPlayerAudio(tempFloat,
-                                //         jitterBufferAudio.ReceivedRadio);
+                                 //TODO cache this to avoid the constant lookup
+                                 if (GlobalSettingsStore.Instance.GetClientSettingBool(
+                                         GlobalSettingsKeys.RecordAudio))
+                                     _audioRecordingManager.AppendPlayerAudio(tempFloat,
+                                         jitterBufferAudio.ReceivedRadio);
                             }
                         }
                     }
@@ -562,9 +566,8 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
             SpeakerMax = -100;
             MicMax = -100;
-
-            //TODO
-            // AudioRecordingManager.Instance.Stop();
+            
+            AudioRecordingManager.Instance.Stop();
 
             EventBus.Instance.Unsubcribe(this);
         }
