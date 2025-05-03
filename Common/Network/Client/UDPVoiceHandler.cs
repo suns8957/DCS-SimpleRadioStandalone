@@ -15,8 +15,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 
 public class UDPVoiceHandler
 {
-    public delegate void ConnectionState(bool voipConnected);
-
     private const int UDP_VOIP_TIMEOUT = 42; // seconds for timeout before redoing VoIP
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -40,6 +38,7 @@ public class UDPVoiceHandler
 
         _serverEndpoint = endPoint;
 
+        //TODO not sure if we need this anymore
         _updateTimer = new Timer { Interval = 5000 };
         _updateTimer.Elapsed += UpdateVOIPStatus;
         _updateTimer.Start();
@@ -64,9 +63,9 @@ public class UDPVoiceHandler
 
         //ping every 10 so after 40 seconds VoIP UDP issue
         if (diff.TotalSeconds > UDP_VOIP_TIMEOUT)
-            _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(false));
+            _eventBus.PublishOnUIThreadAsync(new VOIPStatusMessage(false));
         else
-            _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(true));
+            _eventBus.PublishOnUIThreadAsync(new VOIPStatusMessage(true));
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)]
@@ -170,7 +169,7 @@ public class UDPVoiceHandler
 
                 var encodedUdpVoicePacket = udpVoicePacket.EncodePacket();
 
-                _listener.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length, _serverEndpoint);
+                _listener?.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length, _serverEndpoint);
 
                 return true;
             }
@@ -239,7 +238,7 @@ public class UDPVoiceHandler
                     _listener = new UdpClient();
                     try
                     {
-                        _listener.AllowNatTraversal(true);
+                        _listener?.AllowNatTraversal(true);
                     }
                     catch
                     {
@@ -248,7 +247,7 @@ public class UDPVoiceHandler
                     try
                     {
                         // Force immediate ping once to avoid race condition before starting to listen
-                        _listener.Send(message, message.Length, _serverEndpoint);
+                        _listener?.Send(message, message.Length, _serverEndpoint);
                         Ready = true;
                         Logger.Error("VoIP Timeout - Success Recreating VoIP Connection");
                     }

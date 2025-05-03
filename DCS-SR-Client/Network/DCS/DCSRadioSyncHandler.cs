@@ -235,7 +235,7 @@ public class DCSRadioSyncHandler
         //TODO move this out to be like position so its a special small update?
         //TODO check this
         playerRadioInfo.ambient.vol =
-            playerRadioInfo.ambient
+            message.ambient
                 .vol; // (float)(Math.Round(playerRadioInfo.ambient.vol / 10f, MidpointRounding.AwayFromZero) * 10.0f);
 
         if (_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AlwaysAllowHotasControls))

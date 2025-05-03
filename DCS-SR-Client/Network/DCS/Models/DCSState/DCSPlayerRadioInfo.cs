@@ -73,7 +73,7 @@ public class DCSPlayerRadioInfo
 
     [JsonIgnore] public long LastUpdate { get; set; }
 
-    public new void Reset()
+    public void Reset()
     {
         name = "";
         latLng = new LatLngPosition();

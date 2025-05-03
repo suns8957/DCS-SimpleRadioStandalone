@@ -21,7 +21,7 @@ public sealed class ClientAdminViewModel : Screen, IHandle<ServerStateMessage>
     public ClientAdminViewModel(IEventAggregator eventAggregator)
     {
         _eventAggregator = eventAggregator;
-        _eventAggregator.Subscribe(this);
+        _eventAggregator.SubscribeOnUIThread(this);
 
         DisplayName = "SR Client List";
 
@@ -31,25 +31,31 @@ public sealed class ClientAdminViewModel : Screen, IHandle<ServerStateMessage>
 
     public ObservableCollection<ClientViewModel> Clients { get; } = new();
 
-    public async Task HandleAsync(ServerStateMessage message, CancellationToken token)
+    public Task HandleAsync(ServerStateMessage message, CancellationToken token)
     {
         Clients.Clear();
 
         message.Clients.Apply(client => Clients.Add(new ClientViewModel(client, _eventAggregator)));
+        
+        return Task.CompletedTask;
     }
 
-    protected override async Task OnActivateAsync(CancellationToken token)
+    protected override Task OnActivateAsync(CancellationToken token)
     {
         _updateTimer?.Start();
 
         base.OnActivateAsync(token);
+        
+        return Task.CompletedTask;
     }
 
-    protected override async Task OnDeactivateAsync(bool close, CancellationToken token)
+    protected override Task OnDeactivateAsync(bool close, CancellationToken token)
     {
         if (close) _updateTimer?.Stop();
 
         base.OnDeactivateAsync(close, token);
+        
+        return Task.CompletedTask;
     }
 
     private void _updateTimer_Tick(object sender, EventArgs e)

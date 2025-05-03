@@ -461,7 +461,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         {
             _audioManager.StopEncoding();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
         

@@ -27,7 +27,6 @@ public class LotATCSyncHandler
             5 * 1000 * 10000; //There are 10,000 ticks in a millisecond, or 10 million ticks in a second. Update every 5 seconds
 
     private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
-    private readonly DCSRadioSyncManager.ClientSideUpdate _clientSideUpdate;
     private readonly ClientStateSingleton _clientStateSingleton;
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly string _guid;
@@ -38,9 +37,8 @@ public class LotATCSyncHandler
     private UdpClient _lotATCPositionListener;
     private volatile bool _stop;
 
-    public LotATCSyncHandler(DCSRadioSyncManager.ClientSideUpdate clientSideUpdate, string guid)
+    public LotATCSyncHandler(string guid)
     {
-        _clientSideUpdate = clientSideUpdate;
         _guid = guid;
         _clientStateSingleton = ClientStateSingleton.Instance;
 
@@ -124,7 +122,9 @@ public class LotATCSyncHandler
                 shouldUpdate) // There are 10,000 ticks in a millisecond, or 10 million ticks in a second. Update ever 5 seconds
             {
                 _lastSent = DateTime.Now.Ticks;
-                _clientSideUpdate();
+                //TODO handle this
+                //via singleton
+                //_clientSideUpdate();
             }
         }
     }

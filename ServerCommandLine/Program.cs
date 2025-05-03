@@ -38,9 +38,6 @@ internal class Program:IHandle<SRSClientStatus>
 
     private static void ProcessArgs(Options options)
     {
-        
-        
-        //TODO make this a singleton with a callback to check for updates
         UpdaterChecker.Instance.CheckForUpdate(ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue,
             result =>
             {

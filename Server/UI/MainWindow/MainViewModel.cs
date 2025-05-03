@@ -34,11 +34,11 @@ public sealed class MainViewModel : Screen, IHandle<ServerStateMessage>
         _windowManager = windowManager;
         _eventAggregator = eventAggregator;
         _clientAdminViewModel = clientAdminViewModel;
-        _eventAggregator.Subscribe(this);
+        _eventAggregator.SubscribeOnUIThread(this);
 
-            DisplayName = $"{Properties.Resources.TitleServer} - {UpdaterChecker.VERSION} - {ListeningPort}" ;
+        DisplayName = $"{Properties.Resources.TitleServer} - {UpdaterChecker.VERSION} - {ListeningPort}" ;
 
-            Logger.Info("DCS-SRS Server Running - " + UpdaterChecker.VERSION);
+        Logger.Info("DCS-SRS Server Running - " + UpdaterChecker.VERSION);
     }
 
     public bool IsServerRunning { get; private set; } = true;

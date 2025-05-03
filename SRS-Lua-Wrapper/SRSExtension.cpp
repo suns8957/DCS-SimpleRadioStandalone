@@ -83,16 +83,6 @@ bool SRS::SRSExtension::IsSRSRunning()
 			if (!_wcsicmp(entry.szExeFile, L"SR-ClientRadio.exe"))
 				exists = true;
 
-
-	// while (Process32Next(snapshot, &entry))
-	// {
-	// 	//todo fix this
-	// 	_wcslwr_s(entry.szExeFile, wcslen(entry.szExeFile) + 1);
-	//
-	// 	if (wcscmp(entry.szExeFile, L"sr-clientradio") == 0)
-	// 		exists = true;
-	// }
-
 	CloseHandle(snapshot);
 	return exists;
 

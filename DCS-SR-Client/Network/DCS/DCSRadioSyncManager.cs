@@ -26,18 +26,13 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 
 public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>
 {
-    public delegate void ClientSideUpdate();
-
-    public delegate void SendRadioUpdate();
 
     public static readonly string AWACS_RADIOS_FILE = "awacs-radios.json";
     public static readonly string AWACS_RADIOS_CUSTOM_FILE = "awacs-radios-custom.json";
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly DispatcherTimer _clearRadio;
-    private readonly SendRadioUpdate _clientRadioUpdate;
 
     private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
-    private readonly ClientSideUpdate _clientSideUpdate;
 
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
     private readonly DCSGameGuiHandler _dcsGameGuiHandler;
@@ -75,8 +70,8 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
                 _clientStateSingleton.PlayerCoaltionLocationMetadata.Reset();
                 _clientStateSingleton.DcsPlayerRadioInfo.Reset();
 
-                _clientRadioUpdate();
-                _clientSideUpdate();
+                //TODO handle this
+
                 Logger.Info("Reset Radio state - no longer connected");
             }
     }

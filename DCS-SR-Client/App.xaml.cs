@@ -244,11 +244,9 @@ public partial class App : Application
             Text = "Quit"
         };
         notifyIconContextMenuQuit.Click += NotifyIcon_Quit;
-
-        // TODO ContextMenu is no longer supported. Use ContextMenuStrip instead. For more details see https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+        
         var notifyIconContextMenu = new ContextMenuStrip();
-
-        // TODO MenuItem is no longer supported. Use ToolStripMenuItem instead. For more details see https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+        
         notifyIconContextMenu.Items.AddRange(new[] { notifyIconContextMenuShow, notifyIconContextMenuQuit });
 
         _notifyIcon = new NotifyIcon

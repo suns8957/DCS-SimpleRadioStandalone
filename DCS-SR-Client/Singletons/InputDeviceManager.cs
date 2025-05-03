@@ -315,9 +315,7 @@ public class InputDeviceManager : IDisposable
             }
 
             var device = string.Empty;
-            var button = 0;
             var deviceGuid = Guid.Empty;
-            var buttonValue = -1;
             var found = false;
 
             while (!found)

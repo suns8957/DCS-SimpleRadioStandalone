@@ -161,7 +161,7 @@ public class PresetChannelsViewModel : INotifyPropertyChanged
                     {
                         Process.Start(path);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                     }
             }

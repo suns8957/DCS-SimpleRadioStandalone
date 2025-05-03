@@ -183,7 +183,7 @@
                         <StackPanel Margin="0"
                                     HorizontalAlignment="Center"
                                     Orientation="Horizontal">
-                            <Button x:Name="ShowOverlay"
+                            <Button 
                                     Width="135"
                                     Margin="0,15,20,0"
                                     HorizontalAlignment="Center"
