@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NLog;
-using Open.Nat;
+using SharpOpenNat;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server;
 
@@ -11,8 +11,7 @@ public class NatHandler
     private readonly int _port;
     private readonly Mapping _tcpMapping;
     private readonly Mapping _udpMapping;
-    private NatDevice _device;
-    private NatDiscoverer _discoverer;
+    private INatDevice _device;
     private CancellationTokenSource _searchToken;
 
     public NatHandler(int port)
@@ -26,9 +25,10 @@ public class NatHandler
     {
         try
         {
-            _discoverer = new NatDiscoverer();
-            _searchToken = new CancellationTokenSource(5000);
-            _device = await _discoverer.DiscoverDeviceAsync(PortMapper.Upnp, _searchToken);
+            using var cts = new CancellationTokenSource(10000);
+            _device = await OpenNat.Discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts.Token);
+
+            await _device.CreatePortMapAsync(_tcpMapping);
 
             await _device.CreatePortMapAsync(_udpMapping);
             await _device.CreatePortMapAsync(_tcpMapping);

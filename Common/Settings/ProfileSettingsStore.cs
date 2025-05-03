@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Input;
 using NLog;
 using SharpConfig;
@@ -222,6 +223,9 @@ public class ProfileSettingsStore
         {
             _settingsCache.Clear();
             _currentProfileName = value;
+            
+            //TODO check if this is needed
+            //EventBus.Instance.PublishOnUIThreadAsync(new ProfileChangedMessage());
         }
     }
 
