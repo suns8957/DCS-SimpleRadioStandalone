@@ -22,7 +22,7 @@ using Timer = System.Timers.Timer;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 
-public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitUpdateMessage>
+public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitUpdateMessage>, IHandle<EAMConnectRequestMessage>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -195,6 +195,12 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
         //only send if there is an actual change to metadata
         if (!_playerUnitState.MetaDataEquals(updatedMetadata, needValidPosition))
         {
+            _playerUnitState.AllowRecord = updatedMetadata.AllowRecord;
+            _playerUnitState.Coalition = updatedMetadata.Coalition;
+            _playerUnitState.Name = updatedMetadata.Name;
+            _playerUnitState.Seat = updatedMetadata.Seat;
+            _playerUnitState.LatLngPosition = updatedMetadata.LatLngPosition;
+            
             var message = new NetworkMessage
             {
                 Client = updatedMetadata,
@@ -509,5 +515,20 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
         // }
 
         Logger.Error("Disconnecting from server");
+    }
+
+    public Task HandleAsync(EAMConnectRequestMessage eamConnectRequestMessage, CancellationToken cancellationToken)
+    {
+        _playerUnitState.Name = eamConnectRequestMessage.Name;
+        var message = new NetworkMessage
+        {
+            Client = _playerUnitState,
+            ExternalAWACSModePassword = eamConnectRequestMessage.Password,
+            MsgType = NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD
+        };
+        
+        SendToServer(message);
+        
+        return Task.CompletedTask;
     }
 }

@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Properties;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
@@ -24,6 +25,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
 using NAudio.CoreAudioApi;
 using NLog;
 using WPFCustomMessageBox;
@@ -33,7 +35,7 @@ using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
 
-public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>, IHandle<ProfileChangedMessage>
+public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>, IHandle<ProfileChangedMessage>, IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>, IHandle<ServerSettingsUpdatedMessage>
 {
     private readonly AudioManager _audioManager;
 
@@ -103,8 +105,18 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
         EAMConnectCommand = new DelegateCommand(() =>
         {
-            //TODO handle EAM connect
-            
+            if (ClientStateSingleton.Instance.ExternalAWACSModeConnected)
+            {
+                EventBus.Instance.PublishOnUIThreadAsync(new EAMDisconnectMessage());
+            }
+            else
+            {
+                EventBus.Instance.PublishOnBackgroundThreadAsync(new EAMConnectRequestMessage()
+                {
+                    Password = EAMPassword,
+                    Name = EAMName
+                });
+            }
         });
         
         DonateCommand = new DelegateCommand(() =>
@@ -135,6 +147,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     public InputDeviceManager InputManager { get; set; }
 
+    public bool IsEAMAvailable => ClientStateSingleton.Instance.IsConnected && SyncedServerSettings.Instance.GetSettingAsBool(ServerSettingsKeys.EXTERNAL_AWACS_MODE);
 
     public bool IsConnected { get; set; }
 
@@ -195,8 +208,8 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         get
         {
             if (IsConnected)
-                return "Disconnect";
-            return "connect";
+                return Properties.Resources.StartStopDisconnect;
+            return Properties.Resources.StartStop;
         }
     }
 
@@ -347,6 +360,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
             //disconnect sound
             Stop(obj.Error);
         }
+        NotifyPropertyChanged(nameof(IsEAMAvailable));
     }
 
     public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
@@ -376,6 +390,18 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
     public DelegateCommand PositionClickCommand { get; }
     public DelegateCommand EAMConnectCommand { get; }
     public DelegateCommand DonateCommand { get; }
+
+    public string EAMConnectButtonText
+    {
+        get
+        {
+            if (ClientStateSingleton.Instance.ExternalAWACSModeConnected)
+            {
+                return Resources.DisconnectExternalAWACSMode;
+            }
+            return Resources.ConnectExternalAWACSMode;
+        }
+    }
 
     public void Connect()
     {
@@ -584,8 +610,8 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
             _audioPreview = null;
         }
 
-        NotifyPropertyChanged("PreviewText");
-        NotifyPropertyChanged("AudioSettingsEnabled");
+        NotifyPropertyChanged(nameof(PreviewText));
+        NotifyPropertyChanged(nameof(AudioSettingsEnabled));
     }
 
     public void StartAudio(IPEndPoint endPoint)
@@ -739,6 +765,27 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
     public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
     {
         NotifyPropertyChanged(nameof(CurrentProfile));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
+    {
+        ClientStateSingleton.Instance.LastSeenName = EAMName;
+        NotifyPropertyChanged(nameof(EAMConnectButtonText));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(EAMDisconnectMessage message, CancellationToken cancellationToken)
+    {
+        ClientStateSingleton.Instance.ExternalAWACSModelSelected = false;
+        NotifyPropertyChanged(nameof(EAMConnectButtonText));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(ServerSettingsUpdatedMessage message, CancellationToken cancellationToken)
+    {
+        NotifyPropertyChanged(nameof(IsEAMAvailable));
+        
         return Task.CompletedTask;
     }
 }

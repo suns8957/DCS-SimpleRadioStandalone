@@ -197,9 +197,7 @@
     <data name="CheckForBetaUpdates" xml:space="preserve">
     <value>Check for beta updates</value>
   </data>
-    <data name="ClientWindowTitile" xml:space="preserve">
-    <value>Connected Clients</value>
-  </data>
+
     <data name="ClientWindowTitle" xml:space="preserve">
     <value>DCS-SRS Client</value>
   </data>

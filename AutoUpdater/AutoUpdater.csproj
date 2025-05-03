@@ -55,4 +55,9 @@
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
         <PackageReference Include="Octokit" Version="2.0.1"/>
     </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Update="Properties\Resources.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+    </ItemGroup>
 </Project>

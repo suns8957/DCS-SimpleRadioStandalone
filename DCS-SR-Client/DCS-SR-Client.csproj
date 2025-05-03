@@ -364,14 +364,8 @@
           <DependentUpon>Resources.resx</DependentUpon>
         </Compile>
         <EmbeddedResource Update="Properties\Resources.resx">
-          <Generator>ResXFileCodeGenerator</Generator>
+          <Generator>PublicResXFileCodeGenerator</Generator>
           <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
-        <EmbeddedResource Update="Properties\Resources.ru-RU.resx">
-          <Generator>ResXFileCodeGenerator</Generator>
-        </EmbeddedResource>
-        <EmbeddedResource Update="Properties\Resources.zh-CN.resx">
-          <Generator>ResXFileCodeGenerator</Generator>
         </EmbeddedResource>
         <Page Update="UI\ClientWindow\InputProfileWindow\InputProfileWindow.xaml">
             <Generator>MSBuild:Compile</Generator>
@@ -403,6 +397,12 @@
         <Page Update="UI\ClientWindow\AwacsRadioOverlayWindow\AwacsRadioControlGroup.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
+        <EmbeddedResource Update="Properties\Resources.zh-CN.resx">
+          <Generator>PublicResXFileCodeGenerator</Generator>
+        </EmbeddedResource>
+        <EmbeddedResource Update="Properties\Resources.ru-RU.resx">
+          <Generator>PublicResXFileCodeGenerator</Generator>
+        </EmbeddedResource>
     </ItemGroup>
     <Target AfterTargets="AfterBuild;NonWinFodyTarget" Name="CleanReferenceCopyLocalPaths">
         <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />

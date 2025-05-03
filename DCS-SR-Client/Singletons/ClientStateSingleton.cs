@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
+using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.VAICOM.Models;
@@ -9,6 +12,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.RadioOverlayWind
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
@@ -17,7 +21,7 @@ using RadioReceivingState = Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Rad
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 
-public sealed class ClientStateSingleton : PropertyChangedBaseClass
+public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>
 {
     public delegate bool RadioUpdatedCallback();
 
@@ -42,6 +46,8 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass
         ShortGUID = ShortGuid.NewGuid();
         DcsPlayerRadioInfo = new DCSPlayerRadioInfo();
         PlayerCoaltionLocationMetadata = new DCSPlayerSideInfo();
+        
+    
 
         // The following members are not updated due to events. Therefore we need to setup a polling action so that they are
         // periodically checked.
@@ -67,6 +73,8 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass
         ExternalAWACSModelSelected = false;
 
         LastSeenName = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastSeenName).RawValue;
+        
+        EventBus.Instance.SubscribeOnUIThread(this);
     }
 
     public DCSPlayerRadioInfo DcsPlayerRadioInfo { get; }
@@ -229,5 +237,21 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass
                 }
 
         return count;
+    }
+
+    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+    {
+        IsConnected = message.Connected;
+        
+        if (!message.Connected && message.Error != TCPClientStatusMessage.ErrorCode.USER_DISCONNECTED) 
+        {
+            IsConnectionErrored = true;
+        }
+        else
+        {
+            IsConnectionErrored = false;
+        }
+        
+        return Task.CompletedTask;
     }
 }

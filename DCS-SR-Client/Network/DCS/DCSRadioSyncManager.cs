@@ -163,6 +163,7 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
         _clientStateSingleton.DcsPlayerRadioInfo.LastUpdate = DateTime.Now.Ticks;
         Task.Factory.StartNew(() =>
         {
+            _clientStateSingleton.ExternalAWACSModelSelected = true;
             Logger.Debug("Starting external AWACS mode loop");
 
             _clientStateSingleton.IntercomOffset = 1;
@@ -202,7 +203,10 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
 
     public void StopExternalAWACSModeLoop()
     {
+        _clientStateSingleton.ExternalAWACSModelSelected = false;
         _stopExternalAWACSMode = true;
+        
+  
     }
 
     private void DcsListener()

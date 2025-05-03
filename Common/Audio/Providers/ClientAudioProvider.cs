@@ -46,6 +46,7 @@ public class ClientAudioProvider : AudioProvider
 
     public override JitterBufferAudio AddClientAudioSamples(ClientAudio audio)
     {
+        ReLoadSettings();
         //sort out volume
         //            var timer = new Stopwatch();
         //            timer.Start();

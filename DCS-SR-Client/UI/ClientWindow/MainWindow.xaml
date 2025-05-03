@@ -269,7 +269,7 @@
                                                      Margin="0,0,0,0"
                                                      MaxLines="1"
                                                      TextWrapping="Wrap"
-                                                     Text="{Binding EAMName, Mode=OneWay}"
+                                                     Text="{Binding EAMName, Mode=TwoWay}"
                                                      HorizontalAlignment="Center" />
                                         </StackPanel>
 
@@ -283,9 +283,10 @@
                                                 Margin="0,10,0,0"
                                                 HorizontalAlignment="Center"
                                                 Command="{Binding EAMConnectCommand}"
-                                                Content="{x:Static p:Resources.ConnectExternalAWACSMode}"
-                                                IsEnabled="{Binding IsConnected}"
-                                                Style="{DynamicResource SquareButtonStyle}" />
+                                                Content="{Binding EAMConnectButtonText}"
+                                                IsEnabled="{Binding IsEAMAvailable}"
+                                                />
+                                       
                                     </StackPanel>
                                 </StackPanel>
                             </Expander>
