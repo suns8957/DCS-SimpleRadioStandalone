@@ -7,21 +7,18 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 public class SRClientBase : PropertyChangedBaseClass
 {
-  
-    [JsonIgnore] 
-    private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
-    
+    [JsonIgnore] private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
+
     //TODO move all these references out to a different class!
     //These should not be here / the model doubled up on
 
     // Used by server client list to display last frequency client transmitted on
-    [JsonIgnore]
-    private string _transmittingFrequency;
-    
+    [JsonIgnore] private string _transmittingFrequency;
+
     private int _coalition;
-    
+
     private string _name = "";
-    
+
     public string ClientGuid { get; set; }
 
     public string Name
@@ -61,12 +58,8 @@ public class SRClientBase : PropertyChangedBaseClass
 
     [JsonIgnore] public bool Muted { get; set; }
 
-    [JsonIgnore] public long LastUpdate { get; set; }
-
-
     [JsonIgnore] public IPEndPoint VoipPort { get; set; }
 
-    [JsonIgnore] public long LastRadioUpdateSent { get; set; }
 
     [JsonIgnore]
     public float LineOfSightLoss
@@ -97,8 +90,8 @@ public class SRClientBase : PropertyChangedBaseClass
     // Used by server client list to remove last frequency client transmitted on after threshold
     [JsonIgnore] public DateTime LastTransmissionReceived { get; set; }
 
-    //is an SRSClientSession but dont want to include the dependancy for now
-    [JsonIgnore] public object ClientSession { get; set; }
+    [JsonIgnore] public Guid ClientSession { get; set; }
+
 
     public override string ToString()
     {
@@ -121,11 +114,11 @@ public class SRClientBase : PropertyChangedBaseClass
         if (ReferenceEquals(this, other)) return true;
         if (other.GetType() != GetType()) return false;
 
-        if (usePosition && !LatLngPosition.Equals(other))
+        if (usePosition && !LatLngPosition.Equals(other.LatLngPosition))
         {
             return false;
         }
-        
+
         return Coalition == other.Coalition
                && Seat == other.Seat
                && Name == other.Name

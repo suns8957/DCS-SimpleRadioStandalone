@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.NetCoreServer;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Newtonsoft.Json;
@@ -19,18 +17,31 @@ public class SRSClientSession : TcpSession
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly HashSet<IPAddress> _bannedIps;
 
-    private readonly ConcurrentDictionary<string, SRClientBase> _clients;
-
     // Received data string.
     private readonly StringBuilder _receiveBuffer = new();
 
     private string _ip;
     private int _port;
+    private long _lastFullRadioSent;
 
-    public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClientBase> client,
+    public long LastMetaDataSent { get; set; }
+
+    public long LastFullRadioSent
+    {
+        get => _lastFullRadioSent;
+        set
+        {
+            _lastFullRadioSent = value;
+            //metadata is always sent with a full update
+            LastMetaDataSent = value;
+        }
+    }
+
+    public long LastMessageReceived { get; set; }
+
+    public SRSClientSession(ServerSync server,
         HashSet<IPAddress> bannedIps) : base(server)
     {
-        _clients = client;
         _bannedIps = bannedIps;
     }
 
@@ -44,12 +55,12 @@ public class SRSClientSession : TcpSession
         {
             Connected = true,
             ClientIP = clientIp.ToString(),
-            SRSGuid = SRSGuid
+            SRSGuid = SRSGuid,
         });
-        
+
         _ip = clientIp.Address.ToString();
         _port = clientIp.Port;
-        
+
         if (_bannedIps.Contains(clientIp.Address))
         {
             Logger.Warn("Disconnecting Banned Client -  " + clientIp.Address + " " + clientIp.Port);
@@ -76,7 +87,7 @@ public class SRSClientSession : TcpSession
             SRSGuid = SRSGuid,
             ClientIP = $"{_ip}:{_port}"
         });
-        
+
         _receiveBuffer.Clear();
         ((ServerSync)Server).HandleDisconnect(this);
     }
@@ -117,6 +128,8 @@ public class SRSClientSession : TcpSession
     {
         _receiveBuffer.Append(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
 
+        LastMessageReceived = DateTime.Now.Ticks;
+
         foreach (var s in GetNetworkMessage()) ((ServerSync)Server).HandleMessage(this, s);
     }
 
@@ -128,5 +141,21 @@ public class SRSClientSession : TcpSession
     protected override void OnError(SocketError error)
     {
         Logger.Error($"Caught Socket Error: {error}");
+    }
+
+    /**
+     * Send a full radio update every 120 seconds if one hasnt been sent
+     * This will be triggered by a metadata UPDATE message
+     */
+    public bool ShouldSendFullRadioUpdate()
+    {
+        var lastSent = new TimeSpan(DateTime.Now.Ticks - LastFullRadioSent);
+        return lastSent.TotalSeconds > Constants.CLIENT_UPDATE_INTERVAL_LIMIT - 5;
+    }
+
+    public bool ShouldSendMetadataUpdate()
+    {
+        var lastSent = new TimeSpan(DateTime.Now.Ticks - LastMetaDataSent);
+        return lastSent.TotalSeconds > Constants.CLIENT_UPDATE_INTERVAL_LIMIT - 5;
     }
 }

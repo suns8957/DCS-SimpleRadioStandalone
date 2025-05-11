@@ -43,7 +43,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
 
     private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
 
-    private readonly TransmissionLoggingQueue transmissionLoggingQueue = new();
+    private readonly TransmissionLoggingQueue _transmissionLoggingQueue = new();
     private List<double> _globalFrequencies = new();
 
     private UdpClient _listener;
@@ -57,7 +57,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
     {
         _clientsList = clientsList;
         _eventAggregator = eventAggregator;
-        _eventAggregator.Subscribe(this);
+        _eventAggregator.SubscribeOnBackgroundThread(this);
 
         var freqString = _serverSettings.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
         UpdateTestFrequencies(freqString);
@@ -126,6 +126,8 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
 
         var port = _serverSettings.GetServerPort();
         _listener = new UdpClient();
+
+#if WINDOWS
         try
         {
             _listener.AllowNatTraversal(true);
@@ -133,7 +135,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         catch
         {
         }
-
+#endif
         _listener.ExclusiveAddressUse = true;
         _listener.DontFragment = true;
         _listener.Client.DontFragment = true;
@@ -239,7 +241,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
                                 var udpVoicePacket = UDPVoicePacket.DecodeVoicePacket(udpPacket.RawBytes);
 
                                 if (udpVoicePacket != null)
-                                    //magical ping ignore message 4 - its an empty voip packet to intialise VoIP if
+                                    //magical ping ignore message 4 - its an empty voip packet to initialise VoIP if
                                     //someone doesnt transmit
                                 {
                                     var outgoingVoice = GenerateOutgoingPacket(udpVoicePacket, udpPacket, client);
@@ -265,7 +267,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
                                             // Only log the initial transmission
                                             // only log received transmissions!
                                             if (udpVoicePacket.RetransmissionCount == 0)
-                                                transmissionLoggingQueue.LogTransmission(client);
+                                                _transmissionLoggingQueue.LogTransmission(client);
                                         }
                                     }
                                 }

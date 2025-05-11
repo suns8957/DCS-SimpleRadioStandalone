@@ -321,7 +321,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
         if (client != null)
             try
             {
-                ((SRSClientSession)client.ClientSession).Disconnect();
+                _serverSync.FindSession(client.ClientSession)?.Disconnect();
             }
             catch (Exception e)
             {
@@ -333,7 +333,9 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
     {
         try
         {
-            var remoteIpEndPoint = ((SRSClientSession)client.ClientSession).Socket.RemoteEndPoint as IPEndPoint;
+            var remoteIpEndPoint = _serverSync.FindSession(client.ClientSession)?.Socket.RemoteEndPoint as IPEndPoint;
+
+            if (remoteIpEndPoint == null) return;
 
             _bannedIps.Add(remoteIpEndPoint.Address);
 

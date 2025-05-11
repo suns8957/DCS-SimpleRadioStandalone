@@ -147,7 +147,7 @@ public class SRSClientSyncHandler
 
         var connectionError = false;
 
-        _radioDCSSync = new DCSRadioSyncManager( _guid);
+        _radioDCSSync = new DCSRadioSyncManager(_guid);
         _lotATCSync = new LotATCSyncHandler(_guid);
         _vaicomSync = new VAICOMSyncHandler();
 
@@ -354,7 +354,6 @@ public class SRSClientSyncHandler
                                         var updatedSrClient = serverMessage.Client;
                                         if (srClient != null)
                                         {
-                                            srClient.LastUpdate = DateTime.Now.Ticks;
                                             srClient.Name = updatedSrClient.Name;
                                             srClient.Coalition = updatedSrClient.Coalition;
 
@@ -381,7 +380,6 @@ public class SRSClientSyncHandler
                                     else
                                     {
                                         var connectedClient = serverMessage.Client;
-                                        connectedClient.LastUpdate = DateTime.Now.Ticks;
 
                                         //init with LOS true so you can hear them incase of bad DCS install where
                                         //LOS isnt working
@@ -433,7 +431,6 @@ public class SRSClientSyncHandler
                                     if (serverMessage.Clients != null)
                                         foreach (var client in serverMessage.Clients)
                                         {
-                                            client.LastUpdate = DateTime.Now.Ticks;
                                             //init with LOS true so you can hear them incase of bad DCS install where
                                             //LOS isnt working
                                             client.LineOfSightLoss = 0.0f;

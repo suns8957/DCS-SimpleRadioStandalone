@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
@@ -49,24 +48,22 @@ public sealed class ConnectedClientsSingleton : PropertyChangedBaseClass
 
     public int Total => Clients.Count();
 
-    public event PropertyChangedEventHandler PropertyChanged;
-
     public void NotifyAll()
     {
-        NotifyPropertyChanged("Total");
+        NotifyPropertyChanged(nameof(Total));
     }
 
     public bool TryRemove(string key, out SRClientBase value)
     {
         var result = Clients.TryRemove(key, out value);
-        if (result) NotifyPropertyChanged("Total");
+        if (result) NotifyPropertyChanged(nameof(Total));
         return result;
     }
 
     public void Clear()
     {
         Clients.Clear();
-        NotifyPropertyChanged("Total");
+        NotifyPropertyChanged(nameof(Total));
     }
 
     public bool TryGetValue(string key, out SRClientBase value)

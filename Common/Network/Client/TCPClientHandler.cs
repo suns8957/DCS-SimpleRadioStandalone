@@ -22,7 +22,8 @@ using Timer = System.Timers.Timer;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 
-public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitUpdateMessage>, IHandle<EAMConnectRequestMessage>
+public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitUpdateMessage>,
+    IHandle<EAMConnectRequestMessage>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -87,7 +88,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     private void CheckIfIdleTimeOut(object state, ElapsedEventArgs elapsedEventArgs)
     {
         var timeout = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.IdleTimeOut).IntValue;
-        if (_lastSent != -1 && TimeSpan.FromTicks(DateTime.Now.Ticks - _lastSent).TotalSeconds > timeout)
+        if (_lastSent > 1 && TimeSpan.FromTicks(DateTime.Now.Ticks - _lastSent).TotalSeconds > timeout)
         {
             Logger.Warn("Disconnecting - Idle Time out");
             Disconnect();
@@ -138,7 +139,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
                     _tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
-                    ClientSyncLoop(_playerUnitState);
+                    ClientSyncLoop();
                 }
                 else
                 {
@@ -163,10 +164,12 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private void ClientRadioUpdated(SRClientBase updatedUnitState)
     {
-        Logger.Debug("Sending Full Update to Server");
+        Logger.Debug(
+            $"Sending Full Update to Server if there is a change or {Constants.CLIENT_UPDATE_INTERVAL_LIMIT} seconds have passed since last update");
 
         //Only send if there is an actual change
-        if (!updatedUnitState.Equals(_playerUnitState))
+        if (!updatedUnitState.Equals(_playerUnitState)
+            || TimeSpan.FromTicks(DateTime.Now.Ticks - _lastSent).TotalSeconds > Constants.CLIENT_UPDATE_INTERVAL_LIMIT)
         {
             _playerUnitState = updatedUnitState;
             var message = new NetworkMessage
@@ -190,17 +193,21 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private void ClientCoalitionUpdate(SRClientBase updatedMetadata)
     {
+        Logger.Debug(
+            $"Sending Full Update to Server if there is a change or {Constants.CLIENT_UPDATE_INTERVAL_LIMIT} seconds have passed since last update");
         var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
                                 _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
-        //only send if there is an actual change to metadata
-        if (!_playerUnitState.MetaDataEquals(updatedMetadata, needValidPosition))
+
+        //only send if there is an actual change to metadata or 60 seconds have passed since last update
+        if (!_playerUnitState.MetaDataEquals(updatedMetadata, needValidPosition)
+            || TimeSpan.FromTicks(DateTime.Now.Ticks - _lastSent).TotalSeconds > Constants.CLIENT_UPDATE_INTERVAL_LIMIT)
         {
             _playerUnitState.AllowRecord = updatedMetadata.AllowRecord;
             _playerUnitState.Coalition = updatedMetadata.Coalition;
             _playerUnitState.Name = updatedMetadata.Name;
             _playerUnitState.Seat = updatedMetadata.Seat;
             _playerUnitState.LatLngPosition = updatedMetadata.LatLngPosition;
-            
+
             var message = new NetworkMessage
             {
                 Client = updatedMetadata,
@@ -209,18 +216,18 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
             //double check this doesnt break anything else
             updatedMetadata.RadioInfo = null;
-            
+
             if (needValidPosition)
                 message.Client.LatLngPosition = updatedMetadata.LatLngPosition;
             else
                 message.Client.LatLngPosition = new LatLngPosition();
-            
+
             //update state
             SendToServer(message);
         }
     }
 
-    private void ClientSyncLoop(SRClientBase initialState)
+    private void ClientSyncLoop()
     {
         EventBus.Instance.SubscribeOnBackgroundThread(this);
         //clear the clients list
@@ -238,7 +245,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 //start the loop off by sending a SYNC Request
                 SendToServer(new NetworkMessage
                 {
-                    Client = initialState,
+                    Client = _playerUnitState,
                     MsgType = NetworkMessage.MessageType.SYNC
                 });
 
@@ -274,7 +281,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                 else
                                 {
                                     var connectedClient = serverMessage.Client;
-                                    connectedClient.LastUpdate = DateTime.Now.Ticks;
 
                                     //init with LOS true so you can hear them incase of bad DCS install where
                                     //LOS isnt working
@@ -291,7 +297,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                     //             serverMessage.Client.Coalition);
                                 }
 
-                                srClient.LastUpdate = DateTime.Now.Ticks;
                                 EventBus.Instance.PublishOnBackgroundThreadAsync(new SRClientUpdateMessage(srClient));
 
                                 break;
@@ -326,7 +331,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                 if (serverMessage.Clients != null)
                                     foreach (var client in serverMessage.Clients)
                                     {
-                                        client.LastUpdate = DateTime.Now.Ticks;
                                         //init with LOS true so you can hear them incase of bad DCS install where
                                         //LOS isnt working
                                         client.LineOfSightLoss = 0.0f;
@@ -363,7 +367,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                             case NetworkMessage.MessageType.VERSION_MISMATCH:
                                 Logger.Error(
                                     $"Version Mismatch Between Client ({UpdaterChecker.VERSION}) & Server ({serverMessage.Version}) - Disconnecting");
-                                
+
                                 //TODO handle this on the client
                                 ShowVersionMistmatchWarning(serverMessage.Version);
 
@@ -371,7 +375,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                 break;
                             case NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD:
 
-          
+
                                 if (serverMessage.Client.Coalition == 0)
                                 {
                                     Logger.Info("External AWACS mode authentication failed");
@@ -422,7 +426,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     private void HandlePartialUpdate(NetworkMessage networkMessage, SRClientBase client)
     {
         var updatedSrClient = networkMessage.Client;
-      
+
         client.AllowRecord = updatedSrClient.AllowRecord;
         client.ClientGuid = updatedSrClient.ClientGuid;
         client.Coalition = updatedSrClient.Coalition;
@@ -433,12 +437,10 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private void HandleFullUpdate(NetworkMessage networkMessage, SRClientBase client)
     {
-        HandlePartialUpdate(networkMessage,client);
-        
-        var updatedSrClient = networkMessage.Client;
-      
-        if(updatedSrClient.RadioInfo !=null)
-            updatedSrClient.RadioInfo = networkMessage.Client.RadioInfo;
+        HandlePartialUpdate(networkMessage, client);
+
+        if (networkMessage.Client.RadioInfo != null)
+            client.RadioInfo = networkMessage.Client.RadioInfo;
     }
 
     private void ShowVersionMistmatchWarning(string serverVersion)
@@ -480,7 +482,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     }
 
     //implement IDispose? To close stuff properly?
-    
+
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void Disconnect()
     {
@@ -503,17 +505,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
         {
         }
 
-
-        //
-        // try
-        // {
-        //     _udpVoiceHandler?.RequestStop(); // this'll stop the socket blocking
-        //     _udpVoiceHandler = null;
-        // }
-        // catch (Exception ex)
-        // {
-        // }
-
         Logger.Error("Disconnecting from server");
     }
 
@@ -526,9 +517,9 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
             ExternalAWACSModePassword = eamConnectRequestMessage.Password,
             MsgType = NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD
         };
-        
+
         SendToServer(message);
-        
+
         return Task.CompletedTask;
     }
 }

@@ -2,13 +2,52 @@
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
+/// <summary>
+/// Store to only 5 decimal places - thats plenty for what we need
+/// </summary>
 public class LatLngPosition
 {
-    public double alt;
-    public double lat;
-    public double lng;
+    private double _alt;
+    private double _lat;
+    private double _lng;
 
-    protected bool Equals(LatLngPosition other)
+    public double alt
+    {
+        get => _alt;
+        set
+        {
+            if (value != 0)
+                _alt = Math.Round(value, 5);
+            else
+                _alt = 0;
+        }
+    }
+
+    public double lat
+    {
+        get => _lat;
+        set
+        {
+            if (value != 0)
+                _lat = Math.Round(value, 5);
+            else
+                _lat = 0;
+        }
+    }
+
+    public double lng
+    {
+        get => _lng;
+        set
+        {
+            if (value != 0)
+                _lng = Math.Round(value, 5);
+            else
+                _lng = 0;
+        }
+    }
+
+    private bool Equals(LatLngPosition other)
     {
         return lat.Equals(other.lat) && lng.Equals(other.lng) && alt.Equals(other.alt);
     }

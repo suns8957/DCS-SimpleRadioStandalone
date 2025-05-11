@@ -67,7 +67,7 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
 
     protected override TcpSession CreateSession()
     {
-        return new SRSClientSession(this, _clients, _bannedIps);
+        return new SRSClientSession(this, _bannedIps);
     }
 
     protected override void OnError(SocketError error)
@@ -112,8 +112,6 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
             if (client != null)
             {
                 Logger.Info("Removed Disconnected Client " + state.SRSGuid);
-                client.ClientSession = null;
-
 
                 HandleClientDisconnect(state, client);
             }
@@ -149,14 +147,19 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
                 case NetworkMessage.MessageType.PING:
                     // Do nothing for now
                     break;
-                case NetworkMessage.MessageType.UPDATE: //Partial update
-                    HandleClientMetaDataUpdate(state, message, true);
+                case NetworkMessage.MessageType.UPDATE: //Partial metadata update
+                    if (!HandleClientMetaDataUpdate(state, message, true, out SRClientBase client))
+                    {
+                        if (state.ShouldSendFullRadioUpdate())
+                        {
+                            SendFullRadioUpdate(state, client);
+                        }
+                    }
+
                     break;
                 case NetworkMessage.MessageType.RADIO_UPDATE: //Full update with radio info
-                    var showTuned = _serverSettings.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT)
-                        .BoolValue;
-                    HandleClientMetaDataUpdate(state, message, !showTuned);
-                    HandleClientRadioUpdate(state, message, showTuned);
+                    bool sent = HandleClientMetaDataUpdate(state, message, false, out var ignore);
+                    HandleClientRadioUpdate(state, message, sent);
                     break;
                 case NetworkMessage.MessageType.SYNC:
                     HandleRadioClientsSync(state, message);
@@ -210,12 +213,11 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
                 return false;
             }
 
-            srClient.ClientSession = state;
-
             //add to proper list
             _clients[srClient.ClientGuid] = srClient;
 
             state.SRSGuid = srClient.ClientGuid;
+            srClient.ClientSession = state.Id;
 
 
             _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
@@ -247,47 +249,59 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
         session.Send(replyMessage.Encode());
     }
 
-    private void HandleClientMetaDataUpdate(SRSClientSession session, NetworkMessage message, bool send)
+    private bool HandleClientMetaDataUpdate(SRSClientSession session, NetworkMessage message, bool send,
+        out SRClientBase client)
     {
-        if (_clients.TryGetValue(message.Client.ClientGuid, out var client))
+        var changed = false;
+        if (_clients.TryGetValue(session.SRSGuid, out client))
             if (client != null)
             {
-                var redrawClientAdminList =
-                    client.Name != message.Client.Name || client.Coalition != message.Client.Coalition;
-
-                //copy the data we need
-                client.LastUpdate = DateTime.Now.Ticks;
-                client.Name = message.Client.Name;
-                client.Coalition = message.Client.Coalition;
-                client.LatLngPosition = message.Client.LatLngPosition;
-                client.Seat = message.Client.Seat;
-
-                //send update to everyone
-                //Remove Client Radio Info
-                var replyMessage = new NetworkMessage
+                if (message.Client.LatLngPosition == null)
                 {
-                    MsgType = NetworkMessage.MessageType.UPDATE,
-                    Client = new SRClientBase
+                    message.Client.LatLngPosition = new LatLngPosition();
+                }
+
+                changed = !client.MetaDataEquals(message.Client, true);
+
+                //check timeout
+                if (changed || session.ShouldSendMetadataUpdate())
+                {
+                    //copy the data we need
+                    client.Name = message.Client.Name;
+                    client.Coalition = message.Client.Coalition;
+                    client.LatLngPosition = message.Client.LatLngPosition;
+                    client.Seat = message.Client.Seat;
+
+                    //send update to everyone
+                    //Remove Client Radio Info
+                    var replyMessage = new NetworkMessage
                     {
-                        ClientGuid = client.ClientGuid,
-                        Coalition = client.Coalition,
-                        Name = client.Name,
-                        LatLngPosition = client.LatLngPosition,
-                        Seat = client.Seat,
-                        AllowRecord = client.AllowRecord
+                        MsgType = NetworkMessage.MessageType.UPDATE,
+                        Client = new SRClientBase
+                        {
+                            ClientGuid = client.ClientGuid,
+                            Coalition = client.Coalition,
+                            Name = client.Name,
+                            LatLngPosition = client.LatLngPosition,
+                            Seat = client.Seat,
+                            AllowRecord = client.AllowRecord,
+                            //remove radios
+                            RadioInfo = null
+                        }
+                    };
+
+                    if (send)
+                    {
+                        //Client state updated
+                        Multicast(replyMessage.Encode());
+                        session.LastMetaDataSent = DateTime.Now.Ticks;
+                        _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
+                            new List<SRClientBase>(_clients.Values)));
                     }
-                };
-                //remove radios
-                replyMessage.Client.RadioInfo = null;
-
-                if (send)
-                    Multicast(replyMessage.Encode());
-
-                // Only redraw client admin UI of server if really needed
-                if (redrawClientAdminList)
-                    _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
-                        new List<SRClientBase>(_clients.Values)));
+                }
             }
+
+        return changed;
     }
 
     private void HandleClientDisconnect(SRSClientSession srsSession, SRClientBase client)
@@ -310,13 +324,11 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
 
     private void HandleClientRadioUpdate(SRSClientSession session, NetworkMessage message, bool send)
     {
-        if (_clients.TryGetValue(message.Client.ClientGuid, out var client))
+        if (_clients.TryGetValue(session.SRSGuid, out var client))
             if (client != null)
             {
-                //update to local ticks
-                message.Client.RadioInfo.LastUpdate = DateTime.Now.Ticks;
-
                 var changed = false;
+
                 //shouldnt be the case but just incase...
                 if (message.Client.RadioInfo == null)
                 {
@@ -328,55 +340,43 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
                     changed = !client.RadioInfo.Equals(message.Client.RadioInfo);
                 }
 
-
-                if (!changed)
-                    //TODO add this to a function on SRClientBase
-                    changed = client.Name != message.Client.Name || client.Coalition != message.Client.Coalition
-                                                                 || !message.Client.LatLngPosition.Equals(
-                                                                     client.LatLngPosition)
-                                                                 || message.Client.Seat != client.Seat;
-
-
-                client.LastUpdate = DateTime.Now.Ticks;
-                client.Name = message.Client.Name;
-                client.Coalition = message.Client.Coalition;
-                client.Seat = message.Client.Seat;
                 client.RadioInfo = message.Client.RadioInfo;
-                client.LatLngPosition = message.Client.LatLngPosition;
-                client.Seat = message.Client.Seat;
 
-                var lastSent = new TimeSpan(DateTime.Now.Ticks - client.LastRadioUpdateSent);
+                var lastSent = new TimeSpan(DateTime.Now.Ticks - session.LastFullRadioSent);
 
                 //send update to everyone
-                if (send)
+                if (send || changed || lastSent.TotalSeconds > Constants.CLIENT_UPDATE_INTERVAL_LIMIT - 5)
                 {
-                    NetworkMessage replyMessage;
-                    if (changed || lastSent.TotalSeconds > 180)
-                    {
-                        client.LastRadioUpdateSent = DateTime.Now.Ticks;
-                        replyMessage = new NetworkMessage
-                        {
-                            MsgType = NetworkMessage.MessageType.RADIO_UPDATE,
-                            Client = new SRClientBase
-                            {
-                                ClientGuid = client.ClientGuid,
-                                Coalition = client.Coalition,
-                                Name = client.Name,
-                                LatLngPosition = client.LatLngPosition,
-                                RadioInfo = client.RadioInfo, //send radio info
-                                Seat = client.Seat,
-                                AllowRecord = client.AllowRecord
-                            }
-                        };
-                        Multicast(replyMessage.Encode());
-                    }
+                    SendFullRadioUpdate(session, client);
                 }
             }
     }
 
+    private void SendFullRadioUpdate(SRSClientSession session, SRClientBase client)
+    {
+        var replyMessage = new NetworkMessage
+        {
+            MsgType = NetworkMessage.MessageType.RADIO_UPDATE,
+            Client = new SRClientBase
+            {
+                ClientGuid = client.ClientGuid,
+                Coalition = client.Coalition,
+                Name = client.Name,
+                LatLngPosition = client.LatLngPosition,
+                RadioInfo = client.RadioInfo, //send radio info
+                Seat = client.Seat,
+                AllowRecord = client.AllowRecord
+            }
+        };
+        Multicast(replyMessage.Encode());
+        //marks both as metadata is included in full radio
+        session.LastFullRadioSent = DateTime.Now.Ticks;
+        _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
+            new List<SRClientBase>(_clients.Values)));
+    }
+
     private void HandleRadioClientsSync(SRSClientSession session, NetworkMessage message)
     {
-        message.Client.LastUpdate = DateTime.Now.Ticks;
         //store new client
         var replyMessage = new NetworkMessage
         {
@@ -449,7 +449,6 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
                 ClientGuid = client.ClientGuid,
                 Coalition = clientCoalition,
                 Name = client.Name,
-                LastUpdate = client.LastUpdate,
                 LatLngPosition = client.LatLngPosition,
                 Seat = client.Seat,
                 AllowRecord = client.AllowRecord
@@ -477,7 +476,6 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
                     ClientGuid = client.ClientGuid,
                     Coalition = client.Coalition,
                     Name = client.Name,
-                    LastUpdate = client.LastUpdate,
                     RadioInfo = new PlayerRadioInfoBase(),
                     LatLngPosition = client.LatLngPosition,
                     Seat = client.Seat,

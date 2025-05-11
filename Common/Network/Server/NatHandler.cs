@@ -8,17 +8,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server;
 public class NatHandler
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly int _port;
     private readonly Mapping _tcpMapping;
     private readonly Mapping _udpMapping;
     private INatDevice _device;
-    private CancellationTokenSource _searchToken;
 
     public NatHandler(int port)
     {
-        _port = port;
-        _tcpMapping = new Mapping(Protocol.Tcp, _port, _port, $"SRS Server TCP - {_port}");
-        _udpMapping = new Mapping(Protocol.Udp, _port, _port, $"SRS Server UDP - {_port}");
+        _tcpMapping = new Mapping(Protocol.Tcp, port, port, $"SRS Server TCP - {port}");
+        _udpMapping = new Mapping(Protocol.Udp, port, port, $"SRS Server UDP - {port}");
     }
 
     public async void OpenNAT()
@@ -27,8 +24,6 @@ public class NatHandler
         {
             using var cts = new CancellationTokenSource(10000);
             _device = await OpenNat.Discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts.Token);
-
-            await _device.CreatePortMapAsync(_tcpMapping);
 
             await _device.CreatePortMapAsync(_udpMapping);
             await _device.CreatePortMapAsync(_tcpMapping);
@@ -43,8 +38,6 @@ public class NatHandler
     {
         try
         {
-            _searchToken?.Cancel();
-
             var task = _device?.DeletePortMapAsync(_tcpMapping);
             var task2 = _device?.DeletePortMapAsync(_udpMapping);
             task?.Wait(3000);

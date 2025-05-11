@@ -25,7 +25,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
 /// </summary>
 public partial class MainWindow : MetroWindow
 {
-    
     //
     // private void InitToolTips()
     // {
@@ -34,7 +33,7 @@ public partial class MainWindow : MetroWindow
     //     ConnectExternalAWACSMode.ToolTip = ToolTips.ExternalAWACSMode;
     // }
     //
-   
+
     // [MethodImpl(MethodImplOptions.Synchronized)]
     // private void Connect()
     // {
@@ -283,8 +282,8 @@ public partial class MainWindow : MetroWindow
     //     }
     // }
     //
-    
-   
+
+
     //
     // private void AutoConnect(string address, int port)
     // {
@@ -441,7 +440,7 @@ public partial class MainWindow : MetroWindow
     //         Connect();
     //     }
     // }
-   
+
     //
     // private void ConnectExternalAWACSMode_OnClick(object sender, RoutedEventArgs e)
     // {
@@ -493,7 +492,7 @@ public partial class MainWindow : MetroWindow
     //     }
     // }
     //
-   
+
 
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -544,9 +543,10 @@ public partial class MainWindow : MetroWindow
             }
 
         FavouriteServersView.DataContext = ((MainWindowViewModel)DataContext).FavouriteServersViewModel;
-        
+
         //TODO make this a singleton with a callback to check for updates
-        UpdaterChecker.Instance.CheckForUpdate(_globalSettings.GetClientSettingBool(GlobalSettingsKeys.CheckForBetaUpdates),
+        UpdaterChecker.Instance.CheckForUpdate(
+            _globalSettings.GetClientSettingBool(GlobalSettingsKeys.CheckForBetaUpdates),
             result =>
             {
                 //TODO fix resources - it should work!
@@ -581,7 +581,7 @@ public partial class MainWindow : MetroWindow
                 // }
             });
 
-        
+
         //TODO move this
         UpdatePresetsFolderLabel();
 
@@ -589,7 +589,7 @@ public partial class MainWindow : MetroWindow
 
         CheckWindowVisibility();
     }
-    
+
     private void CheckWindowVisibility()
     {
         if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.DisableWindowVisibilityCheck))
@@ -597,41 +597,41 @@ public partial class MainWindow : MetroWindow
             Logger.Info("Window visibility check is disabled, skipping");
             return;
         }
-    
+
         var mainWindowVisible = false;
         var radioWindowVisible = false;
         var awacsWindowVisible = false;
-    
+
         var mainWindowX = (int)_globalSettings.GetPositionSetting(GlobalSettingsKeys.ClientX).DoubleValue;
         var mainWindowY = (int)_globalSettings.GetPositionSetting(GlobalSettingsKeys.ClientY).DoubleValue;
         var radioWindowX = (int)_globalSettings.GetPositionSetting(GlobalSettingsKeys.RadioX).DoubleValue;
         var radioWindowY = (int)_globalSettings.GetPositionSetting(GlobalSettingsKeys.RadioY).DoubleValue;
         var awacsWindowX = (int)_globalSettings.GetPositionSetting(GlobalSettingsKeys.AwacsX).DoubleValue;
         var awacsWindowY = (int)_globalSettings.GetPositionSetting(GlobalSettingsKeys.AwacsY).DoubleValue;
-    
+
         Logger.Info($"Checking window visibility for main client window {{X={mainWindowX},Y={mainWindowY}}}");
         Logger.Info($"Checking window visibility for radio overlay {{X={radioWindowX},Y={radioWindowY}}}");
         Logger.Info($"Checking window visibility for AWACS overlay {{X={awacsWindowX},Y={awacsWindowY}}}");
-    
+
         foreach (var screen in Screen.AllScreens)
         {
             Logger.Info(
                 $"Checking {(screen.Primary ? "primary " : "")}screen {screen.DeviceName} with bounds {screen.Bounds} for window visibility");
-    
+
             if (screen.Bounds.Contains(mainWindowX, mainWindowY))
             {
                 Logger.Info(
                     $"Main client window {{X={mainWindowX},Y={mainWindowY}}} is visible on {(screen.Primary ? "primary " : "")}screen {screen.DeviceName} with bounds {screen.Bounds}");
                 mainWindowVisible = true;
             }
-    
+
             if (screen.Bounds.Contains(radioWindowX, radioWindowY))
             {
                 Logger.Info(
                     $"Radio overlay {{X={radioWindowX},Y={radioWindowY}}} is visible on {(screen.Primary ? "primary " : "")}screen {screen.DeviceName} with bounds {screen.Bounds}");
                 radioWindowVisible = true;
             }
-    
+
             if (screen.Bounds.Contains(awacsWindowX, awacsWindowY))
             {
                 Logger.Info(
@@ -639,7 +639,7 @@ public partial class MainWindow : MetroWindow
                 awacsWindowVisible = true;
             }
         }
-    
+
         if (!mainWindowVisible)
         {
             MessageBox.Show(this,
@@ -647,17 +647,17 @@ public partial class MainWindow : MetroWindow
                 Properties.Resources.MsgBoxNotVisible,
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
-    
+
             Logger.Warn(
                 $"Main client window outside visible area of monitors, resetting position ({mainWindowX},{mainWindowY}) to defaults");
-    
+
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.ClientX, 200);
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.ClientY, 200);
-    
+
             Left = 200;
             Top = 200;
         }
-    
+
         if (!radioWindowVisible)
         {
             MessageBox.Show(this,
@@ -665,16 +665,16 @@ public partial class MainWindow : MetroWindow
                 Properties.Resources.MsgBoxNotVisible,
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
-    
+
             Logger.Warn(
                 $"Radio overlay window outside visible area of monitors, resetting position ({radioWindowX},{radioWindowY}) to defaults");
 
             EventBus.Instance.PublishOnUIThreadAsync(new CloseRadioOverlayMessage());
-            
+
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioX, 300);
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioY, 300);
         }
-    
+
         if (!awacsWindowVisible)
         {
             MessageBox.Show(this,
@@ -682,10 +682,10 @@ public partial class MainWindow : MetroWindow
                 Properties.Resources.MsgBoxNotVisible,
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
-    
+
             Logger.Warn(
                 $"AWACS overlay window outside visible area of monitors, resetting position ({awacsWindowX},{awacsWindowY}) to defaults");
-    
+
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.AwacsX, 300);
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.AwacsY, 300);
         }
@@ -714,7 +714,7 @@ public partial class MainWindow : MetroWindow
     {
         TabControl.SelectedItem = FavouritesSeversTab;
     }
-    
+
     private void UpdatePresetsFolderLabel()
     {
         var presetsFolder = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastPresetsFolder).RawValue;
@@ -729,10 +729,10 @@ public partial class MainWindow : MetroWindow
             PresetsFolderLabel.ToolTip = Directory.GetCurrentDirectory();
         }
     }
-    
+
     private void PresetsFolderBrowseButton_Click(object sender, RoutedEventArgs e)
     {
-        var selectPresetsFolder = new System.Windows.Forms.FolderBrowserDialog();
+        var selectPresetsFolder = new FolderBrowserDialog();
         selectPresetsFolder.SelectedPath = PresetsFolderLabel.ToolTip.ToString();
         if (selectPresetsFolder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
@@ -746,7 +746,7 @@ public partial class MainWindow : MetroWindow
         _globalSettings.SetClientSetting(GlobalSettingsKeys.LastPresetsFolder, string.Empty);
         UpdatePresetsFolderLabel();
     }
-    
+
     private void InitFlowDocument()
     {
         //make hyperlinks work
@@ -754,7 +754,16 @@ public partial class MainWindow : MetroWindow
         foreach (var link in hyperlinks)
             link.RequestNavigate += (sender, args) =>
             {
-                Process.Start(new ProcessStartInfo(args.Uri.AbsoluteUri));
+                try
+                {
+                    Process.Start(new ProcessStartInfo(args.Uri.AbsoluteUri)
+                        { UseShellExecute = true });
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+
                 args.Handled = true;
             };
     }
