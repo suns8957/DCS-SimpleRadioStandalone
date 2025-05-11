@@ -319,6 +319,7 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
         }
         catch (Exception)
         {
+            // ignored
         }
     }
 

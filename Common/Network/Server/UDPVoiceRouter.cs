@@ -127,7 +127,8 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         var port = _serverSettings.GetServerPort();
         _listener = new UdpClient();
 
-#if WINDOWS
+        //TODO check this
+//#if WINDOWS
         try
         {
             _listener.AllowNatTraversal(true);
@@ -135,7 +136,8 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         catch
         {
         }
-#endif
+
+//#endif
         _listener.ExclusiveAddressUse = true;
         _listener.DontFragment = true;
         _listener.Client.DontFragment = true;
@@ -221,9 +223,8 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
                     var guid = Encoding.ASCII.GetString(
                         udpPacket.RawBytes, udpPacket.RawBytes.Length - 22, 22);
 
-                    if (_clientsList.ContainsKey(guid))
+                    if (_clientsList.TryGetValue(guid, out var client))
                     {
-                        var client = _clientsList[guid];
                         client.VoipPort = udpPacket.ReceivedFrom;
 
                         var spectatorAudioDisabled =
@@ -293,8 +294,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         while (!_stop)
             try
             {
-                OutgoingUDPPackets udpPacket = null;
-                _outGoing.TryTake(out udpPacket, 100000, _pendingProcessingCancellationToken.Token);
+                _outGoing.TryTake(out var udpPacket, 100000, _pendingProcessingCancellationToken.Token);
 
                 if (udpPacket != null)
                 {
@@ -365,7 +365,6 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
                             for (var i = 0; i < udpVoice.Frequencies.Length; i++)
                             {
                                 RadioReceivingState radioReceivingState = null;
-                                bool decryptable;
                                 var receivingRadio = radioInfo.CanHearTransmission(udpVoice.Frequencies[i],
                                     (Modulation)udpVoice.Modulations[i],
                                     udpVoice.Encryptions[i],
@@ -373,7 +372,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
                                     udpVoice.UnitId,
                                     _emptyBlockedRadios,
                                     out radioReceivingState,
-                                    out decryptable);
+                                    out _);
 
                                 //only send if we can hear!
                                 if (receivingRadio != null) outgoingList.Add(ip);
@@ -385,15 +384,16 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
             {
                 var ip = client.Value.VoipPort;
 
-                if (ip != null)
-                    foreach (var frequency in udpVoice.Frequencies)
-                    foreach (var testFrequency in _testFrequencies)
-                        if (RadioBase.FreqCloseEnough(testFrequency, frequency))
-                        {
-                            //send back to sending client as its a test frequency
-                            outgoingList.Add(ip);
-                            break;
-                        }
+                if (ip == null) continue;
+
+                foreach (var frequency in udpVoice.Frequencies)
+                foreach (var testFrequency in _testFrequencies)
+                    if (RadioBase.FreqCloseEnough(testFrequency, frequency))
+                    {
+                        //send back to sending client as its a test frequency
+                        outgoingList.Add(ip);
+                        break;
+                    }
             }
 
         if (outgoingList.Count > 0)
