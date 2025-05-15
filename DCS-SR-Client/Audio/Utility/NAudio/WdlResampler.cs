@@ -30,7 +30,8 @@ using WDL_ResampleSample = float; // n.b. default in WDL is double
 // default to floats for sinc filter ceofficients
 using WDL_SincFilterSample = float; // can also be set to double
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility.NAudio;
+// ReSharper disable once CheckNamespace
+namespace NAudio;
 
 /// <summary>
 ///     Fully managed resampler, based on Cockos WDL Resampler

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Caliburn.Micro;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.VAICOM.Models;
@@ -29,6 +30,7 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
     private static readonly object _lock = new();
 
     private static readonly DispatcherTimer _timer = new();
+    private readonly DCSAutoConnectHandler _dcsAutoConnectHandler;
 
     private List<RadioUpdatedCallback> _radioCallbacks = new();
 
@@ -46,8 +48,6 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
         ShortGUID = ShortGuid.NewGuid();
         DcsPlayerRadioInfo = new DCSPlayerRadioInfo();
         PlayerCoaltionLocationMetadata = new DCSPlayerSideInfo();
-        
-    
 
         // The following members are not updated due to events. Therefore we need to setup a polling action so that they are
         // periodically checked.
@@ -73,8 +73,10 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
         ExternalAWACSModelSelected = false;
 
         LastSeenName = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastSeenName).RawValue;
-        
+
         EventBus.Instance.SubscribeOnUIThread(this);
+
+        _dcsAutoConnectHandler = new DCSAutoConnectHandler();
     }
 
     public DCSPlayerRadioInfo DcsPlayerRadioInfo { get; }
@@ -175,6 +177,22 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
 
     public int IntercomOffset { get; set; }
 
+    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+    {
+        IsConnected = message.Connected;
+
+        if (!message.Connected && message.Error != TCPClientStatusMessage.ErrorCode.USER_DISCONNECTED)
+        {
+            IsConnectionErrored = true;
+        }
+        else
+        {
+            IsConnectionErrored = false;
+        }
+
+        return Task.CompletedTask;
+    }
+
     public bool ShouldUseLotATCPosition()
     {
         if (!IsLotATCConnected) return false;
@@ -239,19 +257,8 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
         return count;
     }
 
-    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+    public void Close()
     {
-        IsConnected = message.Connected;
-        
-        if (!message.Connected && message.Error != TCPClientStatusMessage.ErrorCode.USER_DISCONNECTED) 
-        {
-            IsConnectionErrored = true;
-        }
-        else
-        {
-            IsConnectionErrored = false;
-        }
-        
-        return Task.CompletedTask;
+        _dcsAutoConnectHandler?.Stop();
     }
 }

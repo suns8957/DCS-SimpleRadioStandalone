@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.Favourites;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl.Model;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
@@ -532,16 +533,6 @@ public partial class MainWindow : MetroWindow
             FavouriteServersViewModel = new FavouriteServersViewModel(new CsvFavouriteServerStore())
         };
 
-        var args = Environment.GetCommandLineArgs();
-
-        foreach (var arg in args)
-            if (arg.StartsWith("--server="))
-            {
-                var address = arg.Replace("--server=", "");
-                ((MainWindowViewModel)DataContext).ServerAddress = address;
-                ((MainWindowViewModel)DataContext).Connect();
-            }
-
         FavouriteServersView.DataContext = ((MainWindowViewModel)DataContext).FavouriteServersViewModel;
 
         //TODO make this a singleton with a callback to check for updates
@@ -588,6 +579,17 @@ public partial class MainWindow : MetroWindow
         InitFlowDocument();
 
         CheckWindowVisibility();
+
+
+        var args = Environment.GetCommandLineArgs();
+
+        foreach (var arg in args)
+            if (arg.StartsWith("--server="))
+            {
+                var address = arg.Replace("--server=", "");
+                ((MainWindowViewModel)DataContext).ServerAddress = address;
+                ((MainWindowViewModel)DataContext).Connect();
+            }
     }
 
     private void CheckWindowVisibility()
@@ -766,5 +768,12 @@ public partial class MainWindow : MetroWindow
 
                 args.Handled = true;
             };
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+
+        ClientStateSingleton.Instance.Close();
     }
 }

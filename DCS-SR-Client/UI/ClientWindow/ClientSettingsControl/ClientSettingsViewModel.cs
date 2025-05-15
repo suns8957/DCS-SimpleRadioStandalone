@@ -1,8 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Caliburn.Micro;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Properties;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl.Model;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
@@ -12,13 +20,137 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Microsoft.Win32;
 using NLog;
+using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl;
 
-public class ClientSettingsViewModel : PropertyChangedBaseClass
+public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnitEnteredMessage>
 {
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+
+    public ClientSettingsViewModel()
+    {
+        SetSRSPathCommand = new DelegateCommand(() =>
+        {
+            Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\DCS-SR-Standalone", "SRPathStandalone",
+                Directory.GetCurrentDirectory());
+
+            MessageBox.Show(Application.Current.MainWindow,
+                Resources.MsgBoxSetSRSPathText + Directory.GetCurrentDirectory(),
+                Resources.MsgBoxSetSRSPath,
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        });
+        ResetOverlayCommand = new DelegateCommand(() =>
+        {
+            EventBus.Instance.PublishOnUIThreadAsync(new CloseRadioOverlayMessage());
+
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioX, 300);
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioY, 300);
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioWidth, 122);
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioHeight, 270);
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioOpacity, 1.0);
+        });
+
+        CreateProfileCommand = new DelegateCommand(() =>
+        {
+            var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+            {
+                if (name.Trim().Length > 0)
+                {
+                    _globalSettings.ProfileSettingsStore.AddNewProfile(name);
+
+                    NotifyPropertyChanged(nameof(AvailableProfiles));
+                    ReloadSettings();
+                }
+            });
+            inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            inputProfileWindow.Owner = Application.Current.MainWindow;
+            inputProfileWindow.ShowDialog();
+        });
+
+        CopyProfileCommand = new DelegateCommand(() =>
+        {
+            var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+            var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+            {
+                if (name.Trim().Length > 0)
+                {
+                    _globalSettings.ProfileSettingsStore.CopyProfile(current, name);
+                    NotifyPropertyChanged(nameof(AvailableProfiles));
+                    ReloadSettings();
+                }
+            });
+            inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            inputProfileWindow.Owner = Application.Current.MainWindow;
+            inputProfileWindow.ShowDialog();
+        });
+
+        RenameProfileCommand = new DelegateCommand(() =>
+        {
+            var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+            if (current.Equals("default"))
+            {
+                MessageBox.Show(Application.Current.MainWindow,
+                    "Cannot rename the default input!",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            else
+            {
+                var oldName = current;
+                var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+                {
+                    if (name.Trim().Length > 0)
+                    {
+                        _globalSettings.ProfileSettingsStore.RenameProfile(oldName, name);
+                        SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                        NotifyPropertyChanged(nameof(AvailableProfiles));
+                        ReloadSettings();
+                    }
+                }, true, oldName);
+                inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                inputProfileWindow.Owner = Application.Current.MainWindow;
+                inputProfileWindow.ShowDialog();
+            }
+        });
+
+        DeleteProfileCommand = new DelegateCommand(() =>
+        {
+            var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+
+            if (current.Equals("default"))
+            {
+                MessageBox.Show(Application.Current.MainWindow,
+                    "Cannot delete the default input!",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            else
+            {
+                var result = MessageBox.Show(Application.Current.MainWindow,
+                    $"Are you sure you want to delete {current} ?",
+                    "Confirmation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    _globalSettings.ProfileSettingsStore.RemoveProfile(current);
+                    SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                    NotifyPropertyChanged(nameof(AvailableProfiles));
+                    ReloadSettings();
+                }
+            }
+        });
+
+        EventBus.Instance.SubscribeOnUIThread(this);
+    }
+
     public ICommand SetSRSPathCommand { get; set; }
 
     public ICommand ResetOverlayCommand { get; set; }
@@ -40,12 +172,12 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             _globalSettings.SetClientSetting(GlobalSettingsKeys.ExpandControls, value);
             NotifyPropertyChanged();
             MessageBox.Show(
-                Properties.Resources.MsgBoxRestartExpandText,
-                Properties.Resources.MsgBoxRestart, MessageBoxButton.OK,
+                Resources.MsgBoxRestartExpandText,
+                Resources.MsgBoxRestart, MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
     }
-    
+
     public bool AutoConnectEnabled
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AutoConnect);
@@ -55,7 +187,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AutoConnectPrompt
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AutoConnectPrompt);
@@ -65,7 +197,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AutoConnectMismatchPrompt
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AutoConnectMismatchPrompt);
@@ -75,7 +207,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool RadioOverlayTaskbarItem
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
@@ -85,7 +217,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool RefocusDCS
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.RefocusDCS);
@@ -95,7 +227,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool ShowTransmitterName
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.ShowTransmitterName);
@@ -105,7 +237,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool VOXEnabled
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.VOX);
@@ -115,7 +247,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public int VOXMinimimumTXTime
     {
         get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMinimumTime);
@@ -126,8 +258,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         }
     }
 
- 
-    
+
     public int VOXMode
     {
         get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMode);
@@ -137,6 +268,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
+
     public int VOXMinimumRMS
     {
         get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMinimumDB);
@@ -146,7 +278,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AllowTransmissionsRecording
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording);
@@ -156,7 +288,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool RecordTransmissions
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.RecordAudio);
@@ -166,7 +298,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public int RecordingQuality
     {
         get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.RecordingQuality);
@@ -176,7 +308,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool SingleFileMixdown
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.SingleFileMixdown);
@@ -186,7 +318,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AutoSelectInputProfile
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AutoSelectSettingsProfile);
@@ -196,7 +328,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool CheckForBetaUpdates
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.CheckForBetaUpdates);
@@ -206,22 +338,22 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool RequireAdminToggle
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin);
         set
         {
             _globalSettings.SetClientSetting(GlobalSettingsKeys.RequireAdmin, value);
-            
+
             MessageBox.Show(Application.Current.MainWindow,
-                Properties.Resources.MsgBoxAdminText,
-                Properties.Resources.MsgBoxAdmin, MessageBoxButton.OK, MessageBoxImage.Warning);
-            
+                Resources.MsgBoxAdminText,
+                Resources.MsgBoxAdmin, MessageBoxButton.OK, MessageBoxImage.Warning);
+
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool VAICOMTXInhibitEnabled
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.VAICOMTXInhibitEnabled);
@@ -231,21 +363,21 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AllowXInputController
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowXInputController);
         set
         {
             MessageBox.Show(
-                Properties.Resources.MsgBoxRestartXInputText,
-                Properties.Resources.MsgBoxRestart, MessageBoxButton.OK,
+                Resources.MsgBoxRestartXInputText,
+                Resources.MsgBoxRestart, MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             _globalSettings.SetClientSetting(GlobalSettingsKeys.AllowXInputController, value);
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool MinimiseToTray
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.MinimiseToTray);
@@ -385,6 +517,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
+
     public bool AlwaysAllowHotasControls
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -396,7 +529,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AlwaysAllowTransponderOverlayControls
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -408,7 +541,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AllowDCSPTT
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -420,7 +553,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AllowRotaryIncrement
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -432,7 +565,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool RadioEncryptionEffectsToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -456,7 +589,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool HQEffectToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -481,7 +614,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AmbientEffectToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -493,34 +626,36 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool AmbientEffectIntercomToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
             ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect);
         set
         {
-            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect,
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(
+                ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect,
                 value);
             NotifyPropertyChanged();
         }
     }
 
 
-    
     public float AmbientEffectVolume
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(
             ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume);
         set
         {
-            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume,
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(
+                ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume,
                 value);
             NotifyPropertyChanged();
         }
     }
+
 /***
- * 
+ *
  */
     public List<CachedAudioEffect> RadioTransmissionStart =>
         CachedAudioEffectProvider.Instance.RadioTransmissionStart;
@@ -549,7 +684,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionEndEffect;
     }
 /***
- * 
+ *
  */
 
 /***
@@ -569,7 +704,8 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         get => CachedAudioEffectProvider.Instance.SelectedIntercomTransmissionStartEffect;
     }
 
-    public List<CachedAudioEffect> IntercomTransmissionEnd => CachedAudioEffectProvider.Instance.IntercomTransmissionEnd;
+    public List<CachedAudioEffect> IntercomTransmissionEnd =>
+        CachedAudioEffectProvider.Instance.IntercomTransmissionEnd;
 
     public CachedAudioEffect SelectedIntercomEndTransmitEffect
     {
@@ -581,6 +717,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         }
         get => CachedAudioEffectProvider.Instance.SelectedIntercomTransmissionEndEffect;
     }
+
 /***
  *
  */
@@ -860,127 +997,53 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         }
         get => _globalSettings.ProfileSettingsStore.ProfileNames;
     }
-    
-    
-    public ClientSettingsViewModel()
+
+
+    public Task HandleAsync(NewUnitEnteredMessage message, CancellationToken cancellationToken)
     {
-        SetSRSPathCommand = new DelegateCommand(() =>
+        try
         {
-            Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\DCS-SR-Standalone", "SRPathStandalone",
-                Directory.GetCurrentDirectory());
-            
-            MessageBox.Show(Application.Current.MainWindow,Properties.Resources.MsgBoxSetSRSPathText + Directory.GetCurrentDirectory(),
-                Properties.Resources.MsgBoxSetSRSPath,
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            var seat = message.Seat;
+            //Handle Aircraft Name - find matching profile and select if you can
+            var name = Regex.Replace(message.Unit.Trim().ToLower(), "[^a-zA-Z0-9]", "");
+            //add one to seat so seat_2 is copilot
+            var nameSeat = $"_{seat + 1}";
 
-        });
-        ResetOverlayCommand = new DelegateCommand(() =>
-        {
-            EventBus.Instance.PublishOnUIThreadAsync(new CloseRadioOverlayMessage());
-
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioX, 300);
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioY, 300);
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioWidth, 122);
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioHeight, 270);
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioOpacity, 1.0);
-        });
-
-        CreateProfileCommand = new DelegateCommand(() =>
-        {
-            var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+            foreach (var profileName in GlobalSettingsStore.Instance.ProfileSettingsStore
+                         .ProfileNames)
             {
-                if (name.Trim().Length > 0)
+                //find matching seat
+                var splitName = profileName.Trim().ToLowerInvariant().Split('_')
+                    .First();
+                if (name.StartsWith(Regex.Replace(splitName, "[^a-zA-Z0-9]", "")) &&
+                    profileName.Trim().EndsWith(nameSeat))
                 {
-                    _globalSettings.ProfileSettingsStore.AddNewProfile(name);
-
-                    NotifyPropertyChanged(nameof(AvailableProfiles));
-                    ReloadSettings();
-                }
-            });
-            inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            inputProfileWindow.Owner = Application.Current.MainWindow;
-            inputProfileWindow.ShowDialog();
-        });
-
-        CopyProfileCommand = new DelegateCommand(() =>
-        {
-            var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
-            var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
-            {
-                if (name.Trim().Length > 0)
-                {
-                    _globalSettings.ProfileSettingsStore.CopyProfile(current, name);
-                    NotifyPropertyChanged(nameof(AvailableProfiles));
-                    ReloadSettings();
-                }
-            });
-            inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            inputProfileWindow.Owner = Application.Current.MainWindow;
-            inputProfileWindow.ShowDialog();
-        });
-
-        RenameProfileCommand = new DelegateCommand(() =>
-        {
-            var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
-            if (current.Equals("default"))
-            {
-                MessageBox.Show(Application.Current.MainWindow,
-                    "Cannot rename the default input!",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            else
-            {
-                var oldName = current;
-                var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
-                {
-                    if (name.Trim().Length > 0)
-                    {
-                        _globalSettings.ProfileSettingsStore.RenameProfile(oldName, name);
-                        SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
-                        NotifyPropertyChanged(nameof(AvailableProfiles));
-                        ReloadSettings();
-                    }
-                }, true, oldName);
-                inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                inputProfileWindow.Owner = Application.Current.MainWindow;
-                inputProfileWindow.ShowDialog();
-            }
-        });
-
-        DeleteProfileCommand = new DelegateCommand(() =>
-        {
-            var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
-
-            if (current.Equals("default"))
-            {
-                MessageBox.Show(Application.Current.MainWindow,
-                    "Cannot delete the default input!",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            else
-            {
-                var result = MessageBox.Show(Application.Current.MainWindow,
-                    $"Are you sure you want to delete {current} ?",
-                    "Confirmation",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    _globalSettings.ProfileSettingsStore.RemoveProfile(current);
-                    SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
-                    NotifyPropertyChanged(nameof(AvailableProfiles));
-                    ReloadSettings();
+                    SelectedProfile = profileName;
+                    return Task.CompletedTask;
                 }
             }
-        });
+
+            foreach (var profileName in GlobalSettingsStore.Instance.ProfileSettingsStore
+                         .ProfileNames)
+            {
+                //find matching seat
+                if (name.StartsWith(Regex.Replace(profileName.Trim().ToLower(),
+                        "[^a-zA-Z0-9_]", "")))
+                {
+                    SelectedProfile = profileName;
+                    return Task.CompletedTask;
+                }
+            }
+
+            SelectedProfile = "default";
+        }
+        catch (Exception)
+        {
+        }
+
+
+        return Task.CompletedTask;
     }
-
 
 
     private void ReloadSettings()
@@ -990,25 +1053,25 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         NotifyPropertyChanged(nameof(AutoConnectMismatchPrompt));
         //ResetOverlayCommand
         NotifyPropertyChanged(nameof(RadioOverlayTaskbarItem));
-        
+
         NotifyPropertyChanged(nameof(RefocusDCS));
         NotifyPropertyChanged(nameof(MinimiseToTray));
         NotifyPropertyChanged(nameof(StartMinimised));
         NotifyPropertyChanged(nameof(ShowTransmitterName));
-        
+
         NotifyPropertyChanged(nameof(MicAGC));
         NotifyPropertyChanged(nameof(MicDenoise));
-        
+
         NotifyPropertyChanged(nameof(VOXEnabled));
         NotifyPropertyChanged(nameof(VOXMinimimumTXTime));
         NotifyPropertyChanged(nameof(VOXMode));
         NotifyPropertyChanged(nameof(VOXMinimumRMS));
-        
+
         NotifyPropertyChanged(nameof(AllowTransmissionsRecording));
         NotifyPropertyChanged(nameof(RecordTransmissions));
         NotifyPropertyChanged(nameof(SingleFileMixdown));
         NotifyPropertyChanged(nameof(RecordingQuality));
-        
+
         NotifyPropertyChanged(nameof(AutoSelectInputProfile));
         NotifyPropertyChanged(nameof(CheckForBetaUpdates));
         //SetSRSPathCommand
@@ -1018,7 +1081,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         NotifyPropertyChanged(nameof(AllowXInputController));
         NotifyPropertyChanged(nameof(PlayConnectionSounds));
         //TODO handle Profile list??
-        
+
         NotifyPropertyChanged(nameof(RadioSwitchIsPTT));
         NotifyPropertyChanged(nameof(AutoSelectChannel));
         NotifyPropertyChanged(nameof(AlwaysAllowHotasControls));
@@ -1048,11 +1111,11 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         NotifyPropertyChanged(nameof(VHFEffectVolume));
         NotifyPropertyChanged(nameof(HFEffectVolume));
         NotifyPropertyChanged(nameof(FMEffectVolume));
-        
+
         NotifyPropertyChanged(nameof(AmbientEffectToggle));
         NotifyPropertyChanged(nameof(AmbientEffectIntercomToggle));
         NotifyPropertyChanged(nameof(AmbientEffectVolume));
-        
+
         NotifyPropertyChanged(nameof(RadioChannel1));
         NotifyPropertyChanged(nameof(RadioChannel2));
         NotifyPropertyChanged(nameof(RadioChannel3));
@@ -1064,7 +1127,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass
         NotifyPropertyChanged(nameof(RadioChannel9));
         NotifyPropertyChanged(nameof(RadioChannel10));
         NotifyPropertyChanged(nameof(Intercom));
-        
+
         //TODO send message to tell input to reload!
         //TODO pick up in inputhandler that settings have changed?
         EventBus.Instance.PublishOnUIThreadAsync(new ProfileChangedMessage());

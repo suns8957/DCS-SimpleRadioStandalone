@@ -30,7 +30,7 @@ public class DCSRadioSyncHandler
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-    
+
     private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
     private UdpClient _dcsRadioUpdateSender;
 
@@ -43,7 +43,6 @@ public class DCSRadioSyncHandler
 
     public DCSRadioSyncHandler()
     {
-
     }
 
     public void Start()
@@ -132,7 +131,7 @@ public class DCSRadioSyncHandler
         {
             Logger.Debug("Sending Radio Info To Server - Update");
             _clientStateSingleton.LastSent = DateTime.Now.Ticks;
-            
+
             //TODO do this through the singleton so its not a mess
             //Full Update send over TCP
             EventBus.Instance.PublishOnCurrentThreadAsync(new UnitUpdateMessage()
@@ -148,9 +147,7 @@ public class DCSRadioSyncHandler
                     Name = _clientStateSingleton.LastSeenName,
                     AllowRecord = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording)
                 }
-
             });
-
         }
     }
 
@@ -274,8 +271,13 @@ public class DCSRadioSyncHandler
                 //TODO handle profile selection when switching aircraft
                 //  _newAircraftCallback(message.unit, message.seat);
                 //send message to UI thread on event bus and switch the profile
+                EventBus.Instance.PublishOnUIThreadAsync(new NewUnitEnteredMessage()
+                {
+                    Unit = message.unit,
+                    Seat = message.seat
+                });
             }
-              
+
 
             playerRadioInfo.iff = message.iff;
         }

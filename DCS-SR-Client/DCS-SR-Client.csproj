@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net8.0-windows10.0.22000.0</TargetFramework>
         <OutputType>WinExe</OutputType>
         <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.Client</RootNamespace>
         <AssemblyName>SR-ClientRadio</AssemblyName>
@@ -16,7 +16,6 @@
         <UpdateRequired>false</UpdateRequired>
         <MapFileExtensions>true</MapFileExtensions>
         <ApplicationRevision>0</ApplicationRevision>
-        <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
         <UseApplicationTrust>false</UseApplicationTrust>
         <BootstrapperEnabled>true</BootstrapperEnabled>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -26,8 +25,10 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Company>Ciribob - GitHub.com/Ciribob</Company>
         <Product>DCS-SimpleRadio Standalone</Product>
+        <ApplicationVersion>2.1.1.0</ApplicationVersion>
         <AssemblyVersion>2.1.1.0</AssemblyVersion>
         <FileVersion>2.1.1.0</FileVersion>
+        <ApplicationIcon>audio-headset.ico</ApplicationIcon>
     </PropertyGroup>
     <PropertyGroup>
         <StartupObject>Ciribob.DCS.SimpleRadio.Standalone.Client.App</StartupObject>
@@ -38,9 +39,6 @@
     </PropertyGroup>
     <PropertyGroup>
         <GenerateManifests>false</GenerateManifests>
-    </PropertyGroup>
-    <PropertyGroup>
-        <ApplicationIcon>audio-headset.ico</ApplicationIcon>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -302,9 +300,6 @@
         <None Update="FodyWeavers.xml">
             <SubType>Designer</SubType>
         </None>
-    </ItemGroup>
-    <ItemGroup>
-        <Resource Include="server-10.ico" />
     </ItemGroup>
     <ItemGroup>
         <Resource Include="audio-headset.ico" />

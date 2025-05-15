@@ -17,6 +17,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.Favourites;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.RadioOverlayWindow;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
@@ -35,7 +36,9 @@ using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
 
-public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>, IHandle<ProfileChangedMessage>, IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>, IHandle<ServerSettingsUpdatedMessage>
+public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>,
+    IHandle<VOIPStatusMessage>, IHandle<ProfileChangedMessage>, IHandle<EAMConnectedMessage>,
+    IHandle<EAMDisconnectMessage>, IHandle<ServerSettingsUpdatedMessage>, IHandle<AutoConnectMessage>
 {
     private readonly AudioManager _audioManager;
 
@@ -49,12 +52,12 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
     private TCPClientHandler _client;
 
     private ClientListWindow _clientListWindow;
+    private DCSRadioSyncManager _dcsManager;
+    private ServerAddress _selectedServerAddress;
 
     private ServerSettingsWindow.ServerSettingsWindow _serverSettingsWindow;
 
     private RadioOverlayWindow.RadioOverlayWindow _singleRadioOverlay;
-    private ServerAddress _selectedServerAddress;
-    private DCSRadioSyncManager _dcsManager;
 
     public MainWindowViewModel()
     {
@@ -118,7 +121,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                 });
             }
         });
-        
+
         DonateCommand = new DelegateCommand(() =>
         {
             try
@@ -147,7 +150,9 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     public InputDeviceManager InputManager { get; set; }
 
-    public bool IsEAMAvailable => ClientStateSingleton.Instance.IsConnected && SyncedServerSettings.Instance.GetSettingAsBool(ServerSettingsKeys.EXTERNAL_AWACS_MODE);
+    public bool IsEAMAvailable => ClientStateSingleton.Instance.IsConnected &&
+                                  SyncedServerSettings.Instance.GetSettingAsBool(ServerSettingsKeys
+                                      .EXTERNAL_AWACS_MODE);
 
     public bool IsConnected { get; set; }
 
@@ -208,8 +213,8 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         get
         {
             if (IsConnected)
-                return Properties.Resources.StartStopDisconnect;
-            return Properties.Resources.StartStop;
+                return Resources.StartStopDisconnect;
+            return Resources.StartStop;
         }
     }
 
@@ -265,11 +270,11 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         {
             ServerAddress = value.Address;
             EAMPassword = value.EAMCoalitionPassword;
-            
+
             _selectedServerAddress = value;
         }
     }
-    
+
     public string EAMPassword { get; set; }
 
     public string ServerAddress
@@ -291,13 +296,10 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
             }
         }
     }
-    
+
     public string EAMName
     {
-        get
-        {
-            return ClientState.LastSeenName;
-        }
+        get { return ClientState.LastSeenName; }
         set
         {
             if (value != null)
@@ -319,10 +321,107 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
     public String CurrentProfile
     {
+        get { return _globalSettings.ProfileSettingsStore.CurrentProfileName; }
+    }
+
+    public bool ConnectIsEnabled { get; set; } = true;
+    public FavouriteServersViewModel FavouriteServersViewModel { get; set; }
+
+    public string CurrentUnit => ClientState.DcsPlayerRadioInfo.unit;
+
+    public string LastKnownPosition =>
+        ClientState.PlayerCoaltionLocationMetadata.LngLngPosition.ToString();
+
+    public DelegateCommand PositionClickCommand { get; }
+    public DelegateCommand EAMConnectCommand { get; }
+    public DelegateCommand DonateCommand { get; }
+
+    public string EAMConnectButtonText
+    {
         get
         {
-            return _globalSettings.ProfileSettingsStore.CurrentProfileName;
+            if (ClientStateSingleton.Instance.ExternalAWACSModeConnected)
+            {
+                return Resources.DisconnectExternalAWACSMode;
+            }
+
+            return Resources.ConnectExternalAWACSMode;
         }
+    }
+
+    public async Task HandleAsync(AutoConnectMessage message, CancellationToken cancellationToken)
+    {
+        if (IsConnected)
+        {
+            if (ServerAddress == message.Address)
+            {
+                Logger.Info(
+                    $"Ignoring auto connect message as we are already connected to the server {message.Address}");
+            }
+            else
+            {
+                // Show auto connect mismatch prompt if setting has been enabled (default), otherwise automatically switch server
+                bool showPrompt = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AutoConnectMismatchPrompt);
+
+                bool switchServer = !showPrompt;
+                if (showPrompt)
+                {
+                    WindowHelper.BringProcessToFront(Process.GetCurrentProcess());
+
+                    var result = MessageBox.Show(App.Current.MainWindow,
+                        $"{Resources.MsgBoxMismatchText1} {message.Address} {Resources.MsgBoxMismatchText2} {ServerAddress} {Resources.MsgBoxMismatchText3}\n\n" +
+                        $"{Resources.MsgBoxMismatchText4}",
+                        Resources.MsgBoxMismatch,
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    switchServer = result == MessageBoxResult.Yes;
+                }
+
+                if (switchServer)
+                {
+                    ConnectIsEnabled = false;
+                    ServerAddress = message.Address;
+                    Stop();
+                    ConnectIsEnabled = false;
+                    await Task.Delay(2000);
+                    Connect();
+                }
+            }
+        }
+        else
+        {
+            Logger.Info($"Received auto connect message for {message.Address} - Connecting");
+            ServerAddress = message.Address;
+            Connect();
+        }
+    }
+
+    public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
+    {
+        ClientStateSingleton.Instance.LastSeenName = EAMName;
+        NotifyPropertyChanged(nameof(EAMConnectButtonText));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(EAMDisconnectMessage message, CancellationToken cancellationToken)
+    {
+        ClientStateSingleton.Instance.ExternalAWACSModelSelected = false;
+        NotifyPropertyChanged(nameof(EAMConnectButtonText));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
+    {
+        NotifyPropertyChanged(nameof(CurrentProfile));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(ServerSettingsUpdatedMessage message, CancellationToken cancellationToken)
+    {
+        NotifyPropertyChanged(nameof(IsEAMAvailable));
+
+        return Task.CompletedTask;
     }
 
     public async Task HandleAsync(TCPClientStatusMessage obj, CancellationToken cancellationToken)
@@ -349,17 +448,16 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                 Logger.Error("TCPClientStatusMessage - Connect sent without address and safely ignored.");
 
             _dcsManager?.Stop();
-            
+
             _dcsManager = new DCSRadioSyncManager(ClientStateSingleton.Instance.ShortGUID);
             _dcsManager.Start();
-            
-
         }
         else
         {
             //disconnect sound
             Stop(obj.Error);
         }
+
         NotifyPropertyChanged(nameof(IsEAMAvailable));
     }
 
@@ -375,32 +473,8 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         NotifyPropertyChanged(nameof(MicVU));
         NotifyPropertyChanged(nameof(CurrentUnit));
         NotifyPropertyChanged(nameof(LastKnownPosition));
-        
+
         ConnectedClientsSingleton.Instance.NotifyAll();
-    }
-    
-    public bool ConnectIsEnabled { get; set; } = true;
-    public FavouriteServersViewModel FavouriteServersViewModel { get; set; }
-
-    public string CurrentUnit => ClientState.DcsPlayerRadioInfo.unit;
-
-    public string LastKnownPosition =>
-        ClientState.PlayerCoaltionLocationMetadata.LngLngPosition.ToString();
-
-    public DelegateCommand PositionClickCommand { get; }
-    public DelegateCommand EAMConnectCommand { get; }
-    public DelegateCommand DonateCommand { get; }
-
-    public string EAMConnectButtonText
-    {
-        get
-        {
-            if (ClientStateSingleton.Instance.ExternalAWACSModeConnected)
-            {
-                return Resources.DisconnectExternalAWACSMode;
-            }
-            return Resources.ConnectExternalAWACSMode;
-        }
     }
 
     public void Connect()
@@ -466,6 +540,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                 IsConnected = false;
             }
         }
+
         ConnectIsEnabled = true;
     }
 
@@ -490,11 +565,11 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         catch (Exception)
         {
         }
-        
-        
+
+
         _dcsManager?.Stop();
         _dcsManager = null;
-        
+
         _client?.Disconnect();
         _client = null;
 
@@ -760,32 +835,5 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
         _serverSettingsWindow?.Close();
         _serverSettingsWindow = null;
-    }
-
-    public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
-    {
-        NotifyPropertyChanged(nameof(CurrentProfile));
-        return Task.CompletedTask;
-    }
-
-    public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
-    {
-        ClientStateSingleton.Instance.LastSeenName = EAMName;
-        NotifyPropertyChanged(nameof(EAMConnectButtonText));
-        return Task.CompletedTask;
-    }
-
-    public Task HandleAsync(EAMDisconnectMessage message, CancellationToken cancellationToken)
-    {
-        ClientStateSingleton.Instance.ExternalAWACSModelSelected = false;
-        NotifyPropertyChanged(nameof(EAMConnectButtonText));
-        return Task.CompletedTask;
-    }
-
-    public Task HandleAsync(ServerSettingsUpdatedMessage message, CancellationToken cancellationToken)
-    {
-        NotifyPropertyChanged(nameof(IsEAMAvailable));
-        
-        return Task.CompletedTask;
     }
 }

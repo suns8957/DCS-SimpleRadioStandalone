@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NLog;
 
@@ -27,16 +29,6 @@ public class DCSAutoConnectHandler
         // _receivedAutoConnect = receivedAutoConnect;
 
         StartDcsBroadcastListener();
-
-        var args = Environment.GetCommandLineArgs();
-
-        foreach (var arg in args)
-            if (arg.StartsWith("-host="))
-            {
-                var host = arg.Replace("-host=", "").Trim();
-                HandleMessage(host);
-                Logger.Info("Auto Connect Launch for host: " + host);
-            }
     }
 
     private void StartDcsBroadcastListener()
@@ -104,14 +96,21 @@ public class DCSAutoConnectHandler
                     if (message.Contains(':'))
                         try
                         {
+                            EventBus.Instance.PublishOnUIThreadAsync(new AutoConnectMessage()
+                            {
+                                Address = $"{address[0].Trim()}:{address[1].Trim()}"
+                            });
                             //_receivedAutoConnect(address[0].Trim(), int.Parse(address[1].Trim()));
                         }
                         catch (Exception ex)
                         {
                             Logger.Error(ex, "Exception Parsing DCS AutoConnect Message");
                         }
-                    //else
-                    //_receivedAutoConnect(message, 5002);
+                    else
+                        EventBus.Instance.PublishOnUIThreadAsync(new AutoConnectMessage()
+                        {
+                            Address = $"{address[0].Trim()}:5002"
+                        });
                 }
             }));
     }
