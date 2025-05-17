@@ -52,12 +52,16 @@
         <DefineConstants>
         </DefineConstants>
         <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+        <DebugSymbols>False</DebugSymbols>
+        <DebugType>None</DebugType>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <PlatformTarget>x64</PlatformTarget>
+        <DebugSymbols>False</DebugSymbols>
+        <DebugType>None</DebugType>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
@@ -276,9 +280,7 @@
         <Content Include="AudioEffects\VHF_NOISE.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="NLog.config">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+        <Content Include="NLog.config" />
         <AppDesigner Include="Properties\" />
     </ItemGroup>
     <ItemGroup>
@@ -324,11 +326,6 @@
         <Folder Include="Resources\" />
     </ItemGroup>
     <ItemGroup>
-
-        <PackageReference Include="Costura.Fody" Version="6.0.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
 
         <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
         <PackageReference Include="MahApps.Metro" Version="2.4.10" />

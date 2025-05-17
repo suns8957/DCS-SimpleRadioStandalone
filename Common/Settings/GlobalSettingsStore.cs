@@ -338,8 +338,6 @@ public class GlobalSettingsStore
 
     private GlobalSettingsStore()
     {
-        //Try migrating
-        MigrateSettings();
 
         //check commandline
         var args = Environment.GetCommandLineArgs();
@@ -446,23 +444,6 @@ public class GlobalSettingsStore
 
         //file is not locked
         return false;
-    }
-
-    private void MigrateSettings()
-    {
-        try
-        {
-            if (File.Exists(Path + PREVIOUS_CFG_FILE_NAME) && !File.Exists(Path + CFG_FILE_NAME))
-            {
-                Logger.Info($"Migrating {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
-                File.Copy(Path + PREVIOUS_CFG_FILE_NAME, Path + CFG_FILE_NAME, true);
-                Logger.Info($"Migrated {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Error migrating global settings");
-        }
     }
 
     public void SetClientSetting(GlobalSettingsKeys key, string[] strArray)

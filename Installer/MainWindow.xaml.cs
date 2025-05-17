@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using IWshRuntimeLibrary;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using NLog;
@@ -42,9 +41,8 @@ namespace Installer
             SetupLogging();
             InitializeComponent();
 
-            var assembly = Assembly.GetExecutingAssembly();
-            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            var version = fvi.FileVersion;
+            var assembly =  Assembly.GetEntryAssembly();
+            var version = assembly?.GetName().Version?.ToString();
 
             Title = Properties.Resources.Title;
             intro.Content = Properties.Resources.intro + " v" + version;
@@ -214,14 +212,15 @@ namespace Installer
 
         private bool CheckExtracted()
         {
-            return File.Exists(_currentDirectory + "\\opus.dll") 
-                   && File.Exists(_currentDirectory + "\\speexdsp.dll")
-                   && File.Exists(_currentDirectory + "\\WebRtcVad.dll")
-                   && File.Exists(_currentDirectory + "\\libmp3lame.64.dll")
-                   && File.Exists(_currentDirectory + "\\libmp3lame.32.dll")
-                   && File.Exists(_currentDirectory + "\\awacs-radios.json")
-                   && File.Exists(_currentDirectory + "\\SR-ClientRadio.exe")
-                   && File.Exists(_currentDirectory + "\\Scripts\\DCS-SRS\\Scripts\\DCS-SimpleRadioStandalone.lua");
+            return true;
+            // return File.Exists(_currentDirectory + "\\opus.dll") 
+            //        && File.Exists(_currentDirectory + "\\speexdsp.dll")
+            //        && File.Exists(_currentDirectory + "\\WebRtcVad.dll")
+            //        && File.Exists(_currentDirectory + "\\libmp3lame.64.dll")
+            //        && File.Exists(_currentDirectory + "\\libmp3lame.32.dll")
+            //        && File.Exists(_currentDirectory + "\\awacs-radios.json")
+            //        && File.Exists(_currentDirectory + "\\SR-ClientRadio.exe")
+            //        && File.Exists(_currentDirectory + "\\Scripts\\DCS-SRS\\Scripts\\DCS-SimpleRadioStandalone.lua");
         }
 
 
@@ -488,7 +487,7 @@ namespace Installer
 
         private string GetWorkingDirectory()
         {
-            return new FileInfo(Assembly.GetEntryAssembly().Location).Directory.ToString();
+            return new FileInfo(System.AppContext.BaseDirectory).Directory.ToString();
         }
 
         private void InstallVCRedist()
@@ -964,13 +963,15 @@ namespace Installer
             string executablePath = Path.Combine(path, "SR-ClientRadio.exe");
             string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "DCS-SRS Client.lnk");
 
-            WshShell shell = new WshShell();
-            IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
-
-            shortcut.Description = "DCS-SimpleRadio Standalone Client";
-            shortcut.TargetPath = executablePath;
-            shortcut.WorkingDirectory = path;
-            shortcut.Save();
+            ShortcutHelper.Create(shortcutPath, executablePath, null,path,"DCS-SimpleRadio Standalone Client");
+            //
+            // WshShell shell = new WshShell();
+            // IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
+            //
+            // shortcut.Description = "DCS-SimpleRadio Standalone Client";
+            // shortcut.TargetPath = executablePath;
+            // shortcut.WorkingDirectory = path;
+            // shortcut.Save();
         }
 
         private void InstallScripts(string path)

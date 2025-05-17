@@ -152,8 +152,6 @@ public class ProfileSettingsStore
         _globalSettings = globalSettingsStore;
         Path = GlobalSettingsStore.Path;
 
-        MigrateOldSettings();
-
         var profiles = GetProfiles();
         foreach (var profile in profiles)
         {
@@ -243,36 +241,6 @@ public class ProfileSettingsStore
     public Configuration GetCurrentProfile()
     {
         return InputConfigs[GetProfileCfgFileName(CurrentProfileName)];
-    }
-
-    private void MigrateOldSettings()
-    {
-        try
-        {
-            //combine global.cfg and input-default.cfg
-            if (File.Exists(Path + "input-default.cfg") && File.Exists(Path + "global.cfg") &&
-                !File.Exists("default.cfg"))
-            {
-                //Copy the current GLOBAL settings - not all relevant but will be ignored
-                File.Copy(Path + "global.cfg", Path + "default.cfg");
-
-                var inputText = File.ReadAllText(Path + "input-default.cfg", Encoding.UTF8);
-
-                File.AppendAllText(Path + "default.cfg", inputText, Encoding.UTF8);
-
-                Logger.Info(
-                    "Migrated the previous input-default.cfg and global settings to the new profile");
-            }
-            else
-            {
-                Logger.Info(
-                    "No need to migrate - migration complete");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Error migrating input profiles");
-        }
     }
 
     public List<string> GetProfiles()
