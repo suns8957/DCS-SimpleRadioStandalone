@@ -28,6 +28,7 @@
         <ApplicationVersion>2.1.1.0</ApplicationVersion>
         <AssemblyVersion>2.1.1.0</AssemblyVersion>
         <FileVersion>2.1.1.0</FileVersion>
+        <Version>2.1.1.0</Version>
         <ApplicationIcon>audio-headset.ico</ApplicationIcon>
     </PropertyGroup>
     <PropertyGroup>
