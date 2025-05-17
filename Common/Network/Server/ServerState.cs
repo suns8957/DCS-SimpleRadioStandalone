@@ -40,7 +40,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
     public ServerState(IEventAggregator eventAggregator)
     {
         _eventAggregator = eventAggregator;
-        _eventAggregator.Subscribe(this);
+        _eventAggregator.SubscribeOnPublishedThread(this);
 
         StartServer();
     }

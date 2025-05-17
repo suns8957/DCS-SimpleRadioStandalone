@@ -128,16 +128,17 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         _listener = new UdpClient();
 
         //TODO check this
-//#if WINDOWS
-        try
-        {
-            _listener.AllowNatTraversal(true);
-        }
-        catch
-        {
-        }
+        if (OperatingSystem.IsWindows())
+            try
+            {
+                _listener.AllowNatTraversal(true);
+            }
+            catch
+            {
+                // ignored
+            }
 
-//#endif
+
         _listener.ExclusiveAddressUse = true;
         _listener.DontFragment = true;
         _listener.Client.DontFragment = true;

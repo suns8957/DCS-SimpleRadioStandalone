@@ -20,8 +20,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server;
 
 public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
 {
-    private static readonly string DEFAULT_CLIENT_EXPORT_FILE = "clients-list.json";
-
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private readonly HashSet<IPAddress> _bannedIps;
@@ -32,8 +30,6 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
 
     private readonly ServerSettingsStore _serverSettings;
 
-    private volatile bool _stop = true;
-
     public ServerSync(ConcurrentDictionary<string, SRClientBase> connectedClients, HashSet<IPAddress> _bannedIps,
         IEventAggregator eventAggregator) : base(IPAddress.Any,
         ServerSettingsStore.Instance.GetServerPort())
@@ -41,7 +37,7 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
         _clients = connectedClients;
         this._bannedIps = _bannedIps;
         _eventAggregator = eventAggregator;
-        _eventAggregator.Subscribe(this);
+        _eventAggregator.SubscribeOnPublishedThread(this);
         _serverSettings = ServerSettingsStore.Instance;
 
         OptionKeepAlive = true;
@@ -500,7 +496,6 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
 
         try
         {
-            _stop = true;
             DisconnectAll();
             Stop();
             _clients.Clear();

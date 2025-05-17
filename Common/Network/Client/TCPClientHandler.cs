@@ -35,10 +35,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
 
-    //   private UDPVoiceHandler _udpVoiceHandler;
-
-    private bool _connected = false;
-
     private long _lastSent = -1;
     private SRClientBase _playerUnitState;
     private IPEndPoint _serverEndpoint;
@@ -71,6 +67,21 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     public Task HandleAsync(DisconnectRequestMessage message, CancellationToken cancellationToken)
     {
         Disconnect();
+
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(EAMConnectRequestMessage eamConnectRequestMessage, CancellationToken cancellationToken)
+    {
+        _playerUnitState.Name = eamConnectRequestMessage.Name;
+        var message = new NetworkMessage
+        {
+            Client = _playerUnitState,
+            ExternalAWACSModePassword = eamConnectRequestMessage.Password,
+            MsgType = NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD
+        };
+
+        SendToServer(message);
 
         return Task.CompletedTask;
     }
@@ -506,20 +517,5 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
         }
 
         Logger.Error("Disconnecting from server");
-    }
-
-    public Task HandleAsync(EAMConnectRequestMessage eamConnectRequestMessage, CancellationToken cancellationToken)
-    {
-        _playerUnitState.Name = eamConnectRequestMessage.Name;
-        var message = new NetworkMessage
-        {
-            Client = _playerUnitState,
-            ExternalAWACSModePassword = eamConnectRequestMessage.Password,
-            MsgType = NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD
-        };
-
-        SendToServer(message);
-
-        return Task.CompletedTask;
     }
 }

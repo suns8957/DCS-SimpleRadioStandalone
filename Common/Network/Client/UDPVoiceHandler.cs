@@ -83,13 +83,16 @@ public class UDPVoiceHandler
         _udpLastReceived = 0;
         Ready = false;
         _listener = new UdpClient();
-        try
-        {
-            _listener.AllowNatTraversal(true);
-        }
-        catch
-        {
-        }
+
+        if (OperatingSystem.IsWindows())
+            try
+            {
+                _listener.AllowNatTraversal(true);
+            }
+            catch
+            {
+                // ignored
+            }
 
         StartPing();
 
@@ -236,13 +239,16 @@ public class UDPVoiceHandler
                     _udpLastReceived = 0;
 
                     _listener = new UdpClient();
-                    try
-                    {
-                        _listener?.AllowNatTraversal(true);
-                    }
-                    catch
-                    {
-                    }
+
+                    if (OperatingSystem.IsWindows())
+                        try
+                        {
+                            _listener?.AllowNatTraversal(true);
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
 
                     try
                     {

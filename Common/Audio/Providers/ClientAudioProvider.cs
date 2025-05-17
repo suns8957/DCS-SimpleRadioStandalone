@@ -16,8 +16,6 @@ public class ClientAudioProvider : AudioProvider
 
     private readonly CachedAudioEffectProvider audioEffectProvider = CachedAudioEffectProvider.Instance;
 
-    private readonly bool passThrough;
-
     private readonly ProfileSettingsStore settingsStore = GlobalSettingsStore.Instance.ProfileSettingsStore;
     private bool ambientCockpitEffectEnabled = true;
 

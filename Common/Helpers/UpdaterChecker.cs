@@ -13,8 +13,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 //TODO make this a singleton
 public class UpdaterChecker
 {
+    public delegate void UpdateCallback(UpdateCallbackResult result);
+
     private static UpdaterChecker _instance;
-    private static readonly object _lock = new ();
+    private static readonly object _lock = new();
 
     public static readonly string GITHUB_USERNAME = "ciribob";
 
@@ -28,7 +30,7 @@ public class UpdaterChecker
     public static readonly string VERSION = "2.1.1.0";
 
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-    
+
     public static UpdaterChecker Instance
     {
         get
@@ -42,8 +44,6 @@ public class UpdaterChecker
         }
     }
 
-    public delegate void UpdateCallback(UpdateCallbackResult result);  
-
     public async void CheckForUpdate(bool checkForBetaUpdates, UpdateCallback updateCallback)
     {
         var currentVersion = Version.Parse(VERSION);
@@ -51,9 +51,9 @@ public class UpdaterChecker
 #if DEBUG
         _logger.Info("Skipping update check due to DEBUG mode");
 #else
-            try
-            {
-                var githubClient = new GitHubClient(new ProductHeaderValue(GITHUB_USER_AGENT, VERSION));
+        try
+        {
+            var githubClient = new GitHubClient(new ProductHeaderValue(GITHUB_USER_AGENT, VERSION));
 
             var releases = await githubClient.Repository.Release.GetAll(GITHUB_USERNAME, GITHUB_REPOSITORY);
 
@@ -167,7 +167,7 @@ public class UpdaterChecker
 
 #endif
     }
-    
+
     private bool IsDCSRunning()
     {
         foreach (var clsProcess in Process.GetProcesses())
@@ -179,47 +179,48 @@ public class UpdaterChecker
 
     public void LaunchUpdater(bool beta)
     {
-        Task.Run(() =>
-        {
-            while (IsDCSRunning()) Thread.Sleep(5000);
-
-            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-            var hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-
-            if (!hasAdministrativeRight)
+        if (OperatingSystem.IsWindows())
+            Task.Run(() =>
             {
-                var location = AppDomain.CurrentDomain.BaseDirectory;
+                while (IsDCSRunning()) Thread.Sleep(5000);
 
-                var startInfo = new ProcessStartInfo
+                var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+                var hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
+
+                if (!hasAdministrativeRight)
                 {
-                    UseShellExecute = true,
-                    WorkingDirectory = location,
-                    FileName = location + "SRS-AutoUpdater.exe",
-                    Verb = "runas"
-                };
+                    var location = AppDomain.CurrentDomain.BaseDirectory;
 
-                if (beta) startInfo.Arguments = "-beta";
+                    var startInfo = new ProcessStartInfo
+                    {
+                        UseShellExecute = true,
+                        WorkingDirectory = location,
+                        FileName = location + "SRS-AutoUpdater.exe",
+                        Verb = "runas"
+                    };
 
-                try
-                {
-                    var p = Process.Start(startInfo);
+                    if (beta) startInfo.Arguments = "-beta";
+
+                    try
+                    {
+                        var p = Process.Start(startInfo);
+                    }
+                    catch (Win32Exception)
+                    {
+                        //TODO sort this out with a callback
+                        // MessageBox.Show(
+                        //     "SRS Auto Update Requires Admin Rights",
+                        //     "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
                 }
-                catch (Win32Exception)
-                {
-                    //TODO sort this out with a callback
-                    // MessageBox.Show(
-                    //     "SRS Auto Update Requires Admin Rights",
-                    //     "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-            }
-            else
-            {
-                if (beta)
-                    Process.Start("SRS-AutoUpdater.exe", "-beta");
                 else
-                    Process.Start("SRS-AutoUpdater.exe");
-            }
-        });
+                {
+                    if (beta)
+                        Process.Start("SRS-AutoUpdater.exe", "-beta");
+                    else
+                        Process.Start("SRS-AutoUpdater.exe");
+                }
+            });
     }
 }
 
@@ -231,5 +232,4 @@ public class UpdateCallbackResult
     public string Url { get; set; }
     public bool Beta { get; set; }
     public bool Error { get; set; }
-    
 }
