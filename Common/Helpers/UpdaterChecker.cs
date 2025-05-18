@@ -48,13 +48,14 @@ public class UpdaterChecker
     {
         var currentVersion = Version.Parse(VERSION);
 
-#if DEBUG
-        _logger.Info("Skipping update check due to DEBUG mode");
-#else
+
         try
         {
             var githubClient = new GitHubClient(new ProductHeaderValue(GITHUB_USER_AGENT, VERSION));
 
+#if DEBUG
+            return;
+#endif
             var releases = await githubClient.Repository.Release.GetAll(GITHUB_USERNAME, GITHUB_REPOSITORY);
 
             Version latestStableVersion = new Version();
@@ -143,7 +144,7 @@ public class UpdaterChecker
                 {
                     Beta = false,
                     Branch = "stable",
-                    UpdateAvailable = true,
+                    UpdateAvailable = false,
                     Version = latestStableVersion,
                     Url = latestStableRelease.HtmlUrl,
                     Error = false
@@ -164,8 +165,6 @@ public class UpdaterChecker
                 Error = true
             });
         }
-
-#endif
     }
 
     private bool IsDCSRunning()
@@ -195,7 +194,7 @@ public class UpdaterChecker
                     {
                         UseShellExecute = true,
                         WorkingDirectory = location,
-                        FileName = location + "SRS-AutoUpdater.exe",
+                        FileName = location + "../SRS-AutoUpdater.exe",
                         Verb = "runas"
                     };
 
@@ -203,6 +202,7 @@ public class UpdaterChecker
 
                     try
                     {
+                        //TODO fix process start
                         var p = Process.Start(startInfo);
                     }
                     catch (Win32Exception)
@@ -215,10 +215,11 @@ public class UpdaterChecker
                 }
                 else
                 {
+                    //TODO fix process start
                     if (beta)
-                        Process.Start("SRS-AutoUpdater.exe", "-beta");
+                        Process.Start("../SRS-AutoUpdater.exe", "-beta");
                     else
-                        Process.Start("SRS-AutoUpdater.exe");
+                        Process.Start("../SRS-AutoUpdater.exe");
                 }
             });
     }

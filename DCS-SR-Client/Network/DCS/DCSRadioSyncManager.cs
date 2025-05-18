@@ -1,19 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Caliburn.Micro;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.LotATC;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.VAICOM;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.DCS.SimpleRadio.Standalone.Common;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
-using Newtonsoft.Json;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -24,11 +15,8 @@ Keeps radio information in Sync Between DCS and
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 
-public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>
+public class DCSRadioSyncManager
 {
-
-    public static readonly string AWACS_RADIOS_FILE = "awacs-radios.json";
-    public static readonly string AWACS_RADIOS_CUSTOM_FILE = "awacs-radios-custom.json";
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly DispatcherTimer _clearRadio;
 
@@ -38,11 +26,11 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
     private readonly DCSGameGuiHandler _dcsGameGuiHandler;
     private readonly DCSRadioSyncHandler _dcsRadioSyncHandler;
 
-    private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly DCSLineOfSightHandler _lineOfSightHandler;
+    private readonly LotATCSyncHandler _lotATCSyncHandler;
     private readonly UDPCommandHandler _udpCommandHandler;
 
-    private volatile bool _stopExternalAWACSMode;
+    private VAICOMSyncHandler _vaicomHandler;
 
     public DCSRadioSyncManager(string guid)
     {
@@ -51,6 +39,8 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
         _udpCommandHandler = new UDPCommandHandler();
         _dcsGameGuiHandler = new DCSGameGuiHandler();
         _dcsRadioSyncHandler = new DCSRadioSyncHandler();
+        _vaicomHandler = new VAICOMSyncHandler();
+        _lotATCSyncHandler = new LotATCSyncHandler(guid);
 
         _clearRadio = new DispatcherTimer(DispatcherPriority.Background, Application.Current.Dispatcher)
             { Interval = TimeSpan.FromSeconds(1) };
@@ -59,7 +49,6 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
 
     public bool IsListening { get; private set; }
 
-    private string PresetsFolder => _globalSettings.GetClientSetting(GlobalSettingsKeys.LastPresetsFolder).RawValue;
 
     private void CheckIfRadioIsStale(object sender, EventArgs e)
     {
@@ -80,134 +69,8 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
     {
         DcsListener();
         IsListening = true;
-        EventBus.Instance.SubscribeOnBackgroundThread(this);
     }
 
-    public void StartExternalAWACSModeLoop()
-    {
-        _stopExternalAWACSMode = false;
-
-        DCSRadio[] awacsRadios = null;
-
-        try
-        {
-            string radioJson;
-            var awacsRadiosFile = Path.Combine(PresetsFolder, AWACS_RADIOS_FILE);
-            var customAwacsRadiosFile = Path.Combine(PresetsFolder, AWACS_RADIOS_CUSTOM_FILE);
-            if (File.Exists(customAwacsRadiosFile))
-                try
-                {
-                    radioJson = File.ReadAllText(customAwacsRadiosFile);
-                    awacsRadios = JsonConvert.DeserializeObject<DCSRadio[]>(radioJson);
-
-                    foreach (var radio in awacsRadios)
-                        if (radio.modulation == Modulation.MIDS)
-                        {
-                            radio.freq = 1030100000.0;
-                            radio.freqMin = 1030000000;
-                            radio.freqMax = 1060000000;
-                            radio.encMode = DCSRadio.EncryptionMode.NO_ENCRYPTION;
-                            radio.guardFreqMode = DCSRadio.FreqMode.COCKPIT;
-                            radio.volMode = DCSRadio.VolumeMode.OVERLAY;
-                            radio.freqMode = DCSRadio.FreqMode.OVERLAY;
-                        }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn(ex,
-                        $"Failed to load custom {customAwacsRadiosFile} radio file - loading standard file");
-                }
-            else
-                Logger.Info($"No Custom {customAwacsRadiosFile} present - Loading {awacsRadiosFile}");
-
-            if (awacsRadios == null)
-            {
-                radioJson = File.ReadAllText(awacsRadiosFile);
-                awacsRadios = JsonConvert.DeserializeObject<DCSRadio[]>(radioJson);
-
-                foreach (var radio in awacsRadios)
-                    if (radio.modulation == Modulation.MIDS)
-                    {
-                        radio.freq = 1030100000.0;
-                        radio.freqMin = 1030000000;
-                        radio.freqMax = 1060000000;
-                        radio.encMode = DCSRadio.EncryptionMode.NO_ENCRYPTION;
-                        radio.guardFreqMode = DCSRadio.FreqMode.COCKPIT;
-                        radio.volMode = DCSRadio.VolumeMode.OVERLAY;
-                        radio.freqMode = DCSRadio.FreqMode.OVERLAY;
-                    }
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Warn(ex, "Failed to load AWACS radio file");
-
-            awacsRadios = new DCSRadio[Constants.MAX_RADIOS];
-            for (var i = 0; i < Constants.MAX_RADIOS; i++)
-                awacsRadios[i] = new DCSRadio
-                {
-                    freq = 1,
-                    freqMin = 1,
-                    freqMax = 1,
-                    secFreq = 0,
-                    modulation = Modulation.DISABLED,
-                    name = "No Radio",
-                    freqMode = DCSRadio.FreqMode.COCKPIT,
-                    encMode = DCSRadio.EncryptionMode.NO_ENCRYPTION,
-                    volMode = DCSRadio.VolumeMode.COCKPIT
-                };
-        }
-
-        // Force an immediate update of radio information
-        _clientStateSingleton.LastSent = 0;
-        _clientStateSingleton.DcsPlayerRadioInfo.LastUpdate = DateTime.Now.Ticks;
-        Task.Factory.StartNew(() =>
-        {
-            _clientStateSingleton.ExternalAWACSModelSelected = true;
-            Logger.Debug("Starting external AWACS mode loop");
-
-            _clientStateSingleton.IntercomOffset = 1;
-            while (!_stopExternalAWACSMode)
-            {
-                var unitId = DCSPlayerRadioInfo.UnitIdOffset + _clientStateSingleton.IntercomOffset;
-
-                //save
-                _dcsRadioSyncHandler.ProcessRadioInfo(new DCSPlayerRadioInfo
-                {
-                    LastUpdate = 0,
-                    control = DCSPlayerRadioInfo.RadioSwitchControls.HOTAS,
-                    name = _clientStateSingleton.LastSeenName,
-                    ptt = false,
-                    radios = awacsRadios,
-                    selected = 1,
-                    latLng = new LatLngPosition { lat = 0, lng = 0, alt = 0 },
-                    simultaneousTransmission = false,
-                    simultaneousTransmissionControl = DCSPlayerRadioInfo.SimultaneousTransmissionControl
-                        .ENABLED_INTERNAL_SRS_CONTROLS,
-                    unit = "EAM",
-                    unitId = (uint)unitId,
-                    inAircraft = false
-                });
-
-                Thread.Sleep(200);
-            }
-
-            var radio = new DCSPlayerRadioInfo();
-            radio.Reset();
-            _dcsRadioSyncHandler.ProcessRadioInfo(radio);
-            _clientStateSingleton.IntercomOffset = 1;
-
-            Logger.Debug("Stopping external AWACS mode loop");
-        });
-    }
-
-    public void StopExternalAWACSModeLoop()
-    {
-        _clientStateSingleton.ExternalAWACSModelSelected = false;
-        _stopExternalAWACSMode = true;
-        
-  
-    }
 
     private void DcsListener()
     {
@@ -216,12 +79,12 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
         _lineOfSightHandler.Start();
         _udpCommandHandler.Start();
         _clearRadio.Start();
+        _vaicomHandler.Start();
+        _lotATCSyncHandler.Start();
     }
 
     public void Stop()
     {
-        EventBus.Instance.Unsubcribe(this);
-        _stopExternalAWACSMode = true;
         IsListening = false;
 
         _clearRadio.Stop();
@@ -229,17 +92,7 @@ public class DCSRadioSyncManager:IHandle<EAMConnectedMessage>, IHandle<EAMDiscon
         _dcsGameGuiHandler.Stop();
         _lineOfSightHandler.Stop();
         _udpCommandHandler.Stop();
-    }
-
-    public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
-    {
-        StartExternalAWACSModeLoop();
-        return Task.CompletedTask;
-    }
-
-    public Task HandleAsync(EAMDisconnectMessage message, CancellationToken cancellationToken)
-    {
-        StopExternalAWACSModeLoop();
-        return Task.CompletedTask;
+        _vaicomHandler.Stop();
+        _lotATCSyncHandler.Stop();
     }
 }

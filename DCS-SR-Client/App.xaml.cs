@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NLog;
 using NLog.Config;
@@ -134,6 +135,7 @@ public partial class App : Application
                 };
                 try
                 {
+                    //TODO fix process start
                     var p = Process.Start(startInfo);
 
                     //shutdown this process as another has started
@@ -244,9 +246,9 @@ public partial class App : Application
             Text = "Quit"
         };
         notifyIconContextMenuQuit.Click += NotifyIcon_Quit;
-        
+
         var notifyIconContextMenu = new ContextMenuStrip();
-        
+
         notifyIconContextMenu.Items.AddRange(new[] { notifyIconContextMenuShow, notifyIconContextMenuQuit });
 
         _notifyIcon = new NotifyIcon
@@ -261,13 +263,13 @@ public partial class App : Application
 
     private void NotifyIcon_Show(object sender, EventArgs args)
     {
-        MainWindow.Show();
+        MainWindow?.Show();
         MainWindow.WindowState = WindowState.Normal;
     }
 
     private void NotifyIcon_Quit(object sender, EventArgs args)
     {
-        MainWindow.Close();
+        MainWindow?.Close();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -275,6 +277,8 @@ public partial class App : Application
         if (_notifyIcon != null)
             _notifyIcon.Visible = false;
         base.OnExit(e);
+
+        ClientStateSingleton.Instance.Close();
     }
 
     private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)

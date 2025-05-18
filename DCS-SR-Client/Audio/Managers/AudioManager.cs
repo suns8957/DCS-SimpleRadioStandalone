@@ -37,6 +37,8 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     private readonly AudioInputSingleton _audioInputSingleton = AudioInputSingleton.Instance;
     private readonly AudioOutputSingleton _audioOutputSingleton = AudioOutputSingleton.Instance;
 
+    private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
+
     private readonly ClientEffectsPipeline _clientEffectsPipeline;
 
     private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio = new();
@@ -44,8 +46,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-    
-    private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
 
     private readonly string _guid;
 
@@ -284,7 +284,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         _udpClientAudioProcessor.Start();
 
         EventBus.Instance.SubscribeOnBackgroundThread(this);
-        
+
         AudioRecordingManager.Instance.Start(ClientStateSingleton.Instance.ShortGUID);
     }
 
@@ -407,11 +407,11 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                     _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, tempFloat.Length * 4);
                                 }
 
-                                 //TODO cache this to avoid the constant lookup
-                                 if (GlobalSettingsStore.Instance.GetClientSettingBool(
-                                         GlobalSettingsKeys.RecordAudio))
-                                     _audioRecordingManager.AppendPlayerAudio(tempFloat,
-                                         jitterBufferAudio.ReceivedRadio);
+                                //TODO cache this to avoid the constant lookup
+                                if (GlobalSettingsStore.Instance.GetClientSettingBool(
+                                        GlobalSettingsKeys.RecordAudio))
+                                    _audioRecordingManager.AppendPlayerAudio(tempFloat,
+                                        jitterBufferAudio.ReceivedRadio);
                             }
                         }
                     }
@@ -447,13 +447,14 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                 "JOIN DISCORD SERVER",
                 "CLOSE",
                 MessageBoxImage.Error);
-
+            //TODO fix process start
             if (messageBoxResult == MessageBoxResult.Yes)
                 Process.Start("ms-settings:privacy-microphone");
             else if (messageBoxResult == MessageBoxResult.No) Process.Start("https://discord.gg/baw7g3t");
         }
         else
         {
+            //TODO fix process start
             var messageBoxResult = CustomMessageBox.ShowYesNo(
                 $"{message}\n\n" +
                 "Try a different Input device and please post your client log to the support Discord server.",
@@ -475,7 +476,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
             "JOIN DISCORD SERVER",
             "CLOSE",
             MessageBoxImage.Error);
-
+        //TODO fix process start
         if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
     }
 
@@ -566,7 +567,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
             SpeakerMax = -100;
             MicMax = -100;
-            
+
             AudioRecordingManager.Instance.Stop();
 
             EventBus.Instance.Unsubcribe(this);

@@ -85,10 +85,7 @@ internal class AudioPreview
 
             //add final volume boost to all mixed audio
             _volumeSampleProvider = new VolumeSampleProviderWithPeak(filter,
-                peak =>
-                {
-                    SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak);
-                });
+                peak => { SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak); });
             _volumeSampleProvider.Volume = SpeakerBoost;
 
             if (speakers.AudioClient.MixFormat.Channels == 1)
@@ -165,13 +162,14 @@ internal class AudioPreview
                 "JOIN DISCORD SERVER",
                 "CLOSE",
                 MessageBoxImage.Error);
-
+            //TODO fix process start
             if (messageBoxResult == MessageBoxResult.Yes)
                 Process.Start("ms-settings:privacy-microphone");
             else if (messageBoxResult == MessageBoxResult.No) Process.Start("https://discord.gg/baw7g3t");
         }
         else
         {
+            //TODO fix process start
             var messageBoxResult = CustomMessageBox.ShowYesNo(
                 "Problem initialising Audio Input!\n\nTry a different Input device and please post your client log to the support Discord server.",
                 "Audio Input Error",

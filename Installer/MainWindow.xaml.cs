@@ -7,12 +7,10 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using NLog;
 using NLog.Config;
@@ -21,7 +19,6 @@ using NLog.Targets.Wrappers;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using File = System.IO.File;
-using ThreadState = System.Diagnostics.ThreadState;
 
 namespace Installer
 {
@@ -31,9 +28,12 @@ namespace Installer
     public partial class MainWindow
     {
         private const string REG_PATH = "HKEY_CURRENT_USER\\SOFTWARE\\DCS-SR-Standalone";
-        private const string EXPORT_SRS_LUA = "pcall(function() local dcsSr=require('lfs');dofile(dcsSr.writedir()..[[Mods\\Services\\DCS-SRS\\Scripts\\DCS-SimpleRadioStandalone.lua]]); end,nil)";
-        private readonly string _currentDirectory;
+
+        private const string EXPORT_SRS_LUA =
+            "pcall(function() local dcsSr=require('lfs');dofile(dcsSr.writedir()..[[Mods\\Services\\DCS-SRS\\Scripts\\DCS-SimpleRadioStandalone.lua]]); end,nil)";
+
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly string _currentDirectory;
         private ProgressBarDialog _progressBarDialog = null;
 
         public MainWindow()
@@ -41,7 +41,7 @@ namespace Installer
             SetupLogging();
             InitializeComponent();
 
-            var assembly =  Assembly.GetEntryAssembly();
+            var assembly = Assembly.GetEntryAssembly();
             var version = assembly?.GetName().Version?.ToString();
 
             Title = Properties.Resources.Title;
@@ -87,13 +87,12 @@ namespace Installer
 
             _currentDirectory = currentPath;
 
-            Logger.Info("Listing Files / Directories for: "+_currentDirectory);
+            Logger.Info("Listing Files / Directories for: " + _currentDirectory);
             ListFiles(_currentDirectory);
             Logger.Info("Finished Listing Files / Directories");
 
             if (!CheckExtracted())
             {
-
                 MessageBox.Show(
                     Properties.Resources.MsgBoxExtractedText,
                     Properties.Resources.MsgBoxExtracted,
@@ -112,7 +111,7 @@ namespace Installer
 
                 if (((App)Application.Current).Arguments.Length > 0)
                 {
-                    if(IsAutoUpdate() && !IsSilentServer())
+                    if (IsAutoUpdate() && !IsSilentServer())
                     {
                         Application.Current.Dispatcher?.Invoke(() =>
                             {
@@ -124,24 +123,21 @@ namespace Installer
 
                                 if (result == MessageBoxResult.Yes)
                                 {
-
                                 }
                                 else
                                 {
                                     InstallScriptsCheckbox.IsChecked = true;
                                     InstallReleaseButton(null, null);
                                 }
-
-                                
                             }
                         ); //end-invoke
                     }
-                    else if(IsAutoUpdate()&& IsSilentServer())
+                    else if (IsAutoUpdate() && IsSilentServer())
                     {
                         Application.Current.Dispatcher?.Invoke(() =>
                             {
                                 var path = ServerPath();
-                                Logger.Info("Silent Server Installer Running - "+path);
+                                Logger.Info("Silent Server Installer Running - " + path);
 
                                 srPath.Text = path;
                                 InstallScriptsCheckbox.IsChecked = false;
@@ -150,7 +146,6 @@ namespace Installer
                         ); //end-invoke
                     }
                 }
-
             }).Invoke();
         }
 
@@ -187,7 +182,7 @@ namespace Installer
                 if (commandLineArg.Trim().StartsWith("-path="))
                 {
                     var line = commandLineArg.Trim();
-                    line = line.Replace("-path=","");
+                    line = line.Replace("-path=", "");
 
                     return line;
                 }
@@ -204,7 +199,6 @@ namespace Installer
                 {
                     return true;
                 }
-
             }
 
             return false;
@@ -240,14 +234,18 @@ namespace Installer
                     {
                         File.Delete(oldLogFilePath);
                     }
-                    catch (Exception) { }
+                    catch (Exception)
+                    {
+                    }
                 }
 
                 try
                 {
                     File.Move(logFilePath, oldLogFilePath);
                 }
-                catch (Exception) { }
+                catch (Exception)
+                {
+                }
             }
 
             var config = new LoggingConfiguration();
@@ -262,28 +260,24 @@ namespace Installer
             config.AddTarget("file", wrapper);
 
 #if DEBUG
-            config.LoggingRules.Add( new LoggingRule("*", LogLevel.Debug, fileTarget));
+            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, fileTarget));
 #else
             config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, fileTarget));
 #endif
 
             LogManager.Configuration = config;
-
         }
 
         private void ShowDCSWarning()
         {
-           
-                MessageBox.Show(
-                    Properties.Resources.MsgBoxDCSText,
-                    Properties.Resources.MsgBoxDCS,
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            
+            MessageBox.Show(
+                Properties.Resources.MsgBoxDCSText,
+                Properties.Resources.MsgBoxDCS,
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private async void  InstallReleaseButton(object sender, RoutedEventArgs e)
+        private async void InstallReleaseButton(object sender, RoutedEventArgs e)
         {
-
             var dcScriptsPath = dcsScriptsPath.Text;
             if ((bool)!InstallScriptsCheckbox.IsChecked)
             {
@@ -319,12 +313,12 @@ namespace Installer
             _progressBarDialog.Show();
 
             var srsPath = srPath.Text;
-           
+
             var shortcut = CreateStartMenuShortcut.IsChecked ?? true;
 
             new Action(async () =>
             {
-                int result = await Task.Run<int>(() => InstallRelease(srsPath,dcScriptsPath, shortcut));
+                int result = await Task.Run<int>(() => InstallRelease(srsPath, dcScriptsPath, shortcut));
                 if (result == 0)
                 {
                     Application.Current.Dispatcher.Invoke(() =>
@@ -335,7 +329,6 @@ namespace Installer
                         }
                     ); //end-invoke
                     _progressBarDialog.UpdateProgress(true, "Error");
-
                 }
                 else if (result == 1)
                 {
@@ -355,13 +348,12 @@ namespace Installer
                         Properties.Resources.MsgBoxInstallErrorText,
                         Properties.Resources.MsgBoxInstallError,
                         MessageBoxButton.OK, MessageBoxImage.Error);
-                
+                    //TODO fix process start
                     Process.Start("https://discord.gg/vqxAw7H");
                     Process.Start("explorer.exe", GetWorkingDirectory());
                     Environment.Exit(0);
                 }
             }).Invoke();
-
         }
 
         private int InstallRelease(string srPath, string dcsScriptsPath, bool shortcut)
@@ -377,7 +369,6 @@ namespace Installer
 
                     if (paths.Count == 0)
                     {
-
                         MessageBox.Show(
                             Properties.Resources.MsgBoxFolderText,
                             Properties.Resources.MsgBoxFolder,
@@ -418,7 +409,7 @@ namespace Installer
 
                 WritePath(srPath, "SRPathStandalone");
 
-                if(dcsScriptsPath!=null)
+                if (dcsScriptsPath != null)
                     WritePath(dcsScriptsPath, "ScriptsPath");
 
                 if (shortcut)
@@ -457,18 +448,16 @@ namespace Installer
                         MessageBox.Show(message, Properties.Resources.MsgBoxInstallTitle,
                             MessageBoxButton.OK, MessageBoxImage.Information);
                     }
-                    
                 }
-                    
+
 
                 return 1;
-
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error Running Installer");
 
-            
+
                 return -1;
             }
         }
@@ -478,8 +467,8 @@ namespace Installer
             Logger.Info($"Starting SRS Server - Paths: \nProgram:{path} ");
             ProcessStartInfo procInfo = new ProcessStartInfo
             {
-                WorkingDirectory = path, 
-                FileName = (path + "\\" + "sr-server.exe"), 
+                WorkingDirectory = path,
+                FileName = (path + "\\" + "sr-server.exe"),
                 UseShellExecute = false
             };
             Process.Start(procInfo);
@@ -487,15 +476,15 @@ namespace Installer
 
         private string GetWorkingDirectory()
         {
-            return new FileInfo(System.AppContext.BaseDirectory).Directory.ToString();
+            return new FileInfo(AppContext.BaseDirectory).Directory.ToString();
         }
 
         private void InstallVCRedist()
         {
             _progressBarDialog.UpdateProgress(false, $"Installing VC Redist x64");
-            Process.Start(GetWorkingDirectory() + "\\VC_redist.x64.exe", "/install /norestart /quiet /log \"vc_redist_2017_x64.log\"");
+            Process.Start(GetWorkingDirectory() + "\\VC_redist.x64.exe",
+                "/install /norestart /quiet /log \"vc_redist_2017_x64.log\"");
             _progressBarDialog.UpdateProgress(false, $"Finished installing VC Redist x64");
-
         }
 
         static void ListFiles(string sDir)
@@ -508,12 +497,13 @@ namespace Installer
                     {
                         Logger.Info(f);
                     }
+
                     ListFiles(d);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex,"Error listing files");
+                Logger.Error(ex, "Error listing files");
             }
         }
 
@@ -521,7 +511,7 @@ namespace Installer
         private void ClearVersionPreModsTechDCS(string programPath, string dcsPath)
         {
             Logger.Info($"Removed previous SRS Version at {programPath} and {dcsPath}");
-           
+
             var paths = FindValidDCSFolders(dcsPath);
 
             foreach (var path in paths)
@@ -535,7 +525,7 @@ namespace Installer
             if (Directory.Exists(programPath) && File.Exists(programPath + "\\SR-ClientRadio.exe"))
             {
                 DeleteFileIfExists(programPath + "\\SR-ClientRadio.exe");
-                DeleteFileIfExists(programPath + "\\opus.dll"); 
+                DeleteFileIfExists(programPath + "\\opus.dll");
                 DeleteFileIfExists(programPath + "\\speexdsp.dll");
                 DeleteFileIfExists(programPath + "\\WebRtcVad.dll");
                 DeleteFileIfExists(programPath + "\\awacs-radios.json");
@@ -554,14 +544,14 @@ namespace Installer
                 DeleteFileIfExists(programPath + "\\clientlog.txt");
                 DeleteFileIfExists(programPath + "\\DCS-SRS-hook.lua");
             }
-            Logger.Info($"Finished clearing scripts and program Pre Mods ");
 
+            Logger.Info($"Finished clearing scripts and program Pre Mods ");
         }
 
         private void ClearVersionPostModsTechDCS(string programPath, string dcsPath)
         {
             Logger.Info($"Removed SRS Version Post Mods at {programPath} and {dcsPath}");
-            
+
             var paths = FindValidDCSFolders(dcsPath);
 
             foreach (var path in paths)
@@ -588,9 +578,10 @@ namespace Installer
                 DeleteFileIfExists(programPath + "\\serverlog.txt");
                 DeleteFileIfExists(programPath + "\\clientlog.txt");
 
-               
+
                 DeleteDirectory(programPath + "\\Scripts");
             }
+
             Logger.Info($"Finished clearing scripts and program Post Mods ");
         }
 
@@ -620,6 +611,7 @@ namespace Installer
                             Logger.Info($"Removed SRS Scripts from Export.lua");
                         }
                     }
+
                     File.WriteAllText(path + "\\Scripts\\Export.lua", sb.ToString());
                 }
             }
@@ -629,10 +621,10 @@ namespace Installer
             DeleteFileIfExists(path + "\\Scripts\\Hooks\\DCS-SRS-Hook.lua");
 
             //MODs folder
-            if (Directory.Exists(path+"\\Mods\\Tech\\DCS-SRS"))
+            if (Directory.Exists(path + "\\Mods\\Tech\\DCS-SRS"))
             {
                 Logger.Info($"Removed Mods/Tech/DCS-SRS folder");
-                Directory.Delete(path+"\\Mods\\Tech\\DCS-SRS",true);
+                Directory.Delete(path + "\\Mods\\Tech\\DCS-SRS", true);
             }
 
             Logger.Info($"Finished Removing Mods/Tech & Scripts for SRS");
@@ -668,9 +660,10 @@ namespace Installer
                 DeleteFileIfExists(programPath + "\\serverlog.txt");
                 DeleteFileIfExists(programPath + "\\clientlog.txt");
 
-          
+
                 DeleteDirectory(programPath + "\\Scripts");
             }
+
             Logger.Info($"Finished clearing scripts and program Post Mods ");
         }
 
@@ -700,6 +693,7 @@ namespace Installer
                             Logger.Info($"Removed SRS Scripts from Export.lua");
                         }
                     }
+
                     File.WriteAllText(path + "\\Scripts\\Export.lua", sb.ToString());
                 }
             }
@@ -720,7 +714,7 @@ namespace Installer
 
         private static string ReadPath(string key)
         {
-            var srPath = (string) Registry.GetValue(REG_PATH,
+            var srPath = (string)Registry.GetValue(REG_PATH,
                 key,
                 "");
 
@@ -771,16 +765,16 @@ namespace Installer
 #endif
             foreach (var clsProcess in Process.GetProcesses())
             {
-                if (clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-server") || clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-client"))
+                if (clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-server") ||
+                    clsProcess.ProcessName.ToLower().Trim().StartsWith("sr-client"))
                 {
                     Logger.Info($"Found & Terminating {clsProcess.ProcessName}");
                     clsProcess.Kill();
                     clsProcess.WaitForExit(5000);
                     clsProcess.Dispose();
-
-                    
                 }
             }
+
             Logger.Info($"Closed SRS Client & Server");
         }
 
@@ -833,6 +827,7 @@ namespace Installer
                 {
                     filename = filename + "\\";
                 }
+
                 filename = filename + "DCS-SimpleRadio-Standalone\\";
 
                 srPath.Text = filename;
@@ -863,7 +858,7 @@ namespace Installer
             Logger.Info($"Finding DCS Saved Games Path");
             var paths = new List<string>();
 
-            if(path == null || path.Length == 0)
+            if (path == null || path.Length == 0)
             {
                 return paths;
             }
@@ -887,10 +882,8 @@ namespace Installer
                         {
                             Logger.Info($"Found DCS Saved Games Path {directory} - Ignoring as its a Server path");
                         }
-                        
                     }
                 }
-               
             }
 
             Logger.Info($"Finished Finding DCS Saved Games Path");
@@ -934,7 +927,7 @@ namespace Installer
             File.Copy(_currentDirectory + "\\opus.dll", path + "\\opus.dll", true);
             File.Copy(_currentDirectory + "\\speexdsp.dll", path + "\\speexdsp.dll", true);
             File.Copy(_currentDirectory + "\\awacs-radios.json", path + "\\awacs-radios.json", true);
-            
+
             File.Copy(_currentDirectory + "\\SR-ClientRadio.exe", path + "\\SR-ClientRadio.exe", true);
             File.Copy(_currentDirectory + "\\SR-Server.exe", path + "\\SR-Server.exe", true);
             File.Copy(_currentDirectory + "\\SRS-AutoUpdater.exe", path + "\\SRS-AutoUpdater.exe", true);
@@ -944,26 +937,26 @@ namespace Installer
             File.Copy(_currentDirectory + "\\libmp3lame.64.dll", path + "\\libmp3lame.64.dll", true);
 
             File.Copy(_currentDirectory + "\\grpc_csharp_ext.x64.dll", path + "\\grpc_csharp_ext.x64.dll", true);
-            
+
 
             File.Copy(_currentDirectory + "\\WebRtcVad.dll", path + "\\WebRtcVad.dll", true);
 
             Logger.Info($"Copying directories");
-            DirectoryCopy(_currentDirectory+"\\AudioEffects", path+"\\AudioEffects");
+            DirectoryCopy(_currentDirectory + "\\AudioEffects", path + "\\AudioEffects");
             DirectoryCopy(_currentDirectory + "\\Scripts", path + "\\Scripts");
             DirectoryCopy(_currentDirectory + "\\zh-CN", path + "\\zh-CN");
 
             Logger.Info($"Finished installing SRS Program to {path}");
-
         }
 
         private void InstallShortcuts(string path)
         {
             Logger.Info($"Adding SRS Shortcut");
             string executablePath = Path.Combine(path, "SR-ClientRadio.exe");
-            string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "DCS-SRS Client.lnk");
+            string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
+                "DCS-SRS Client.lnk");
 
-            ShortcutHelper.Create(shortcutPath, executablePath, null,path,"DCS-SimpleRadio Standalone Client");
+            ShortcutHelper.Create(shortcutPath, executablePath, null, path, "DCS-SimpleRadio Standalone Client");
             //
             // WshShell shell = new WshShell();
             // IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
@@ -979,13 +972,13 @@ namespace Installer
             Logger.Info($"Installing Scripts to {path}");
             _progressBarDialog.UpdateProgress(false, $"Creating Script folders @ {path}");
             //Scripts Path
-            CreateDirectory(path+"\\Scripts");
-            CreateDirectory(path+"\\Scripts\\Hooks");
-            
+            CreateDirectory(path + "\\Scripts");
+            CreateDirectory(path + "\\Scripts\\Hooks");
+
             //Make Tech Path
-            CreateDirectory(path+"\\Mods"); 
-            CreateDirectory(path+"\\Mods\\Services");
-            CreateDirectory(path+ "\\Mods\\Services\\DCS-SRS");
+            CreateDirectory(path + "\\Mods");
+            CreateDirectory(path + "\\Mods\\Services");
+            CreateDirectory(path + "\\Mods\\Services\\DCS-SRS");
 
             Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
 
@@ -1007,19 +1000,19 @@ namespace Installer
 
                     foreach (var line in lines)
                     {
-                        if (line.Contains("SimpleRadioStandalone.lua") )
+                        if (line.Contains("SimpleRadioStandalone.lua"))
                         {
                             sb.Append("\n");
                             sb.Append(EXPORT_SRS_LUA);
                             sb.Append("\n");
                         }
-                        else if(line.Trim().Length>0)
+                        else if (line.Trim().Length > 0)
                         {
                             sb.Append(line);
                             sb.Append("\n");
                         }
-                        
                     }
+
                     File.WriteAllText(path + "\\Scripts\\Export.lua", sb.ToString());
                 }
                 else
@@ -1036,7 +1029,7 @@ namespace Installer
                 Logger.Info($"Creating new Export.lua");
                 var writer = File.CreateText(path + "\\Scripts\\Export.lua");
 
-                writer.WriteLine("\n"+EXPORT_SRS_LUA+"\n");
+                writer.WriteLine("\n" + EXPORT_SRS_LUA + "\n");
                 writer.Close();
             }
 
@@ -1046,10 +1039,11 @@ namespace Installer
             _progressBarDialog.UpdateProgress(false, $"Creating / installing Hooks & Mods/Services @ {path}");
             try
             {
-                File.Copy(_currentDirectory + "\\Scripts\\Hooks\\DCS-SRS-hook.lua", path + "\\Scripts\\Hooks\\DCS-SRS-hook.lua",
+                File.Copy(_currentDirectory + "\\Scripts\\Hooks\\DCS-SRS-hook.lua",
+                    path + "\\Scripts\\Hooks\\DCS-SRS-hook.lua",
                     true);
 
-                DirectoryCopy(_currentDirectory + "\\Scripts\\DCS-SRS",path+"\\Mods\\Services\\DCS-SRS");
+                DirectoryCopy(_currentDirectory + "\\Scripts\\DCS-SRS", path + "\\Mods\\Services\\DCS-SRS");
             }
             catch (FileNotFoundException)
             {
@@ -1058,6 +1052,7 @@ namespace Installer
                     Properties.Resources.MsgBoxExtracted2, MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(0);
             }
+
             Logger.Info($"Scripts installed to {path}");
 
             _progressBarDialog.UpdateProgress(false, $"Installed Hooks & Mods/Services @ {path}");
@@ -1104,7 +1099,6 @@ namespace Installer
                 string temppath = Path.Combine(destDirName, subdir.Name);
                 DirectoryCopy(subdir.FullName, temppath);
             }
-            
         }
 
         private async Task<bool> UninstallSR(string srPath, string dcsScriptsPath)
@@ -1133,21 +1127,20 @@ namespace Installer
                 RemoveShortcuts();
 
                 return true;
-
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Logger.Error(ex, "Error Running Uninstaller");
             }
 
             return false;
-
         }
 
         private void RemoveShortcuts()
         {
             Logger.Info($"Removed SRS Shortcut");
-            string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "DCS-SRS Client.lnk");
+            string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
+                "DCS-SRS Client.lnk");
 
             DeleteFileIfExists(shortcutPath);
         }
@@ -1199,38 +1192,41 @@ namespace Installer
                     var dSecurity = dir.GetAccessControl();
                     if (WindowsIdentity.GetCurrent().Owner != null)
                     {
-                        dSecurity.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().Owner, FileSystemRights.Modify,
+                        dSecurity.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().Owner,
+                            FileSystemRights.Modify,
                             InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
                             PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
                     }
+
                     if (WindowsIdentity.GetCurrent().User != null)
                     {
-                        dSecurity.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().User, FileSystemRights.Modify,
+                        dSecurity.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().User,
+                            FileSystemRights.Modify,
                             InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
                             PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
                     }
+
                     dir.SetAccessControl(dSecurity);
                     dir.Refresh();
                 }
-                catch(Exception ex){
-                    Logger.Warn($"Unable to set permissions on path ${path}",ex);
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Unable to set permissions on path ${path}", ex);
                 }
-                
-
             }
 
             //sometimes it says directory created and its not!
-            do 
-            { 
+            do
+            {
                 Task.Delay(TimeSpan.FromMilliseconds(50)).Wait();
-            } while(!Directory.Exists(path));
+            } while (!Directory.Exists(path));
+
             Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
         }
 
 
         private async void Remove_Plugin(object sender, RoutedEventArgs e)
         {
-
             if (!Directory.Exists(dcsScriptsPath.Text))
             {
                 dcsScriptsPath.Text = "";
@@ -1250,7 +1246,7 @@ namespace Installer
             _progressBarDialog.Show();
             _progressBarDialog.UpdateProgress(false, Properties.Resources.MsgBoxUninstalling);
 
-            var result = await UninstallSR(srPath.Text,dcsScriptsPath.Text);
+            var result = await UninstallSR(srPath.Text, dcsScriptsPath.Text);
             if (result)
             {
                 _progressBarDialog.UpdateProgress(true, Properties.Resources.MsgBoxRemovedText2);
@@ -1270,23 +1266,21 @@ namespace Installer
                     MessageBoxButton.OK, MessageBoxImage.Error);
 
                 Process.Start("https://discord.gg/vqxAw7H");
-
+                //TODO fix process start
                 Process.Start("explorer.exe", GetWorkingDirectory());
-
             }
+
             Environment.Exit(0);
         }
 
         private void InstallScriptsCheckbox_OnChecked(object sender, RoutedEventArgs e)
         {
             dcsScriptsPath.IsEnabled = true;
-
         }
 
         private void InstallScriptsCheckbox_OnUnchecked(object sender, RoutedEventArgs e)
         {
             dcsScriptsPath.IsEnabled = false;
-
         }
     }
 }
