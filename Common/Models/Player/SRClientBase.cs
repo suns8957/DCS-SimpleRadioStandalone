@@ -131,8 +131,8 @@ public class SRClientBase : PropertyChangedBaseClass
     {
         var copy = new SRClientBase
         {
-            RadioInfo = RadioInfo.DeepClone(),
-            LatLngPosition = LatLngPosition.DeepClone(),
+            RadioInfo = RadioInfo?.DeepClone(),
+            LatLngPosition = LatLngPosition?.DeepClone(),
             Name = Name,
             AllowRecord = AllowRecord,
             Seat = Seat,

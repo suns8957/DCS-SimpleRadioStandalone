@@ -159,7 +159,8 @@ public class PresetChannelsViewModel : INotifyPropertyChanged
                 if (res == MessageBoxResult.Yes)
                     try
                     {
-                        Process.Start(path);
+                        Process.Start(new ProcessStartInfo(path)
+                            { UseShellExecute = true });
                     }
                     catch (Exception)
                     {

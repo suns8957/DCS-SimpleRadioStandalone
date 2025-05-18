@@ -605,12 +605,18 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
 
     public float HQEffectVolume
     {
-        get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(
-            ProfileSettingsKeys.HQToneVolume);
+        get =>
+            (float)((_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HQToneVolume)
+                     / double.Parse(
+                         ProfileSettingsStore.DefaultSettingsProfileSettings
+                             [ProfileSettingsKeys.HQToneVolume.ToString()], CultureInfo.InvariantCulture)) * 100.0f);
         set
         {
-            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HQToneVolume,
-                value);
+            var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HQToneVolume.ToString()], CultureInfo.InvariantCulture);
+
+            var vol = orig * (value/ 100.0f);
+
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HQToneVolume, (float)vol);
             NotifyPropertyChanged();
         }
     }
@@ -643,13 +649,15 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
 
     public float AmbientEffectVolume
     {
-        get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(
-            ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume);
+        get => (float)((_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume)
+                        / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture)) * 100.0f);
         set
         {
-            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(
-                ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume,
-                value);
+            var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture);
+
+            var vol = orig * (value/ 100.0f);
+
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume, (float)vol);
             NotifyPropertyChanged();
         }
     }
@@ -757,13 +765,13 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume)
             / double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()],
-                CultureInfo.InvariantCulture) * 100;
+                CultureInfo.InvariantCulture) * 100.0f;
         set
         {
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()],
                 CultureInfo.InvariantCulture);
-            var vol = orig * (value / 100);
+            var vol = orig * (value / 100.0f);
 
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume,
                 (float)vol);
@@ -788,13 +796,13 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume)
             / double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()],
-                CultureInfo.InvariantCulture) * 100;
+                CultureInfo.InvariantCulture) * 100.0f;
         set
         {
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
-            var vol = orig * (value / 100);
+            var vol = orig * (value / 100.0f);
 
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume,
                 (float)vol);
@@ -807,13 +815,13 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume)
             / double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()],
-                CultureInfo.InvariantCulture) * 100;
+                CultureInfo.InvariantCulture) * 100.0f;
         set
         {
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
-            var vol = orig * (value / 100);
+            var vol = orig * (value / 100.0f);
 
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume,
                 (float)vol);
@@ -826,13 +834,13 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume)
             / double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()],
-                CultureInfo.InvariantCulture) * 100;
+                CultureInfo.InvariantCulture) * 100.0f;
         set
         {
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
-            var vol = orig * (value / 100);
+            var vol = orig * (value / 100.0f);
 
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume,
                 (float)vol);
@@ -845,13 +853,13 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume)
             / double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()],
-                CultureInfo.InvariantCulture) * 100;
+                CultureInfo.InvariantCulture) * 100.0f;
         set
         {
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
-            var vol = orig * (value / 100);
+            var vol = orig * (value / 100.0f);
 
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume,
                 (float)vol);

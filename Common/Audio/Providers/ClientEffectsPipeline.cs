@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
@@ -87,14 +88,47 @@ public class ClientEffectsPipeline
             hqToneEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.HAVEQUICKTone);
             radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
             clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
+            
+            
+            //TODO check the volume conversion on the sliders for all volumes
             hqToneVolume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HQToneVolume);
+            
+            //OLD CODE WAS
+            /**
+             *             HQToneVolume.IsEnabled = false;
+            HQToneVolume.ValueChanged += (sender, e) =>
+            {
+                if (HQToneVolume.IsEnabled)
+                {
+                    var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HQToneVolume.ToString()], CultureInfo.InvariantCulture);
+
+                    var vol = orig * (e.NewValue / 100);
+
+                    _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HQToneVolume, (float)vol);
+                }
+
+            };
+            HQToneVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HQToneVolume)
+                                  / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HQToneVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
+            HQToneVolume.IsEnabled = true;
+             */
+            
             natoToneVolume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume);
+            
             amCollisionVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AMCollisionVolume);
 
             fmVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume);
             hfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume);
             uhfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume);
             vhfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume);
+            
+            //
+            // fmVol = float.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()], CultureInfo.InvariantCulture) 
+            //         * (profileSettings.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume)/100.0f);
+            // hfVol = float.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()], CultureInfo.InvariantCulture) * (profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume)/100.0f);
+            // uhfVol = float.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()], CultureInfo.InvariantCulture) * (profileSettings.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume)/100.0f);
+            // vhfVol = float.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()], CultureInfo.InvariantCulture) * (profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume)/100.0f);
+            //
 
             radioEffects = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
 

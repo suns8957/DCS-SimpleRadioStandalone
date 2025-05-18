@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
@@ -27,9 +28,10 @@ public class ClientAudioProvider : AudioProvider
     //   private readonly WaveFileWriter waveWriter;
     public ClientAudioProvider(bool passThrough = false) : base(passThrough)
     {
+        var radios = Constants.MAX_RADIOS;
         if (!passThrough)
         {
-            var radios = Constants.MAX_RADIOS;
+         
             JitterBufferProviderInterface =
                 new JitterBufferProviderInterface[radios];
 
@@ -38,6 +40,14 @@ public class ClientAudioProvider : AudioProvider
                     new JitterBufferProviderInterface(new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
         }
         //    waveWriter = new NAudio.Wave.WaveFileWriter($@"C:\\temp\\output{RandomFloat()}.wav", new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
+        
+        
+        ambientEffectProgress = new Dictionary<string, int>[radios];
+
+        for (int i = 0; i < radios; i++)
+        {
+            ambientEffectProgress[i] = new Dictionary<string, int>();
+        }
     }
 
     public JitterBufferProviderInterface[] JitterBufferProviderInterface { get; }

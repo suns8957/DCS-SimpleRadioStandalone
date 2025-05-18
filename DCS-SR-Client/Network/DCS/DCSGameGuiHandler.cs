@@ -10,7 +10,6 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
 using Newtonsoft.Json;
 using NLog;
 
@@ -22,7 +21,6 @@ public class DCSGameGuiHandler
 
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-    private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
     private UdpClient _dcsGameGuiUdpListener;
     private volatile bool _stop;
 
@@ -65,8 +63,6 @@ public class DCSGameGuiHandler
 
                     if (updatedPlayerInfo != null)
                     {
-                        var shouldUpdate = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
-                                           _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
 
                         var currentInfo = _clientStateSingleton.PlayerCoaltionLocationMetadata;
 
@@ -82,29 +78,21 @@ public class DCSGameGuiHandler
                         //this will clear any stale positions if nothing is currently connected
                         _clientStateSingleton.ClearPositionsIfExpired();
 
-                        //only update if position is changed 
-                        if (_clientStateSingleton.DcsPlayerRadioInfo.IsCurrent() && (changed || shouldUpdate))
+                        //TCPClient will automatically not send if its not actually changed
+                        EventBus.Instance.PublishOnCurrentThreadAsync(new UnitUpdateMessage()
                         {
-                            //TODO broadcast this update on background thread
-                            //_clientSideUpdate();
-                            EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage()
+                            FullUpdate = false,
+                            UnitUpdate = new SRClientBase()
                             {
-                                FullUpdate = false,
-                                UnitUpdate = new SRClientBase()
-                                {
-                                    ClientGuid = _clientStateSingleton.ShortGUID,
-                                    Coalition = _clientStateSingleton.PlayerCoaltionLocationMetadata.side,
-                                    LatLngPosition = _clientStateSingleton.PlayerCoaltionLocationMetadata.LngLngPosition,
-                                    Seat = _clientStateSingleton.PlayerCoaltionLocationMetadata.seat,
-                                    Name = _clientStateSingleton.LastSeenName,
-                                    AllowRecord = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording)
-                                }
-                            });
-                            
-                        }
-                           
-
-                        //     count = 0;
+                                ClientGuid = _clientStateSingleton.ShortGUID,
+                                Coalition = _clientStateSingleton.PlayerCoaltionLocationMetadata.side,
+                                LatLngPosition = _clientStateSingleton.PlayerCoaltionLocationMetadata.LngLngPosition,
+                                Seat = _clientStateSingleton.PlayerCoaltionLocationMetadata.seat,
+                                Name = _clientStateSingleton.LastSeenName,
+                                AllowRecord = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording)
+                            }
+                        });
+                        
                         _clientStateSingleton.DcsGameGuiLastReceived = DateTime.Now.Ticks;
                     }
                 }

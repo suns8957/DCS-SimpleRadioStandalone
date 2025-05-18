@@ -131,8 +131,7 @@ public class DCSRadioSyncHandler
         {
             Logger.Debug("Sending Radio Info To Server - Update");
             _clientStateSingleton.LastSent = DateTime.Now.Ticks;
-
-   
+            
             //TODO do this through the singleton so its not a mess
             //Full Update send over TCP
             EventBus.Instance.PublishOnCurrentThreadAsync(new UnitUpdateMessage()
