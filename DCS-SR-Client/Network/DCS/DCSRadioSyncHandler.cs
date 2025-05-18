@@ -124,7 +124,7 @@ public class DCSRadioSyncHandler
         Logger.Debug("Update sent to DCS");
 
         var diff = new TimeSpan(DateTime.Now.Ticks - _clientStateSingleton.LastSent);
-
+        
         if (update
             || _clientStateSingleton.LastSent < 1
             || diff.TotalSeconds > 60)
@@ -132,6 +132,7 @@ public class DCSRadioSyncHandler
             Logger.Debug("Sending Radio Info To Server - Update");
             _clientStateSingleton.LastSent = DateTime.Now.Ticks;
 
+   
             //TODO do this through the singleton so its not a mess
             //Full Update send over TCP
             EventBus.Instance.PublishOnCurrentThreadAsync(new UnitUpdateMessage()

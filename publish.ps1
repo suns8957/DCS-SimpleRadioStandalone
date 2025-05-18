@@ -39,6 +39,12 @@ dotnet publish "./DCS-SR-Client/DCS-SR-Client.csproj" `
     --output "$outputPath\Client" `
     --self-contained false `
     @commonParams
+Remove-Item "$outputPath\Client\*.so" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "$outputPath\Client\runtimes\win-x86" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "$outputPath\Client\runtimes\win-x64\native\*.pdb" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "$outputPath\Client\runtimes\win-x64\native\*.exp" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "$outputPath\Client\runtimes\win-x64\native\*.lib" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "$outputPath\Client\*.config"  -Recurse -ErrorAction SilentlyContinue
 
 # Server
 Write-Host "Publishing Server..." -ForegroundColor Green
@@ -50,6 +56,9 @@ dotnet publish "./Server/Server.csproj" `
     --output "$outputPath\Server" `
     --self-contained false `
     @commonParams
+Remove-Item "$outputPath\Server\*.so"  -Recurse -ErrorAction SilentlyContinue
+Remove-Item "$outputPath\Server\*.config"  -Recurse -ErrorAction SilentlyContinue
+
 
 # Server Command Line - Windows
 Write-Host "Publishing ServerCommandLine for Windows..." -ForegroundColor Green
@@ -61,6 +70,8 @@ dotnet publish "./ServerCommandLine\ServerCommandLine.csproj" `
     --output "$outputPath\ServerCommandLine-Windows" `
     --self-contained true `
     @commonParams
+Remove-Item "$outputPath\ServerCommandLine-Windows\*.so"  -Recurse -ErrorAction SilentlyContinue
+
 # Server Command Line - Linux
 Write-Host "Publishing ServerCommandLine for Linux..." -ForegroundColor Green
 Remove-Item "$outputPath\ServerCommandLine-Linux" -Recurse -ErrorAction SilentlyContinue
@@ -71,6 +82,8 @@ dotnet publish "./ServerCommandLine\ServerCommandLine.csproj" `
     --output "$outputPath\ServerCommandLine-Linux" `
     --self-contained true `
     @commonParams
+Remove-Item "$outputPath\ServerCommandLine-Linux\*.dll"  -Recurse -ErrorAction SilentlyContinue
+
 
 # External Audio
 Write-Host "Publishing DCS-SR-ExternalAudio..." -ForegroundColor Green
@@ -82,6 +95,8 @@ dotnet publish "./DCS-SR-ExternalAudio\DCS-SR-ExternalAudio.csproj" `
     --output "$outputPath\ExternalAudio" `
     --self-contained false `
     @commonParams
+Remove-Item "$outputPath\ExternalAudio\*.so"  -Recurse -ErrorAction SilentlyContinue
+
 
 # Auto Updater
 Write-Host "Publishing AutoUpdater..." -ForegroundColor Green

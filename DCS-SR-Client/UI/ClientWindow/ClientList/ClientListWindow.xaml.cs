@@ -31,6 +31,9 @@ public partial class ClientListWindow : MetroWindow
         _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
         _updateTimer.Tick += UpdateTimer_Tick;
         _updateTimer.Start();
+        
+        //TODO fix the client list coalition colour (binding!)
+        //currently all marked as spectator
     }
 
     private void UpdateList()

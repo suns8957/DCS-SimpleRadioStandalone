@@ -65,6 +65,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Fody" Version="6.9.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>

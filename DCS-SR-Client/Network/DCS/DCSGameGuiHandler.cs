@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
@@ -75,6 +77,8 @@ public class DCSGameGuiHandler
                         currentInfo.side = updatedPlayerInfo.side;
                         currentInfo.seat = updatedPlayerInfo.seat;
 
+                        _clientStateSingleton.LastSeenName = currentInfo.name;
+                        
                         //this will clear any stale positions if nothing is currently connected
                         _clientStateSingleton.ClearPositionsIfExpired();
 
@@ -83,6 +87,20 @@ public class DCSGameGuiHandler
                         {
                             //TODO broadcast this update on background thread
                             //_clientSideUpdate();
+                            EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage()
+                            {
+                                FullUpdate = false,
+                                UnitUpdate = new SRClientBase()
+                                {
+                                    ClientGuid = _clientStateSingleton.ShortGUID,
+                                    Coalition = _clientStateSingleton.PlayerCoaltionLocationMetadata.side,
+                                    LatLngPosition = _clientStateSingleton.PlayerCoaltionLocationMetadata.LngLngPosition,
+                                    Seat = _clientStateSingleton.PlayerCoaltionLocationMetadata.seat,
+                                    Name = _clientStateSingleton.LastSeenName,
+                                    AllowRecord = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording)
+                                }
+                            });
+                            
                         }
                            
 
