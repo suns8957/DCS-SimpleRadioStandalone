@@ -145,7 +145,7 @@ if (-not (Test-Path $searchPath -PathType Container)) {
 Write-Host "Searching for .dll and .exe files in '$searchPath' and its subdirectories..."
 # Get all .exe files recursively. -File ensures we only get files.
 try {
-    $filesToSign = Get-ChildItem -Path $searchPath -Recurse -Include "*.exe" -File -ErrorAction Stop
+    $filesToSign = Get-ChildItem -Path $searchPath -Recurse -Include "srs.dll", "*.exe" -File -ErrorAction Stop
 } catch {
     Write-Error "Error occurred while searching for files: $($_.Exception.Message)"
     exit 1
