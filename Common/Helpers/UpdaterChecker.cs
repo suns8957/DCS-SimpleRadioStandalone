@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -176,52 +177,79 @@ public class UpdaterChecker
         return false;
     }
 
-    public void LaunchUpdater(bool beta)
+    public bool LaunchUpdater(bool beta)
     {
-        if (OperatingSystem.IsWindows())
-            Task.Run(() =>
+        if (!OperatingSystem.IsWindows())
+            return false;
+
+        var location = AppDomain.CurrentDomain.BaseDirectory;
+        var autoUpdatePath = "";
+
+        if (File.Exists(Path.Combine(location, "../SRS-AutoUpdater.exe")))
+        {
+            autoUpdatePath = Path.Combine(location, "../SRS-AutoUpdater.exe");
+        }
+        else if (File.Exists(Path.Combine(location, "SRS-AutoUpdater.exe")))
+        {
+            autoUpdatePath = Path.Combine(location, "SRS-AutoUpdater.exe");
+        }
+        else
+        {
+            _logger.Error("Unable to find SRS-AutoUpdater.exe");
+            return false;
+        }
+
+
+        Task.Run(() =>
+        {
+            while (IsDCSRunning()) Thread.Sleep(5000);
+
+#pragma warning disable CA1416
+            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+#pragma warning restore CA1416
+#pragma warning disable CA1416
+            var hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
+#pragma warning restore CA1416
+
+            if (!hasAdministrativeRight)
             {
-                while (IsDCSRunning()) Thread.Sleep(5000);
-
-                var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-                var hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-
-                if (!hasAdministrativeRight)
+                var startInfo = new ProcessStartInfo
                 {
-                    var location = AppDomain.CurrentDomain.BaseDirectory;
+                    UseShellExecute = true,
+                    WorkingDirectory = location,
+                    FileName = autoUpdatePath,
+                    Verb = "runas"
+                };
 
-                    var startInfo = new ProcessStartInfo
-                    {
-                        UseShellExecute = true,
-                        WorkingDirectory = location,
-                        FileName = location + "../SRS-AutoUpdater.exe",
-                        Verb = "runas"
-                    };
+                if (beta) startInfo.Arguments = "-beta";
 
-                    if (beta) startInfo.Arguments = "-beta";
-
-                    try
-                    {
-                        //TODO fix process start
-                        var p = Process.Start(startInfo);
-                    }
-                    catch (Win32Exception)
-                    {
-                        //TODO sort this out with a callback
-                        // MessageBox.Show(
-                        //     "SRS Auto Update Requires Admin Rights",
-                        //     "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
+                try
+                {
+                    var p = Process.Start(startInfo);
+                }
+                catch (Win32Exception)
+                {
+                    //TODO sort this out with a callback
+                    // MessageBox.Show(
+                    //     "SRS Auto Update Requires Admin Rights",
+                    //     "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                //TODO fix process start
+                if (beta)
+                {
+                    Process.Start(new ProcessStartInfo(autoUpdatePath, "-beta")
+                        { UseShellExecute = true });
                 }
                 else
-                {
-                    //TODO fix process start
-                    if (beta)
-                        Process.Start("../SRS-AutoUpdater.exe", "-beta");
-                    else
-                        Process.Start("../SRS-AutoUpdater.exe");
-                }
-            });
+                    Process.Start(new ProcessStartInfo(autoUpdatePath)
+                        { UseShellExecute = true });
+            }
+        });
+
+        return true;
     }
 }
 

@@ -449,8 +449,11 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                 MessageBoxImage.Error);
             //TODO fix process start
             if (messageBoxResult == MessageBoxResult.Yes)
-                Process.Start("ms-settings:privacy-microphone");
-            else if (messageBoxResult == MessageBoxResult.No) Process.Start("https://discord.gg/baw7g3t");
+                Process.Start(new ProcessStartInfo("ms-settings:privacy-microphone")
+                    { UseShellExecute = true });
+            else if (messageBoxResult == MessageBoxResult.No)
+                Process.Start(new ProcessStartInfo("https://discord.gg/baw7g3t")
+                    { UseShellExecute = true });
         }
         else
         {
@@ -463,7 +466,9 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                 "CLOSE",
                 MessageBoxImage.Error);
 
-            if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
+            if (messageBoxResult == MessageBoxResult.Yes)
+                Process.Start(new ProcessStartInfo("https://discord.gg/baw7g3t")
+                    { UseShellExecute = true });
         }
     }
 
@@ -477,7 +482,9 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
             "CLOSE",
             MessageBoxImage.Error);
         //TODO fix process start
-        if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
+        if (messageBoxResult == MessageBoxResult.Yes)
+            Process.Start(new ProcessStartInfo("https://discord.gg/baw7g3t")
+                { UseShellExecute = true });
     }
 
     private void InitMixers()

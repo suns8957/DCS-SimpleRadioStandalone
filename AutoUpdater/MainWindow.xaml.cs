@@ -257,8 +257,11 @@ public partial class MainWindow : Window
                     "Read Release Notes?",
                     MessageBoxButton.YesNo, MessageBoxImage.Information);
 
-                //TODO fix process start
-                if (releaseNotes == MessageBoxResult.Yes) Process.Start(changelogURL);
+                if (releaseNotes == MessageBoxResult.Yes)
+                {
+                    Process.Start(new ProcessStartInfo(changelogURL)
+                        { UseShellExecute = true });
+                }
             }
 
             var procInfo = new ProcessStartInfo();
@@ -276,7 +279,6 @@ public partial class MainWindow : Window
                 procInfo.Arguments = "-autoupdate";
             }
 
-            //TODO fix process start
             procInfo.FileName = Path.Combine(Path.Combine(_directory, "extract"), "installer.exe");
             procInfo.UseShellExecute = false;
             Process.Start(procInfo);

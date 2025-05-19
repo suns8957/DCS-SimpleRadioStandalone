@@ -349,7 +349,8 @@ namespace Installer
                         Properties.Resources.MsgBoxInstallError,
                         MessageBoxButton.OK, MessageBoxImage.Error);
                     //TODO fix process start
-                    Process.Start("https://discord.gg/vqxAw7H");
+                    Process.Start(new ProcessStartInfo("https://discord.gg/baw7g3t")
+                        { UseShellExecute = true });
                     Process.Start("explorer.exe", GetWorkingDirectory());
                     Environment.Exit(0);
                 }
@@ -1265,7 +1266,8 @@ namespace Installer
                     Properties.Resources.MsgBoxInstallError,
                     MessageBoxButton.OK, MessageBoxImage.Error);
 
-                Process.Start("https://discord.gg/vqxAw7H");
+                Process.Start(new ProcessStartInfo("https://discord.gg/baw7g3t")
+                    { UseShellExecute = true });
                 //TODO fix process start
                 Process.Start("explorer.exe", GetWorkingDirectory());
             }
