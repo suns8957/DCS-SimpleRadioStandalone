@@ -35,10 +35,10 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         SetSRSPathCommand = new DelegateCommand(() =>
         {
             Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\DCS-SR-Standalone", "SRPathStandalone",
-                Directory.GetCurrentDirectory());
+                Directory.GetCurrentDirectory() + "../");
 
             MessageBox.Show(Application.Current.MainWindow,
-                Resources.MsgBoxSetSRSPathText + Directory.GetCurrentDirectory(),
+                Resources.MsgBoxSetSRSPathText + Directory.GetCurrentDirectory() + "../",
                 Resources.MsgBoxSetSRSPath,
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
@@ -612,9 +612,11 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
                              [ProfileSettingsKeys.HQToneVolume.ToString()], CultureInfo.InvariantCulture)) * 100.0f);
         set
         {
-            var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HQToneVolume.ToString()], CultureInfo.InvariantCulture);
+            var orig = double.Parse(
+                ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HQToneVolume.ToString()],
+                CultureInfo.InvariantCulture);
 
-            var vol = orig * (value/ 100.0f);
+            var vol = orig * (value / 100.0f);
 
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HQToneVolume, (float)vol);
             NotifyPropertyChanged();
@@ -649,15 +651,22 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
 
     public float AmbientEffectVolume
     {
-        get => (float)((_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume)
-                        / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture)) * 100.0f);
+        get => (float)((_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys
+                            .AmbientCockpitNoiseEffectVolume)
+                        / double.Parse(
+                            ProfileSettingsStore.DefaultSettingsProfileSettings[
+                                ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()],
+                            CultureInfo.InvariantCulture)) * 100.0f);
         set
         {
-            var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture);
+            var orig = double.Parse(
+                ProfileSettingsStore.DefaultSettingsProfileSettings[
+                    ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString()], CultureInfo.InvariantCulture);
 
-            var vol = orig * (value/ 100.0f);
+            var vol = orig * (value / 100.0f);
 
-            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume, (float)vol);
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(
+                ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume, (float)vol);
             NotifyPropertyChanged();
         }
     }

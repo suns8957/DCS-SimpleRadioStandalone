@@ -206,15 +206,12 @@ namespace Installer
 
         private bool CheckExtracted()
         {
-            return true;
-            // return File.Exists(_currentDirectory + "\\opus.dll") 
-            //        && File.Exists(_currentDirectory + "\\speexdsp.dll")
-            //        && File.Exists(_currentDirectory + "\\WebRtcVad.dll")
-            //        && File.Exists(_currentDirectory + "\\libmp3lame.64.dll")
-            //        && File.Exists(_currentDirectory + "\\libmp3lame.32.dll")
-            //        && File.Exists(_currentDirectory + "\\awacs-radios.json")
-            //        && File.Exists(_currentDirectory + "\\SR-ClientRadio.exe")
-            //        && File.Exists(_currentDirectory + "\\Scripts\\DCS-SRS\\Scripts\\DCS-SimpleRadioStandalone.lua");
+            return File.Exists(_currentDirectory + "\\Client\\opus.dll")
+                   && File.Exists(_currentDirectory + "\\Client\\speexdsp.dll")
+                   && File.Exists(_currentDirectory + "\\Client\\awacs-radios.json")
+                   && File.Exists(_currentDirectory + "\\Client\\SR-ClientRadio.exe")
+                   && File.Exists(_currentDirectory + "\\Scripts\\DCS-SRS\\Scripts\\DCS-SimpleRadioStandalone.lua")
+                   && File.Exists(_currentDirectory + "\\Server\\SRS-Server.exe");
         }
 
 
@@ -391,8 +388,6 @@ namespace Installer
 
                     Logger.Info($"Installing - Paths: \nProgram:{srPath} \nDCS:{dcsScriptsPath} ");
 
-                    ClearVersionPreModsTechDCS(srPath, dcsScriptsPath);
-                    ClearVersionPostModsTechDCS(srPath, dcsScriptsPath);
                     ClearVersionPostModsServicesDCS(srPath, dcsScriptsPath);
 
                     foreach (var path in paths)
@@ -508,129 +503,6 @@ namespace Installer
             }
         }
 
-
-        private void ClearVersionPreModsTechDCS(string programPath, string dcsPath)
-        {
-            Logger.Info($"Removed previous SRS Version at {programPath} and {dcsPath}");
-
-            var paths = FindValidDCSFolders(dcsPath);
-
-            foreach (var path in paths)
-            {
-                _progressBarDialog.UpdateProgress(false, $"Clearing Previous SRS at  {path}");
-                RemoveScriptsPreModsTechDCS(path + "\\Scripts");
-            }
-
-            Logger.Info($"Removed SRS program files at {programPath}");
-            _progressBarDialog.UpdateProgress(false, $"Clearing Previous SRS at  {programPath}");
-            if (Directory.Exists(programPath) && File.Exists(programPath + "\\SR-ClientRadio.exe"))
-            {
-                DeleteFileIfExists(programPath + "\\SR-ClientRadio.exe");
-                DeleteFileIfExists(programPath + "\\opus.dll");
-                DeleteFileIfExists(programPath + "\\speexdsp.dll");
-                DeleteFileIfExists(programPath + "\\WebRtcVad.dll");
-                DeleteFileIfExists(programPath + "\\awacs-radios.json");
-                DeleteFileIfExists(programPath + "\\SRS-AutoUpdater.exe");
-                DeleteFileIfExists(programPath + "\\SR-Server.exe");
-                DeleteFileIfExists(programPath + "\\DCS-SR-ExternalAudio.exe");
-                DeleteFileIfExists(programPath + "\\grpc_csharp_ext.x64.dll");
-                DeleteFileIfExists(programPath + "\\libmp3lame.32.dll");
-                DeleteFileIfExists(programPath + "\\libmp3lame.64.dll");
-                DeleteFileIfExists(programPath + "\\DCS-SimpleRadioStandalone.lua");
-                DeleteFileIfExists(programPath + "\\DCS-SRSGameGUI.lua");
-                DeleteFileIfExists(programPath + "\\DCS-SRS-AutoConnectGameGUI.lua");
-                DeleteFileIfExists(programPath + "\\DCS-SRS-OverlayGameGUI.lua");
-                DeleteFileIfExists(programPath + "\\DCS-SRS-Overlay.dlg");
-                DeleteFileIfExists(programPath + "\\serverlog.txt");
-                DeleteFileIfExists(programPath + "\\clientlog.txt");
-                DeleteFileIfExists(programPath + "\\DCS-SRS-hook.lua");
-            }
-
-            Logger.Info($"Finished clearing scripts and program Pre Mods ");
-        }
-
-        private void ClearVersionPostModsTechDCS(string programPath, string dcsPath)
-        {
-            Logger.Info($"Removed SRS Version Post Mods at {programPath} and {dcsPath}");
-
-            var paths = FindValidDCSFolders(dcsPath);
-
-            foreach (var path in paths)
-            {
-                _progressBarDialog.UpdateProgress(false, $"Removing SRS at {path}");
-                RemoveScriptsPostModsTechDCS(path);
-            }
-
-            Logger.Info($"Removed SRS program files at {programPath}");
-            _progressBarDialog.UpdateProgress(false, $"Removing SRS at {programPath}");
-            if (Directory.Exists(programPath) && File.Exists(programPath + "\\SR-ClientRadio.exe"))
-            {
-                DeleteFileIfExists(programPath + "\\SR-ClientRadio.exe");
-                DeleteFileIfExists(programPath + "\\DCS-SR-ExternalAudio.exe");
-                DeleteFileIfExists(programPath + "\\grpc_csharp_ext.x64.dll");
-                DeleteFileIfExists(programPath + "\\WebRtcVad.dll");
-                DeleteFileIfExists(programPath + "\\libmp3lame.32.dll");
-                DeleteFileIfExists(programPath + "\\libmp3lame.64.dll");
-                DeleteFileIfExists(programPath + "\\opus.dll");
-                DeleteFileIfExists(programPath + "\\speexdsp.dll");
-                DeleteFileIfExists(programPath + "\\awacs-radios.json");
-                DeleteFileIfExists(programPath + "\\SRS-AutoUpdater.exe");
-                DeleteFileIfExists(programPath + "\\SR-Server.exe");
-                DeleteFileIfExists(programPath + "\\serverlog.txt");
-                DeleteFileIfExists(programPath + "\\clientlog.txt");
-
-
-                DeleteDirectory(programPath + "\\Scripts");
-            }
-
-            Logger.Info($"Finished clearing scripts and program Post Mods ");
-        }
-
-        private void RemoveScriptsPostModsTechDCS(string path)
-        {
-            Logger.Info($"Removing SRS Scripts at {path}");
-            //SCRIPTS folder
-            if (File.Exists(path + "\\Scripts\\Export.lua"))
-            {
-                var contents = File.ReadAllText(path + "\\Scripts\\Export.lua");
-
-                if (contents.Contains("SimpleRadioStandalone.lua"))
-                {
-                    var lines = contents.Split('\n');
-
-                    StringBuilder sb = new StringBuilder();
-
-                    foreach (var line in lines)
-                    {
-                        if (!line.Contains("SimpleRadioStandalone.lua") && line.Trim().Length > 0)
-                        {
-                            sb.Append(line);
-                            sb.Append("\n");
-                        }
-                        else
-                        {
-                            Logger.Info($"Removed SRS Scripts from Export.lua");
-                        }
-                    }
-
-                    File.WriteAllText(path + "\\Scripts\\Export.lua", sb.ToString());
-                }
-            }
-
-            Logger.Info($"Removed Hooks file");
-            //Hooks Folder
-            DeleteFileIfExists(path + "\\Scripts\\Hooks\\DCS-SRS-Hook.lua");
-
-            //MODs folder
-            if (Directory.Exists(path + "\\Mods\\Tech\\DCS-SRS"))
-            {
-                Logger.Info($"Removed Mods/Tech/DCS-SRS folder");
-                Directory.Delete(path + "\\Mods\\Tech\\DCS-SRS", true);
-            }
-
-            Logger.Info($"Finished Removing Mods/Tech & Scripts for SRS");
-        }
-
         private void ClearVersionPostModsServicesDCS(string programPath, string dcsPath)
         {
             Logger.Info($"Removed SRS Version Post Mods Services at {programPath} and {dcsPath}");
@@ -647,23 +519,28 @@ namespace Installer
             _progressBarDialog.UpdateProgress(false, $"Removing SRS at {programPath}");
             if (Directory.Exists(programPath) && File.Exists(programPath + "\\SR-ClientRadio.exe"))
             {
-                DeleteFileIfExists(programPath + "\\SR-ClientRadio.exe");
-                DeleteFileIfExists(programPath + "\\DCS-SR-ExternalAudio.exe");
-                DeleteFileIfExists(programPath + "\\grpc_csharp_ext.x64.dll");
-                DeleteFileIfExists(programPath + "\\WebRtcVad.dll");
-                DeleteFileIfExists(programPath + "\\libmp3lame.32.dll");
-                DeleteFileIfExists(programPath + "\\libmp3lame.64.dll");
-                DeleteFileIfExists(programPath + "\\opus.dll");
-                DeleteFileIfExists(programPath + "\\speexdsp.dll");
-                DeleteFileIfExists(programPath + "\\awacs-radios.json");
                 DeleteFileIfExists(programPath + "\\SRS-AutoUpdater.exe");
-                DeleteFileIfExists(programPath + "\\SR-Server.exe");
-                DeleteFileIfExists(programPath + "\\serverlog.txt");
-                DeleteFileIfExists(programPath + "\\clientlog.txt");
+
+                DeleteDirectory(programPath + "\\Server");
+                DeleteDirectory(programPath + "\\ServerCommandLine-Windows");
+                DeleteDirectory(programPath + "\\ServerCommandLine-Linux");
+                DeleteDirectory(programPath + "\\ExternalAudio");
+                DeleteDirectory(programPath + "\\Scripts");
 
 
                 DeleteDirectory(programPath + "\\Scripts");
+                DeleteDirectory(programPath + "\\Client\\AudioEffects");
+                DeleteDirectory(programPath + "\\Client\\runtimes");
+                DeleteFileIfExists(programPath + "\\Client\\awacs-radios.json");
+                DeleteFileIfExists(programPath + "\\Client\\clientlog.txt");
+                DeleteFileIfExists(programPath + "\\Client\\libmp3lame.dll");
+                DeleteFileIfExists(programPath + "\\Client\\opus.dll");
+                DeleteFileIfExists(programPath + "\\Client\\sni.dll");
+                DeleteFileIfExists(programPath + "\\Client\\speexdsp.dll");
+                DeleteFileIfExists(programPath + "\\Client\\SR-ClientRadio.exe");
             }
+
+            //TODO clear only certain folders and files
 
             Logger.Info($"Finished clearing scripts and program Post Mods ");
         }
@@ -917,35 +794,34 @@ namespace Installer
 
             Logger.Info($"Creating Directories");
             CreateDirectory(path);
-            CreateDirectory(path + "\\AudioEffects");
-            CreateDirectory(path + "\\Scripts");
 
             //sleep! WTF directory is lagging behind state here...
             Task.Delay(TimeSpan.FromMilliseconds(200)).Wait();
             _progressBarDialog.UpdateProgress(false, $"Copying Program Files at {path}");
 
             Logger.Info($"Copying binaries");
-            File.Copy(_currentDirectory + "\\opus.dll", path + "\\opus.dll", true);
-            File.Copy(_currentDirectory + "\\speexdsp.dll", path + "\\speexdsp.dll", true);
-            File.Copy(_currentDirectory + "\\awacs-radios.json", path + "\\awacs-radios.json", true);
 
-            File.Copy(_currentDirectory + "\\SR-ClientRadio.exe", path + "\\SR-ClientRadio.exe", true);
-            File.Copy(_currentDirectory + "\\SR-Server.exe", path + "\\SR-Server.exe", true);
+            try
+            {
+                File.Copy(_currentDirectory + "\\Installer.exe", path + "\\Installer.exe", true);
+            }
+            catch (Exception ex)
+            {
+            }
+
             File.Copy(_currentDirectory + "\\SRS-AutoUpdater.exe", path + "\\SRS-AutoUpdater.exe", true);
-            File.Copy(_currentDirectory + "\\DCS-SR-ExternalAudio.exe", path + "\\DCS-SR-ExternalAudio.exe", true);
 
-            File.Copy(_currentDirectory + "\\libmp3lame.32.dll", path + "\\libmp3lame.32.dll", true);
-            File.Copy(_currentDirectory + "\\libmp3lame.64.dll", path + "\\libmp3lame.64.dll", true);
+            File.Copy(_currentDirectory + "\\Examples.txt", path + "\\Examples.txt", true);
+            File.Copy(_currentDirectory + "\\Readme.txt", path + "\\Readme.txt", true);
 
-            File.Copy(_currentDirectory + "\\grpc_csharp_ext.x64.dll", path + "\\grpc_csharp_ext.x64.dll", true);
-
-
-            File.Copy(_currentDirectory + "\\WebRtcVad.dll", path + "\\WebRtcVad.dll", true);
 
             Logger.Info($"Copying directories");
-            DirectoryCopy(_currentDirectory + "\\AudioEffects", path + "\\AudioEffects");
+            DirectoryCopy(_currentDirectory + "\\Server", path + "\\Server");
+            DirectoryCopy(_currentDirectory + "\\ServerCommandLine-Windows", path + "\\ServerCommandLine-Windows");
+            DirectoryCopy(_currentDirectory + "\\ServerCommandLine-Linux", path + "\\ServerCommandLine-Linux");
+            DirectoryCopy(_currentDirectory + "\\Client", path + "\\Client");
+            DirectoryCopy(_currentDirectory + "\\ExternalAudio", path + "\\ExternalAudio");
             DirectoryCopy(_currentDirectory + "\\Scripts", path + "\\Scripts");
-            DirectoryCopy(_currentDirectory + "\\zh-CN", path + "\\zh-CN");
 
             Logger.Info($"Finished installing SRS Program to {path}");
         }
@@ -953,7 +829,7 @@ namespace Installer
         private void InstallShortcuts(string path)
         {
             Logger.Info($"Adding SRS Shortcut");
-            string executablePath = Path.Combine(path, "SR-ClientRadio.exe");
+            string executablePath = Path.Combine(path, "\\Client\\SR-ClientRadio.exe");
             string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
                 "DCS-SRS Client.lnk");
 
@@ -1118,10 +994,7 @@ namespace Installer
 
                 _progressBarDialog.UpdateProgress(false, $"Removing SRS");
                 Logger.Info($"Removing - Paths: \nProgram:{srPath} \nDCS:{dcsScriptsPath} ");
-                ClearVersionPreModsTechDCS(srPath, dcsScriptsPath);
-                ClearVersionPostModsTechDCS(srPath, dcsScriptsPath);
                 ClearVersionPostModsServicesDCS(srPath, dcsScriptsPath);
-
 
                 DeleteRegKeys();
 
@@ -1146,38 +1019,6 @@ namespace Installer
             DeleteFileIfExists(shortcutPath);
         }
 
-        private void RemoveScriptsPreModsTechDCS(string path)
-        {
-            Logger.Info($"Removing SRS Pre Mods Scripts at {path}");
-            //does it contain an export.lua?
-            if (File.Exists(path + "\\Export.lua"))
-            {
-                var contents = File.ReadAllText(path + "\\Export.lua");
-
-                if (contents.Contains("SimpleRadioStandalone.lua"))
-                {
-                    Logger.Info($"Removed SRS from Export.lua");
-                    contents = contents.Replace("dofile(lfs.writedir()..[[Scripts\\DCS-SimpleRadioStandalone.lua]])",
-                        "");
-                    contents =
-                        contents.Replace(
-                            "local dcsSr=require('lfs');dofile(dcsSr.writedir()..[[Scripts\\DCS-SimpleRadioStandalone.lua]])",
-                            "");
-                    contents = contents.Trim();
-
-                    File.WriteAllText(path + "\\Export.lua", contents);
-                }
-            }
-
-            DeleteFileIfExists(path + "\\DCS-SimpleRadioStandalone.lua");
-            DeleteFileIfExists(path + "\\DCS-SRSGameGUI.lua");
-            DeleteFileIfExists(path + "\\DCS-SRS-AutoConnectGameGUI.lua");
-            DeleteFileIfExists(path + "\\DCS-SRS-Overlay.dlg");
-            DeleteFileIfExists(path + "\\DCS-SRS-OverlayGameGUI.lua");
-            DeleteFileIfExists(path + "\\Hooks\\DCS-SRS-Hook.lua");
-
-            Logger.Info($"Removed all SRS Scripts at {path}");
-        }
 
         private void CreateDirectory(string path)
         {
@@ -1268,8 +1109,9 @@ namespace Installer
 
                 Process.Start(new ProcessStartInfo("https://discord.gg/baw7g3t")
                     { UseShellExecute = true });
-                //TODO fix process start
-                Process.Start("explorer.exe", GetWorkingDirectory());
+
+                Process.Start(new ProcessStartInfo("explorer.exe", GetWorkingDirectory())
+                    { UseShellExecute = true });
             }
 
             Environment.Exit(0);
