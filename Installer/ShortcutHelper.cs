@@ -1,120 +1,146 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Reflection;
 
-namespace Installer;
 
-public class ShortcutHelper
+// FROM https://stackoverflow.com/a/30973359
+// Avoids COM
+public static class ShortcutHelper
 {
-    
+    #region Constants
     /// <summary>
-        /// Creates a shortcut file (.lnk) using WshShell.
-        /// </summary>
-        /// <param name="shortcutPath">The full path where the shortcut will be created (e.g., "C:\Path\To\MyShortcut.lnk").</param>
-        /// <param name="targetPath">The full path to the target executable or file.</param>
-        /// <param name="arguments">Optional command-line arguments for the target.</param>
-        /// <param name="workingDirectory">Optional working directory for the target.</param>
-        /// <param name="description">Optional description for the shortcut.</param>
-        /// <param name="iconLocation">Optional path to an icon file (e.g., "C:\Path\To\Icon.ico,0" or "C:\Path\To\App.exe,0").</param>
-        /// <param name="windowStyle">Optional window style for the shortcut (1 = Normal, 3 = Maximized, 7 = Minimized).</param>
-        public static void Create(
-            string shortcutPath,
-            string targetPath,
-            string arguments = null,
-            string workingDirectory = null,
-            string description = null,
-            string iconLocation = null,
-            int windowStyle = 1) // Default to normal window
+    /// Default shortcut extension
+    /// </summary>
+    public const string DEFAULT_SHORTCUT_EXTENSION = ".lnk";
+
+    private const string WSCRIPT_SHELL_NAME = "WScript.Shell";
+    #endregion
+
+    /// <summary>
+    /// Create shortcut in current path.
+    /// </summary>
+    /// <param name="linkFileName">shortcut name(include .lnk extension.)</param>
+    /// <param name="targetPath">target path</param>
+    /// <param name="workingDirectory">working path</param>
+    /// <param name="arguments">arguments</param>
+    /// <param name="hotkey">hot key(ex: Ctrl+Shift+Alt+A)</param>
+    /// <param name="shortcutWindowStyle">window style</param>
+    /// <param name="description">shortcut description</param>
+    /// <param name="iconNumber">icon index(start of 0)</param>
+    /// <returns>shortcut file path.</returns>
+    /// <exception cref="System.IO.FileNotFoundException"></exception>
+    public static string CreateShortcut(
+        string linkFileName,
+        string targetPath,
+        string workingDirectory = "",
+        string arguments = "",
+        string hotkey = "",
+        ShortcutWindowStyles shortcutWindowStyle = ShortcutWindowStyles.WshNormalFocus,
+        string description = "",
+        int iconNumber = 0)
+    {
+        if (linkFileName.Contains(DEFAULT_SHORTCUT_EXTENSION) == false)
         {
-            if (string.IsNullOrWhiteSpace(shortcutPath))
-                throw new ArgumentNullException(nameof(shortcutPath));
-            if (!Path.GetExtension(shortcutPath).Equals(".lnk", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("Shortcut path must have a .lnk extension.", nameof(shortcutPath));
-            if (string.IsNullOrWhiteSpace(targetPath))
-                throw new ArgumentNullException(nameof(targetPath));
-
-            // Type for WScript.Shell, using late binding
-            Type wshShellType = null;
-            object wshShell = null;
-            object shortcut = null;
-
-            try
-            {
-                // Get the WScript.Shell type.
-                // This is equivalent to: var wshShell = new WshShell(); if you have the COM reference.
-                wshShellType = Type.GetTypeFromProgID("WScript.Shell");
-                if (wshShellType == null)
-                {
-                    throw new InvalidOperationException("WScript.Shell is not available on this system.");
-                }
-                wshShell = Activator.CreateInstance(wshShellType);
-
-                // Create a shortcut object.
-                // This is equivalent to: IWshShortcut shortcut = (IWshShortcut)wshShell.CreateShortcut(shortcutPath);
-                shortcut = wshShellType.InvokeMember("CreateShortcut",
-                    System.Reflection.BindingFlags.InvokeMethod,
-                    null,
-                    wshShell,
-                    new object[] { shortcutPath });
-
-                // Set shortcut properties using reflection or dynamic.
-                // Using dynamic for easier property access:
-                dynamic dynamicShortcut = shortcut;
-
-                dynamicShortcut.TargetPath = targetPath;
-
-                if (!string.IsNullOrWhiteSpace(arguments))
-                {
-                    dynamicShortcut.Arguments = arguments;
-                }
-
-                if (!string.IsNullOrWhiteSpace(workingDirectory))
-                {
-                    dynamicShortcut.WorkingDirectory = workingDirectory;
-                }
-                else // Default working directory to the target's directory if not specified
-                {
-                     dynamicShortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
-                }
-
-                if (!string.IsNullOrWhiteSpace(description))
-                {
-                    dynamicShortcut.Description = description;
-                }
-
-                if (!string.IsNullOrWhiteSpace(iconLocation))
-                {
-                    dynamicShortcut.IconLocation = iconLocation;
-                }
-
-                // Set window style (1: Normal, 3: Maximized, 7: Minimized/NoActivate)
-                // See IWshShortcut.WindowStyle documentation for more values.
-                dynamicShortcut.WindowStyle = windowStyle;
-
-                // Save the shortcut.
-                // This is equivalent to: shortcut.Save();
-                dynamicShortcut.Save();
-
-                Console.WriteLine($"Shortcut created successfully using WshShell at: {shortcutPath}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating shortcut with WshShell: {ex.Message}");
-                // Consider more specific error handling or re-throwing
-                throw;
-            }
-            finally
-            {
-                // Release COM objects to prevent memory leaks
-                if (shortcut != null)
-                {
-                    Marshal.ReleaseComObject(shortcut);
-                }
-                if (wshShell != null)
-                {
-                    Marshal.ReleaseComObject(wshShell);
-                }
-            }
+            linkFileName = string.Format("{0}{1}", linkFileName, DEFAULT_SHORTCUT_EXTENSION);
         }
-    
+
+        if (File.Exists(targetPath) == false)
+        {
+            throw new FileNotFoundException(targetPath);
+        }
+
+        if (workingDirectory == string.Empty)
+        {
+            workingDirectory = Path.GetDirectoryName(targetPath);
+        }
+
+        string iconLocation = string.Format("{0},{1}", targetPath, iconNumber);
+
+        if (Environment.Version.Major >= 4)
+        {
+            Type shellType = Type.GetTypeFromProgID(WSCRIPT_SHELL_NAME);
+            dynamic shell = Activator.CreateInstance(shellType);
+            dynamic shortcut = shell.CreateShortcut(linkFileName);
+
+            shortcut.TargetPath = targetPath;
+            shortcut.WorkingDirectory = workingDirectory;
+            shortcut.Arguments = arguments;
+            shortcut.Hotkey = hotkey;
+            shortcut.WindowStyle = shortcutWindowStyle;
+            shortcut.Description = description;
+            shortcut.IconLocation = iconLocation;
+
+            shortcut.Save();
+        }
+        else
+        {
+            Type shellType = Type.GetTypeFromProgID(WSCRIPT_SHELL_NAME);
+            object shell = Activator.CreateInstance(shellType);
+            object shortcut = shellType.InvokeMethod("CreateShortcut", shell, linkFileName);
+            Type shortcutType = shortcut.GetType();
+
+            shortcutType.InvokeSetMember("TargetPath", shortcut, targetPath);
+            shortcutType.InvokeSetMember("WorkingDirectory", shortcut, workingDirectory);
+            shortcutType.InvokeSetMember("Arguments", shortcut, arguments);
+            shortcutType.InvokeSetMember("Hotkey", shortcut, hotkey);
+            shortcutType.InvokeSetMember("WindowStyle", shortcut, shortcutWindowStyle);
+            shortcutType.InvokeSetMember("Description", shortcut, description);
+            shortcutType.InvokeSetMember("IconLocation", shortcut, iconLocation);
+
+            shortcutType.InvokeMethod("Save", shortcut);
+        }
+
+        return Path.Combine(System.Windows.Forms.Application.StartupPath, linkFileName);
+    }
+
+    private static object InvokeSetMember(this Type type, string methodName, object targetInstance, params object[] arguments)
+    {
+        return type.InvokeMember(
+            methodName,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty,
+            null,
+            targetInstance,
+            arguments);
+    }
+
+    private static object InvokeMethod(this Type type, string methodName, object targetInstance, params object[] arguments)
+    {
+        return type.InvokeMember(
+            methodName,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod,
+            null,
+            targetInstance,
+            arguments);
+    }
+
+    /// <summary>
+    /// windows styles
+    /// </summary>
+    public enum ShortcutWindowStyles
+    {
+        /// <summary>
+        /// Hide
+        /// </summary>
+        WshHide = 0,
+        /// <summary>
+        /// NormalFocus
+        /// </summary>
+        WshNormalFocus = 1,
+        /// <summary>
+        /// MinimizedFocus
+        /// </summary>
+        WshMinimizedFocus = 2,
+        /// <summary>
+        /// MaximizedFocus
+        /// </summary>
+        WshMaximizedFocus = 3,
+        /// <summary>
+        /// NormalNoFocus
+        /// </summary>
+        WshNormalNoFocus = 4,
+        /// <summary>
+        /// MinimizedNoFocus
+        /// </summary>
+        WshMinimizedNoFocus = 6,
+    }
 }
