@@ -18,8 +18,6 @@ SR.unicast = true --DONT CHANGE THIS
 
 SR.lastKnownPos = { x = 0, y = 0, z = 0 }
 SR.lastKnownSeat = 0
-SR.lastKnownSlotNum = 0
-SR.lastKnownSlotName = "?"
 
 SR.MIDS_FREQ = 1030.0 * 1000000 -- Start at UHF 300
 SR.MIDS_FREQ_SEPARATION = 1.0 * 100000 -- 0.1 MHZ between MIDS channels
@@ -115,31 +113,18 @@ end
 
 -- Function to load mods' SRS plugin script
 function SR.LoadModsPlugins()
-    -- Check the 3 main Mods sub-folders
-    local aircraftModsPath = lfs.writedir() .. [[Mods\Aircraft]]
-    SR.ModsPuginsRecursiveSearch(aircraftModsPath)
-
-    local TechModsPath = lfs.writedir() .. [[Mods\Tech]]
-    SR.ModsPuginsRecursiveSearch(TechModsPath)
-    
-    -- local ServicesModsPath = lfs.writedir() .. [[Mods\Services]]
-    -- SR.ModsPuginsRecursiveSearch(ServicesModsPath)
-end
-
--- Performs a search of subfolders for SRS/autoload.lua
--- compainion function to SR.LoadModsPlugins()
-function SR.ModsPuginsRecursiveSearch(modsPath)
     local mode, errmsg
+
+    -- Mod folder's path
+    local modsPath = lfs.writedir() .. [[Mods\Aircraft]]
+   
     mode, errmsg = lfs.attributes (modsPath, "mode")
    
     -- Check that Mod folder actually exists, if not then do nothing
     if mode == nil or mode ~= "directory" then
-        SR.log("Error: SR.RecursiveSearch(): modsPath is not a directory or is null: '"..modsPath)
         return
     end
-    
-    SR.log("Searching for mods in '"..modsPath)
-    
+
     -- Process each available Mod
     for modFolder in lfs.dir(modsPath) do
         modAutoloadPath = modsPath..[[\]]..modFolder..[[\SRS\autoload.lua]]
@@ -175,7 +160,7 @@ function SR.exporter()
         end
     end
 
-    if _data ~= nil and SR.lastKnownSlotNum ~=0 then
+    if _data ~= nil then
 
         _update = {
             name = "",
@@ -218,7 +203,7 @@ function SR.exporter()
 
         _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
-        --SR.log(_update.unit.."\n")
+        --   SR.log(_update.unit.."\n\n")
 
         local aircraftExporter = SR.exporters[_update.unit]
 
@@ -277,11 +262,11 @@ function SR.exporter()
         _lastUnitId = _update.unitId
         _lastUnitType = _data.Name
     else
-        -- spectator
+        --Ground Commander or spectator
         _update = {
             name = "Unknown",
             ambient = {vol = 0.0, abType = ''},
-            unit = "Spectator",
+            unit = "CA",
             selected = 1,
             ptt = false,
             capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" },
@@ -307,11 +292,9 @@ function SR.exporter()
         }
 
         -- Allows for custom radio's using the DCS-Plugin scheme.
-        -- Combined Arms Overrides spectators.
         local aircraftExporter = SR.exporters["CA"]
         if aircraftExporter then
             _update = aircraftExporter(_update)
-            _update.unit = SR.lastKnownSlotName
         end
         
         local _latLng,_point = SR.exportCameraLocation()
@@ -366,10 +349,7 @@ function SR.readSeatSocket()
 
         if _decoded then
             SR.lastKnownSeat = _decoded.seat
-            SR.lastKnownSlotNum = _decoded.slotNum
-            SR.lastKnownSlotName = _decoded.slotName
-
-            --SR.log("lastKnownSeat: "..SR.lastKnownSeat.." lastKnownSlotNum: "..SR.lastKnownSlotNum.." lastKnownSlotName: "..SR.lastKnownSlotName)
+            --SR.log("lastKnownSeat "..SR.lastKnownSeat)
         end
 
     end
