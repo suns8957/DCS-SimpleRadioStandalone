@@ -517,21 +517,23 @@ namespace Installer
 
             Logger.Info($"Removed SRS program files at {programPath}");
             _progressBarDialog.UpdateProgress(false, $"Removing SRS at {programPath}");
-            if (Directory.Exists(programPath) && File.Exists(programPath + "\\SR-ClientRadio.exe"))
+            if (Directory.Exists(programPath) && File.Exists(programPath + "\\Client\\SR-ClientRadio.exe"))
             {
-
                 DeleteFileIfExists(programPath + "\\Server\\serverlog.txt");
-                DeleteFileIfExists(programPath + "\\Server\\SR-Server.exe");
-                
+                DeleteFileIfExists(programPath + "\\Server\\SRS-Server.exe");
+
                 DeleteFileIfExists(programPath + "\\ServerCommandLine-Windows\\SRS-Server-Commandline.exe");
                 DeleteFileIfExists(programPath + "\\ServerCommandLine-Windows\\serverlog.txt");
-                
+
                 DeleteFileIfExists(programPath + "\\ServerCommandLine-Linux\\SRS-Server-Commandline");
-                
+
                 DeleteDirectory(programPath + "\\ExternalAudio");
-                
+
                 DeleteDirectory(programPath + "\\Scripts");
-                
+
+                DeleteDirectory(programPath + "\\AudioEffects");
+                DeleteDirectory(programPath + "\\zh-CN");
+
                 DeleteDirectory(programPath + "\\Client\\AudioEffects");
                 DeleteDirectory(programPath + "\\Client\\runtimes");
                 DeleteFileIfExists(programPath + "\\Client\\awacs-radios.json");
@@ -541,7 +543,7 @@ namespace Installer
                 DeleteFileIfExists(programPath + "\\Client\\sni.dll");
                 DeleteFileIfExists(programPath + "\\Client\\speexdsp.dll");
                 DeleteFileIfExists(programPath + "\\Client\\SR-ClientRadio.exe");
-                
+
                 //Old structure
                 DeleteFileIfExists(programPath + "\\SR-ClientRadio.exe");
                 DeleteFileIfExists(programPath + "\\DCS-SR-ExternalAudio.exe");
@@ -557,7 +559,7 @@ namespace Installer
                 DeleteFileIfExists(programPath + "\\serverlog.txt");
                 DeleteFileIfExists(programPath + "\\clientlog.txt");
             }
-            
+
 
             Logger.Info($"Finished clearing scripts and program Post Mods ");
         }
@@ -846,20 +848,7 @@ namespace Installer
             {
                 if (File.Exists(path + "\\server.cfg"))
                 {
-                    File.Move(path+"\\server.cfg", path + "\\Server\\server.cfg");;
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-
-            //move awacs custom
-            try
-            {
-                if (File.Exists(path + "\\awacs-radios-custom.json"))
-                {
-                    File.Move(path + "\\awacs-radios-custom.json", path + "\\Client\\awacs-radios-custom.json");
+                    File.Move(path + "\\server.cfg", path + "\\Server\\server.cfg");
                     ;
                 }
             }
@@ -867,17 +856,21 @@ namespace Installer
             {
                 // ignored
             }
+
+
             //Move any existing .cfg files
             MoveClientCfgs(path);
             //Move custom radios
             MoveCustomRadios(path);
-            
+            MoveCustomRadiosJson(path);
+            MoveCustomRadiosJson(path);
+
             Logger.Info($"Finished installing SRS Program to {path}");
         }
 
         private void MoveClientCfgs(string path)
         {
-            var files  = Directory.GetFiles(path, "*.cfg");
+            var files = Directory.GetFiles(path, "*.cfg");
 
             foreach (var file in files)
             {
@@ -887,14 +880,15 @@ namespace Installer
                 }
             }
         }
-        
+
         private void MoveCustomRadios(string path)
         {
-            var files  = Directory.GetFiles(path, "*.txt");
+            var files = Directory.GetFiles(path, "*.txt");
 
             foreach (var file in files)
             {
-                if (!file.ToLowerInvariant().Contains("examples.txt") && !file.ToLowerInvariant().Contains("readme.txt"))
+                if (!file.ToLowerInvariant().Contains("examples.txt") &&
+                    !file.ToLowerInvariant().Contains("readme.txt"))
                 {
                     try
                     {
@@ -904,7 +898,40 @@ namespace Installer
                     {
                         Logger.Error(ex, $"Error moving custom radio file {file}");
                     }
-                    
+                }
+            }
+        }
+
+        private void MoveCustomRadiosJson(string path)
+        {
+            var files = Directory.GetFiles(path, "*.json");
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Error moving custom radio json files {file}");
+                }
+            }
+        }
+
+        private void MoveFavourites(string path)
+        {
+            var files = Directory.GetFiles(path, "*.csv");
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Error moving favourites file {file}");
                 }
             }
         }
@@ -912,14 +939,13 @@ namespace Installer
         private void InstallShortcuts(string path)
         {
             Logger.Info($"Adding SRS Shortcut");
-            
+
             string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
                 "DCS-SRS Client.lnk");
             Logger.Info($"Adding SRS Shortcut {path} - {shortcutPath}");
-     
-            ShortcutHelper.CreateShortcut(shortcutPath, path+"Client\\SR-ClientRadio.exe", path + "\\Client", "", "",
+
+            ShortcutHelper.CreateShortcut(shortcutPath, path + "Client\\SR-ClientRadio.exe", path + "\\Client", "", "",
                 ShortcutHelper.ShortcutWindowStyles.WshNormalFocus, "DCS-SimpleRadio Standalone Client");
-            
         }
 
         private void InstallScripts(string path)
@@ -1056,7 +1082,7 @@ namespace Installer
             }
         }
 
-        private async Task<bool> UninstallSR(string srPath, string dcsScriptsPath)
+        private Task<bool> UninstallSR(string srPath, string dcsScriptsPath)
         {
             try
             {
@@ -1078,14 +1104,14 @@ namespace Installer
 
                 RemoveShortcuts();
 
-                return true;
+                return Task.FromResult(true);
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error Running Uninstaller");
             }
 
-            return false;
+            return Task.FromResult(false);
         }
 
         private void RemoveShortcuts()

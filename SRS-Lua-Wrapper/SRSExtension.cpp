@@ -11,14 +11,14 @@ bool SRS::SRSExtension::Launch(const char* host)
     {
         std::wstring directory = ReadSRSPath();
         std::wstring path = directory;
-        path = path.append(L"\\Client\\SR-ClientRadio.exe");
+
 
         if (!directory.empty())
         {
             std::string hostStr = std::string(host).insert(0, "-host=");
 
-            //path = ("\"" + path.append("\""));
-            //directory = ("\"" + directory.append("\""));
+            path = path.append(L"\\Client\\SR-ClientRadio.exe");
+            directory = directory.append(L"\\Client");
 
 
             ShellExecute(NULL, L"open", path.c_str(), s2ws(hostStr).c_str(), directory.c_str(), SW_SHOWDEFAULT);

@@ -34,11 +34,12 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
     {
         SetSRSPathCommand = new DelegateCommand(() =>
         {
+            DirectoryInfo di = new DirectoryInfo(Directory.GetCurrentDirectory());
             Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\DCS-SR-Standalone", "SRPathStandalone",
-                Directory.GetCurrentDirectory() + "../");
+                di.Parent);
 
             MessageBox.Show(Application.Current.MainWindow,
-                Resources.MsgBoxSetSRSPathText + Directory.GetCurrentDirectory() + "../",
+                Resources.MsgBoxSetSRSPathText + di.Parent,
                 Resources.MsgBoxSetSRSPath,
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
