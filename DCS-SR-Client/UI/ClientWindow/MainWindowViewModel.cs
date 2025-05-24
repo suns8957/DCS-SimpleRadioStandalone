@@ -98,7 +98,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         _updateTimer.Tick += UpdatePlayerCountAndVUMeters;
         _updateTimer.Start();
 
-        ClientStateSingleton.Instance.DcsPlayerRadioInfo.name = Name;
+        ClientStateSingleton.Instance.DcsPlayerRadioInfo.name = EAMName;
 
         EventBus.Instance.SubscribeOnUIThread(this);
 
@@ -243,26 +243,6 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         VolumeConversionHelper.ConvertLinearDiffToDB(
             VolumeConversionHelper.ConvertVolumeSliderToScale((float)SpeakerBoost));
 
-    public string Name
-    {
-        get
-        {
-            var name = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName);
-
-            if (name == null || name.RawValue == "")
-                return "SRS Client";
-            return name.RawValue;
-        }
-        set
-        {
-            if (value != null)
-            {
-                _globalSettings.SetClientSetting(GlobalSettingsKeys.LastSeenName, value);
-                NotifyPropertyChanged();
-            }
-        }
-    }
-
     public ServerAddress SelectedServerAddress
     {
         get => _selectedServerAddress;
@@ -400,7 +380,15 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
     public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
     {
         ClientStateSingleton.Instance.LastSeenName = EAMName;
-        NotifyPropertyChanged(nameof(EAMConnectButtonText));
+
+        //Notify after it started - hack
+        Task.Run(async delegate
+        {
+            await Task.Delay(100);
+
+            NotifyPropertyChanged(nameof(EAMConnectButtonText));
+        });
+
         return Task.CompletedTask;
     }
 
@@ -459,6 +447,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         }
 
         NotifyPropertyChanged(nameof(IsEAMAvailable));
+        NotifyPropertyChanged(nameof(EAMConnectButtonText));
     }
 
     public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
@@ -473,6 +462,9 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         NotifyPropertyChanged(nameof(MicVU));
         NotifyPropertyChanged(nameof(CurrentUnit));
         NotifyPropertyChanged(nameof(LastKnownPosition));
+
+        if (ClientStateSingleton.Instance.IsConnected)
+            NotifyPropertyChanged(nameof(EAMName));
 
         ConnectedClientsSingleton.Instance.NotifyAll();
     }
@@ -517,7 +509,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
                                 GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.AllowRecording),
                             ClientGuid = ClientStateSingleton.Instance.ShortGUID,
                             Coalition = 0,
-                            Name = Name,
+                            Name = ClientStateSingleton.Instance.LastSeenName,
                             RadioInfo = ClientState.DcsPlayerRadioInfo.ConvertToRadioBase(),
                             Seat = 0
                         });

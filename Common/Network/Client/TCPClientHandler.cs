@@ -396,7 +396,8 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                 else
                                 {
                                     //TODO handle this on the client
-                                    EventBus.Instance.PublishOnUIThreadAsync(new EAMConnectedMessage());
+                                    EventBus.Instance.PublishOnUIThreadAsync(
+                                        new EAMConnectedMessage(serverMessage.Client.Coalition));
                                 }
 
                                 break;

@@ -156,7 +156,20 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
     // Indicates an active game connection has been detected (1 tick = 100ns, 100000000 ticks = 10s stale timer), not updated by EAM
     public bool IsGameConnected => IsGameGuiConnected && IsGameExportConnected;
 
-    public string LastSeenName { get; set; }
+    public string LastSeenName
+    {
+        get
+        {
+            var name = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastSeenName).RawValue;
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "SRS Client";
+            }
+
+            return name;
+        }
+        set => GlobalSettingsStore.Instance.SetClientSetting(GlobalSettingsKeys.LastSeenName, value);
+    }
 
     public VAICOMMessageWrapper InhibitTX { get; set; } = new(); //used to temporarily stop PTT for VAICOM
 

@@ -23,7 +23,8 @@ using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 
-public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>
+public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisconnectMessage>,
+    IHandle<TCPClientStatusMessage>
 {
     public static readonly string AWACS_RADIOS_FILE = "awacs-radios.json";
     public static readonly string AWACS_RADIOS_CUSTOM_FILE = "awacs-radios-custom.json";
@@ -57,13 +58,23 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
 
     public Task HandleAsync(EAMConnectedMessage message, CancellationToken cancellationToken)
     {
-        StartExternalAWACSModeLoop();
+        StartExternalAWACSModeLoop(message.ClientCoalition);
         return Task.CompletedTask;
     }
 
     public Task HandleAsync(EAMDisconnectMessage message, CancellationToken cancellationToken)
     {
         StopExternalAWACSModeLoop();
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+    {
+        if (!message.Connected)
+        {
+            StopExternalAWACSModeLoop();
+        }
+
         return Task.CompletedTask;
     }
 
@@ -277,16 +288,16 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
 
         playerRadioInfo.simultaneousTransmissionControl = message.simultaneousTransmissionControl;
 
-        playerRadioInfo.unit = message.unit;
-
         if (!_clientStateSingleton.ShouldUseLotATCPosition())
             _clientStateSingleton.UpdatePlayerPosition(message.latLng);
 
         var overrideFreqAndVol = false;
 
         var newAircraft = playerRadioInfo.unitId != message.unitId || playerRadioInfo.seat != message.seat ||
+                          playerRadioInfo.unit != message.unit ||
                           !playerRadioInfo.IsCurrent();
 
+        playerRadioInfo.unit = message.unit;
         overrideFreqAndVol = playerRadioInfo.unitId != message.unitId;
 
         //save unit id
@@ -593,7 +604,7 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
     }
 
 
-    public void StartExternalAWACSModeLoop()
+    private void StartExternalAWACSModeLoop(int coalition)
     {
         _stopExternalAWACSMode = false;
 
@@ -680,6 +691,8 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
             while (!_stopExternalAWACSMode)
             {
                 var unitId = DCSPlayerRadioInfo.UnitIdOffset + _clientStateSingleton.IntercomOffset;
+
+                _clientStateSingleton.PlayerCoaltionLocationMetadata.side = coalition;
 
                 //save
                 ProcessRadioInfo(new DCSPlayerRadioInfo
