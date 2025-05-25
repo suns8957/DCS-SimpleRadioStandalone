@@ -368,7 +368,7 @@ public class Options
         Required = false)]
     public bool? RadioEffectOverride { get; set; }
     
-    [Option("radioEffectOverride", 
+    [Option("serverBindIP", 
         HelpText = "Server Bind IP. Default is 0.0.0.0. Dont change unless you know what you're doing!",
         Required = false)]
     public string ServerBindIP { get; set; }
