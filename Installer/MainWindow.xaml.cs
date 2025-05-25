@@ -942,9 +942,13 @@ namespace Installer
 
             string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
                 "DCS-SRS Client.lnk");
-            Logger.Info($"Adding SRS Shortcut {path} - {shortcutPath}");
 
-            ShortcutHelper.CreateShortcut(shortcutPath, path + "Client\\SR-ClientRadio.exe", path + "\\Client", "", "",
+            Logger.Info(
+                $"Adding SRS Shortcut {path + "Client\\SR-ClientRadio.exe"} - {shortcutPath} - Working Directory{
+                    path + "\\Client"}");
+
+            ShortcutHelper.CreateShortcut(shortcutPath, path + "\\Client\\SR-ClientRadio.exe", path + "\\Client", "",
+                "",
                 ShortcutHelper.ShortcutWindowStyles.WshNormalFocus, "DCS-SimpleRadio Standalone Client");
         }
 
