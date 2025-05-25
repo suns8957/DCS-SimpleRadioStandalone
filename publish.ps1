@@ -178,7 +178,7 @@ if ($null -eq $filesToSign -or $filesToSign.Count -eq 0) {
 
         if ($fileInstance.FullName -match "VC_redist.x64")
         {
-            Write-Host "Skipping ${$fileInstance.FullName} " -ForegroundColor Green
+            Write-Host "Skipping VCRedist " -ForegroundColor Green
             continue
         }
 
