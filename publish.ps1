@@ -176,6 +176,12 @@ if ($null -eq $filesToSign -or $filesToSign.Count -eq 0) {
     foreach ($fileInstance in $filesToSign) {
         $filePath = $fileInstance.FullName # Get the full path of the file
 
+        if ($fileInstance.FullName -match "VC_redist.x64")
+        {
+            Write-Host "Skipping ${$fileInstance.FullName} " -ForegroundColor Green
+            continue
+        }
+
         Write-Host "Attempting to sign $filePath..."
 
         # Explicitly quote the file path argument for signtool
