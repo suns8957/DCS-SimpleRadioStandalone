@@ -1,66 +1,66 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Security.Principal;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using MahApps.Metro.Controls;
+using System.Windows.Forms;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Sentry;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
-namespace DCS_SR_Client
+namespace Ciribob.DCS.SimpleRadio.Standalone.Client;
+
+/// <summary>
+///     Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    ///     Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    private static Logger Logger = LogManager.GetCurrentClassLogger();
+    private NotifyIcon _notifyIcon;
+    private bool loggingReady;
+
+    public App()
     {
-        private System.Windows.Forms.NotifyIcon _notifyIcon;
-        private bool loggingReady = false;
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
+        //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+        SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
+        AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
-        public App()
+        var location = AppDomain.CurrentDomain.BaseDirectory;
+        //var location = Assembly.GetExecutingAssembly().Location;
+
+        //check for opus.dll
+        if (!File.Exists(location + "\\opus.dll"))
         {
-            //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
-            SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            MessageBox.Show(
+                "You are missing the opus.dll - Reinstall using the Installer and don't move the client from the installation directory!",
+                "Installation Error!", MessageBoxButton.OK,
+                MessageBoxImage.Error);
 
-            var location = AppDomain.CurrentDomain.BaseDirectory;
-            //var location = Assembly.GetExecutingAssembly().Location;
+            Environment.Exit(1);
+        }
 
-            //check for opus.dll
-            if (!File.Exists(location + "\\opus.dll"))
-            {
-                MessageBox.Show(
-                    $"You are missing the opus.dll - Reinstall using the Installer and don't move the client from the installation directory!",
-                    "Installation Error!", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+        if (!File.Exists(location + "\\speexdsp.dll"))
+        {
+            MessageBox.Show(
+                "You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
+                "Installation Error!", MessageBoxButton.OK,
+                MessageBoxImage.Error);
 
-                Environment.Exit(1);
-            }
-            if (!File.Exists(location + "\\speexdsp.dll"))
-            {
+            Environment.Exit(1);
+        }
 
-                MessageBox.Show(
-                    $"You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
-                    "Installation Error!", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+        SetupLogging();
 
-                Environment.Exit(1);
-            }
-
-            SetupLogging();
-
-            ListArgs();
+        ListArgs();
 
 #if !DEBUG
             if (IsClientRunning())
@@ -100,220 +100,194 @@ namespace DCS_SR_Client
             }
 #endif
 
-            RequireAdmin();
+        RequireAdmin();
 
-            InitNotificationIcon();
+        InitNotificationIcon();
+    }
 
-        }
+    private void ListArgs()
+    {
+        Logger.Info("Arguments:");
+        var args = Environment.GetCommandLineArgs();
+        foreach (var s in args) Logger.Info(s);
+    }
 
-        private void ListArgs()
-        {
-            Logger.Info("Arguments:");
-            var args = Environment.GetCommandLineArgs();
-            foreach (var s in args)
+    private void RequireAdmin()
+    {
+        if (!GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin)) return;
+
+        var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+        var hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
+
+        if (!hasAdministrativeRight &&
+            GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
+            Task.Factory.StartNew(() =>
             {
-                Logger.Info(s);
-            }
-        }
+                var location = AppDomain.CurrentDomain.BaseDirectory;
 
-        private void RequireAdmin()
-        {
-            if (!GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
-            {
-                return;
-            }
-            
-            WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-            bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-
-            if (!hasAdministrativeRight && GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
-            {
-                Task.Factory.StartNew(() =>
+                var startInfo = new ProcessStartInfo
                 {
-                    var location = AppDomain.CurrentDomain.BaseDirectory;
+                    UseShellExecute = true,
+                    WorkingDirectory = "\"" + location + "\"",
+                    FileName = "SR-ClientRadio.exe",
+                    Verb = "runas",
+                    Arguments = GetArgsString() + " -allowMultiple"
+                };
+                try
+                {
+                    //TODO fix process start
+                    var p = Process.Start(startInfo);
 
-                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    //shutdown this process as another has started
+                    Dispatcher?.BeginInvoke(new Action(() =>
                     {
-                        UseShellExecute = true,
-                        WorkingDirectory = "\"" + location + "\"",
-                        FileName = "SR-ClientRadio.exe",
-                        Verb = "runas",
-                        Arguments = GetArgsString() + " -allowMultiple"
-                    };
-                    try
-                    {
-                        Process p = Process.Start(startInfo);
+                        if (_notifyIcon != null)
+                            _notifyIcon.Visible = false;
 
-                        //shutdown this process as another has started
-                        Dispatcher?.BeginInvoke(new Action(() =>
-                        {
-                            if (_notifyIcon != null)
-                                _notifyIcon.Visible = false;
+                        Environment.Exit(0);
+                    }));
+                }
+                catch (Win32Exception)
+                {
+                    MessageBox.Show(
+                        "SRS Requires admin rights to be able to read keyboard input in the background. \n\nIf you do not use any keyboard binds for SRS and want to stop this message - Disable Require Admin Rights in SRS Settings\n\nSRS will continue without admin rights but keyboard binds will not work!",
+                        "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            });
+    }
 
-                            Environment.Exit(0);
-                        }));
-                    }
-                    catch (System.ComponentModel.Win32Exception)
-                    {
-                        MessageBox.Show(
-                                "SRS Requires admin rights to be able to read keyboard input in the background. \n\nIf you do not use any keyboard binds for SRS and want to stop this message - Disable Require Admin Rights in SRS Settings\n\nSRS will continue without admin rights but keyboard binds will not work!",
-                                "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+    private string GetArgsString()
+    {
+        var builder = new StringBuilder();
+        var args = Environment.GetCommandLineArgs();
+        foreach (var s in args)
+        {
+            if (builder.Length > 0) builder.Append(" ");
 
-                    }
-                });
+            if (s.Contains("-cfg="))
+            {
+                var str = s.Replace("-cfg=", "-cfg=\"");
+
+                builder.Append(str);
+                builder.Append("\"");
+            }
+            else if (s.Contains("SR-ClientRadio.exe"))
+            {
+                ///ignore
             }
             else
             {
-                
+                builder.Append(s);
             }
-           
         }
 
-        private string GetArgsString()
+        return builder.ToString();
+    }
+
+    private bool IsClientRunning()
+    {
+        var currentProcess = Process.GetCurrentProcess();
+        var currentProcessName = currentProcess.ProcessName.ToLower().Trim();
+
+        foreach (var clsProcess in Process.GetProcesses())
+            if (clsProcess.Id != currentProcess.Id &&
+                clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
+                return true;
+
+        return false;
+    }
+
+    /*
+     * Changes to the logging configuration in this method must be replicated in
+     * this VS project's NLog.config file
+     */
+    private void SetupLogging()
+    {
+        // If there is a configuration file then this will already be set
+        if (LogManager.Configuration != null)
         {
-            StringBuilder builder = new StringBuilder();
-            var args = Environment.GetCommandLineArgs();
-            foreach (var s in args)
-            {
-                if (builder.Length > 0)
-                {
-                    builder.Append(" ");
-                }
-
-                if (s.Contains("-cfg="))
-                {
-                    var str = s.Replace("-cfg=", "-cfg=\"");
-
-                    builder.Append(str);
-                    builder.Append("\"");
-                }
-                else if (s.Contains("SR-ClientRadio.exe"))
-                {
-                    ///ignore
-                }
-                else
-                {
-                    builder.Append(s);
-                }
-            }
-
-            return builder.ToString();
-        }
-
-        private bool IsClientRunning()
-        {
-
-            Process currentProcess = Process.GetCurrentProcess();
-            string currentProcessName = currentProcess.ProcessName.ToLower().Trim();
-
-            foreach (Process clsProcess in Process.GetProcesses())
-            {
-                if (clsProcess.Id != currentProcess.Id &&
-                    clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /* 
-         * Changes to the logging configuration in this method must be replicated in
-         * this VS project's NLog.config file
-         */
-        private void SetupLogging()
-        {
-            // If there is a configuration file then this will already be set
-            if(LogManager.Configuration != null)
-            {
-                loggingReady = true;
-                return;
-            }
-
-            var config = new LoggingConfiguration();
-            var fileTarget = new FileTarget
-            {
-                FileName = "clientlog.txt",
-                ArchiveFileName = "clientlog.old.txt",
-                MaxArchiveFiles = 1,
-                ArchiveAboveSize = 104857600,
-                Layout =
-                @"${longdate} | ${logger} | ${message} ${exception:format=toString,Data:maxInnerExceptionLevel=1}"
-            };
-
-            var wrapper = new AsyncTargetWrapper(fileTarget, 5000, AsyncTargetWrapperOverflowAction.Discard);
-            config.AddTarget("asyncFileTarget", wrapper);
-            config.LoggingRules.Add( new LoggingRule("*", LogLevel.Info, wrapper));
-
-            LogManager.Configuration = config;
             loggingReady = true;
-
-            Logger = LogManager.GetCurrentClassLogger();
+            return;
         }
 
-
-        private void InitNotificationIcon()
+        var config = new LoggingConfiguration();
+        var fileTarget = new FileTarget
         {
-            if(_notifyIcon != null)
-            {
-                return;
-            }
-            System.Windows.Forms.ToolStripMenuItem notifyIconContextMenuShow = new System.Windows.Forms.ToolStripMenuItem
-            {
-                Text = "Show"
-            };
-            notifyIconContextMenuShow.Click += new EventHandler(NotifyIcon_Show);
+            FileName = "clientlog.txt",
+            ArchiveFileName = "clientlog.old.txt",
+            MaxArchiveFiles = 1,
+            ArchiveAboveSize = 104857600,
+            Layout =
+                @"${longdate} | ${logger} | ${message} ${exception:format=toString,Data:maxInnerExceptionLevel=1}"
+        };
 
-            System.Windows.Forms.ToolStripMenuItem notifyIconContextMenuQuit = new System.Windows.Forms.ToolStripMenuItem
-            {
-                Text = "Quit"
-            };
-            notifyIconContextMenuQuit.Click += new EventHandler(NotifyIcon_Quit);
+        var wrapper = new AsyncTargetWrapper(fileTarget, 5000, AsyncTargetWrapperOverflowAction.Discard);
+        config.AddTarget("asyncFileTarget", wrapper);
+        config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, wrapper));
 
-            // TODO ContextMenu is no longer supported. Use ContextMenuStrip instead. For more details see https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-            System.Windows.Forms.ContextMenuStrip notifyIconContextMenu = new System.Windows.Forms.ContextMenuStrip();
+        LogManager.Configuration = config;
+        loggingReady = true;
 
-            // TODO MenuItem is no longer supported. Use ToolStripMenuItem instead. For more details see https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-            notifyIconContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripMenuItem[] { notifyIconContextMenuShow, notifyIconContextMenuQuit });
+        Logger = LogManager.GetCurrentClassLogger();
+    }
 
-            _notifyIcon = new System.Windows.Forms.NotifyIcon
-            {
-                Icon = Ciribob.DCS.SimpleRadio.Standalone.Client.Properties.Resources.audio_headset,
-                Visible = true
-            };
 
-            _notifyIcon.ContextMenuStrip = notifyIconContextMenu;
-            _notifyIcon.DoubleClick += new EventHandler(NotifyIcon_Show);
-
-        }
-
-        private void NotifyIcon_Show(object sender, EventArgs args)
+    private void InitNotificationIcon()
+    {
+        if (_notifyIcon != null) return;
+        var notifyIconContextMenuShow = new ToolStripMenuItem
         {
-            MainWindow.Show();
-            MainWindow.WindowState = WindowState.Normal;
-        }
+            Text = "Show"
+        };
+        notifyIconContextMenuShow.Click += NotifyIcon_Show;
 
-        private void NotifyIcon_Quit(object sender, EventArgs args)
+        var notifyIconContextMenuQuit = new ToolStripMenuItem
         {
-            MainWindow.Close();
+            Text = "Quit"
+        };
+        notifyIconContextMenuQuit.Click += NotifyIcon_Quit;
 
-        }
+        var notifyIconContextMenu = new ContextMenuStrip();
 
-        protected override void OnExit(ExitEventArgs e)
+        notifyIconContextMenu.Items.AddRange(new[] { notifyIconContextMenuShow, notifyIconContextMenuQuit });
+
+        _notifyIcon = new NotifyIcon
         {
-            if(_notifyIcon !=null)
-                _notifyIcon.Visible = false;
-            base.OnExit(e);
-        }
+            Icon = Client.Properties.Resources.audio_headset,
+            Visible = true
+        };
 
-        private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        _notifyIcon.ContextMenuStrip = notifyIconContextMenu;
+        _notifyIcon.DoubleClick += NotifyIcon_Show;
+    }
+
+    private void NotifyIcon_Show(object sender, EventArgs args)
+    {
+        MainWindow?.Show();
+        MainWindow.WindowState = WindowState.Normal;
+    }
+
+    private void NotifyIcon_Quit(object sender, EventArgs args)
+    {
+        MainWindow?.Close();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_notifyIcon != null)
+            _notifyIcon.Visible = false;
+        base.OnExit(e);
+
+        ClientStateSingleton.Instance.Close();
+    }
+
+    private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (loggingReady)
         {
-            if (loggingReady)
-            {
-                Logger logger = LogManager.GetCurrentClassLogger();
-                logger.Error((Exception) e.ExceptionObject, "Received unhandled exception, {0}", e.IsTerminating ? "exiting" : "continuing");
-            }
+            var logger = LogManager.GetCurrentClassLogger();
+            logger.Error((Exception)e.ExceptionObject, "Received unhandled exception, {0}",
+                e.IsTerminating ? "exiting" : "continuing");
         }
     }
 }

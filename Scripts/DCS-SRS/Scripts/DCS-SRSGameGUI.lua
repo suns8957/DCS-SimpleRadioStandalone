@@ -1,8 +1,8 @@
--- Version 2.1.1.0
+-- Version 2.2.0.0
 -- Make sure you COPY this file to the same location as the Export.lua as well! 
 -- Otherwise the Radio Might not work
 
-net.log("Loading - DCS-SRS GameGUI - Ciribob: 2.1.1.0")
+net.log("Loading - DCS-SRS GameGUI - Ciribob: 2.2.0.0")
 local SRS = {}
 
 SRS.CLIENT_ACCEPT_AUTO_CONNECT = true --- Set to false if you want to disable AUTO CONNECT
@@ -66,82 +66,40 @@ SRS.onSimulationFrame = function()
 
 end
 
--- Slot Data Examples:
--- 3271
--- 12122
--- 13312_2
--- 13312_3
--- forward_observer_blue_6
--- artillery_commander_blue_1
--- instructor_red_1
--- Spectators are Null
-
 SRS.sendUpdate = function(playerID)
   
     local _update = {
         name = "",
         side = 0,
         seat = 0,
-		slotNum = 0,
-		slotName = "?",
+		slot = "",
     }
 
     _update.name = net.get_player_info(playerID, "name" )
 	_update.side = net.get_player_info(playerID, "side")
 
-	local rawSlot =  net.get_player_info(playerID, "slot")
+	local slot = net.get_player_info(playerID, "slot")
 
-	if rawSlot and rawSlot ~= '' then
-		slot = tostring(rawSlot)
-	    
-	    -- If there is an Underscore in the Slot, then special cases:
+	if slot and slot ~= '' then
+		slot = tostring(slot)
+
+		_update.slot = slot
+
+		-- Slot 2744_2 -- backseat slot is Unit ID  _2 
 	    if string.find(tostring(slot), "_", 1, true) then
-            -- Deal with the special slots added by Combined Arms, Else Aircrew.
-            if string.find(rawSlot, 'artillery_commander') then
-                _update.slotNum = 0
-                _update.slotName = "Tactical Cmdr"
-            elseif string.find(rawSlot, 'instructor') then
-                _update.slotNum = 0
-                _update.slotName = "Game Master" --"Game Master"
-            elseif string.find(rawSlot, 'forward_observer') then
-                _update.slotNum = 0
-                _update.slotName = "JTAC/Operator" -- "JTAC"
-            elseif string.find(rawSlot, 'observer') then
-                _update.slotNum = 0
-                _update.slotName = "Observer"
-            else
-                -- extract Slot # from the start.
-                slotBeginning = string.sub(slot, 0, string.find(slot, "_", 1, true))
-                if slotBeginning ~= nil then
-                    _update.slotNum = tonumber(slotBeginning)
-                    _update.slotName = "Aircrew"
-                end
-            end
-            
-            -- Slot 2744_2 -- backseat slot is Unit ID  _2
-            -- forward_observer_blue_6 -- Seat 6
-            
-            --extract ending substring - get the seat ID
-            local last_underscore = string.find(string.reverse(slot), "_", 1, true)-2
-            slotEnding = string.sub(slot, string.len(slot)-last_underscore, string.len(slot))
+			--extract substring - get the seat ID
+			slot = string.sub(slot, string.find(slot, "_", 1, true) + 1, string.len(slot))
 
-            seatNum = tonumber(slotEnding)
+			local slotNum = tonumber(slot)
 
-            if seatNum ~= nil and seatNum >= 1 then
-                _update.seat = seatNum -1 -- -1 as seat starts at 2
-            end
-        else
-            -- Slot Data is valid, but does not have an Underscore.
-            _update.slotNum = slot
-            _update.slotName = "Pilot"
-        end
-    else
-        -- If Slot info is invalid, we must be a Spectator or similar.
-        _update.slotName = "Spectator"
+			if slotNum ~= nil and slotNum >= 1 then
+				_update.seat = slotNum - 1 -- -1 as seat starts at 2
+			end
+		end
 	end
 
 	local _jsonUpdate = SRS.JSON:encode(_update).." \n"
-    --SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side.." Seat: ".._update.seat.." slot #: ".._update.slotNum.." slotName: ".._update.slotName)
+	--SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side)
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 5068))
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 9087))
 end
@@ -370,6 +328,13 @@ SRS.onChatMessage = function(msg, from)
 		local port = SRS.getPortFromMessage(msg)
 		if port ~= nil then 
 			local ip = net.get_server_host()
+
+			-- check if host has port - if it does remove it and re-add the SRS one
+			if string.find(ip, ":", 1, true) then
+				SRS.log("Got Server Host Automatically with port - will strip " .. ip)
+				ip = string.sub(ip, 1, string.find(ip, ":", 1, true) - 1)
+			end
+			
 			host = ip .. ':' .. port
 		else
 			host = SRS.getHostFromMessage(msg)
@@ -417,5 +382,5 @@ end
 
 DCS.setUserCallbacks(SRS)
 
-net.log("Loaded - DCS-SRS GameGUI - Ciribob: 2.1.1.0")
+net.log("Loaded - DCS-SRS GameGUI - Ciribob: 2.2.0.0")
 

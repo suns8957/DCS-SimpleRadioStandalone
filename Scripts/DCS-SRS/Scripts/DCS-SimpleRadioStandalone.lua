@@ -1,4 +1,4 @@
--- Version 2.1.1.0
+-- Version 2.2.0.0
 -- Special thanks to Cap. Zeen, Tarres and Splash for all the help
 -- with getting the radio information :)
 -- Run the installer to correctly install this file
@@ -18,8 +18,7 @@ SR.unicast = true --DONT CHANGE THIS
 
 SR.lastKnownPos = { x = 0, y = 0, z = 0 }
 SR.lastKnownSeat = 0
-SR.lastKnownSlotNum = 0
-SR.lastKnownSlotName = "?"
+SR.lastKnownSlot = ''
 
 SR.MIDS_FREQ = 1030.0 * 1000000 -- Start at UHF 300
 SR.MIDS_FREQ_SEPARATION = 1.0 * 100000 -- 0.1 MHZ between MIDS channels
@@ -121,7 +120,7 @@ function SR.LoadModsPlugins()
 
     local TechModsPath = lfs.writedir() .. [[Mods\Tech]]
     SR.ModsPuginsRecursiveSearch(TechModsPath)
-    
+
     -- local ServicesModsPath = lfs.writedir() .. [[Mods\Services]]
     -- SR.ModsPuginsRecursiveSearch(ServicesModsPath)
 end
@@ -134,11 +133,11 @@ function SR.ModsPuginsRecursiveSearch(modsPath)
    
     -- Check that Mod folder actually exists, if not then do nothing
     if mode == nil or mode ~= "directory" then
-        SR.log("Error: SR.RecursiveSearch(): modsPath is not a directory or is null: '"..modsPath)
+        SR.log("Error: SR.RecursiveSearch(): modsPath is not a directory or is null: '" .. modsPath)
         return
     end
-    
-    SR.log("Searching for mods in '"..modsPath)
+
+    SR.log("Searching for mods in '" .. modsPath)
     
     -- Process each available Mod
     for modFolder in lfs.dir(modsPath) do
@@ -175,7 +174,7 @@ function SR.exporter()
         end
     end
 
-    if _data ~= nil and SR.lastKnownSlotNum ~=0 then
+    if _data ~= nil then
 
         _update = {
             name = "",
@@ -218,7 +217,7 @@ function SR.exporter()
 
         _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=1,expansion=false,mic=-1}
 
-        --SR.log(_update.unit.."\n")
+        --   SR.log(_update.unit.."\n\n")
 
         local aircraftExporter = SR.exporters[_update.unit]
 
@@ -267,6 +266,18 @@ function SR.exporter()
             _update.radios[4].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
             _update.radios[4].rtMode = 1
 
+            _update.radios[5].name = "FC3 HF"
+            _update.radios[5].freq = 3.0 * 1000000
+            _update.radios[5].modulation = 0
+            _update.radios[5].volume = 1.0
+            _update.radios[5].freqMin = 1 * 1000000
+            _update.radios[5].freqMax = 15 * 1000000
+            _update.radios[5].volMode = 1
+            _update.radios[5].freqMode = 1
+            _update.radios[5].encKey = 1
+            _update.radios[5].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
+            _update.radios[5].rtMode = 1
+
             _update.control = 0;
             _update.selected = 1
             _update.iff = {status=0,mode1=0,mode2=-1,mode3=0,mode4=0,control=0,expansion=false,mic=-1}
@@ -277,11 +288,28 @@ function SR.exporter()
         _lastUnitId = _update.unitId
         _lastUnitType = _data.Name
     else
-        -- spectator
+        local _slot = ''
+
+        if SR.lastKnownSlot == nil or SR.lastKnownSlot == '' then
+            _slot = 'Spectator'
+        else
+            if string.find(SR.lastKnownSlot, 'artillery_commander') then
+                _slot = "Tactical-Commander"
+            elseif string.find(SR.lastKnownSlot, 'instructor') then
+                _slot = "Game-Master"
+            elseif string.find(SR.lastKnownSlot, 'forward_observer') then
+                _slot = "JTAC-Operator" -- "JTAC"
+            elseif string.find(SR.lastKnownSlot, 'observer') then
+                _slot = "Observer"
+            else
+                _slot = SR.lastKnownSlot
+            end
+        end
+        --Ground Commander or spectator
         _update = {
             name = "Unknown",
             ambient = {vol = 0.0, abType = ''},
-            unit = "Spectator",
+            unit = _slot,
             selected = 1,
             ptt = false,
             capabilities = { dcsPtt = false, dcsIFF = false, dcsRadioSwitch = false, intercomHotMic = false, desc = "" },
@@ -307,17 +335,16 @@ function SR.exporter()
         }
 
         -- Allows for custom radio's using the DCS-Plugin scheme.
-        -- Combined Arms Overrides spectators.
-        local aircraftExporter = SR.exporters["CA"]
+        local aircraftExporter = SR.exporters[_update.unit]
         if aircraftExporter then
             _update = aircraftExporter(_update)
-            _update.unit = SR.lastKnownSlotName
         end
-        
-        local _latLng,_point = SR.exportCameraLocation()
 
-        _update.latLng = _latLng
-        SR.lastKnownPos = _point
+        -- Disable camera position if you're not in a vehicle now
+        --local _latLng,_point = SR.exportCameraLocation()
+        --
+        --_update.latLng = _latLng
+        --SR.lastKnownPos = _point
 
         _lastUnitId = ""
         _lastUnitType = ""
@@ -366,10 +393,8 @@ function SR.readSeatSocket()
 
         if _decoded then
             SR.lastKnownSeat = _decoded.seat
-            SR.lastKnownSlotNum = _decoded.slotNum
-            SR.lastKnownSlotName = _decoded.slotName
-
-            --SR.log("lastKnownSeat: "..SR.lastKnownSeat.." lastKnownSlotNum: "..SR.lastKnownSlotNum.." lastKnownSlotName: "..SR.lastKnownSlotName)
+            SR.lastKnownSlot = _decoded.slot
+            --SR.log("lastKnownSeat "..SR.lastKnownSeat)
         end
 
     end
@@ -7504,4 +7529,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.1.1.0")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.2.0.0")

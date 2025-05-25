@@ -1,10 +1,9 @@
-﻿namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models
+﻿namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models;
+
+public struct DCSLosCheckRequest
 {
-    public struct DCSLosCheckRequest
-    {
-        public string id;
-        public double lat;
-        public double lng;
-        public double alt;
-    }
+    public string id;
+    public double lat;
+    public double lng;
+    public double alt;
 }

@@ -5,8 +5,8 @@ using System.IO;
 using System.Speech.AudioFormat;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Core;
 using Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client;
-using FragLabs.Audio.Codecs;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using NAudio.Vorbis;
@@ -355,7 +355,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Audio
             }
 
             Logger.Info($"Encode as Opus");
-            var encoder = OpusEncoder.Create(INPUT_SAMPLE_RATE, 1, FragLabs.Audio.Codecs.Opus.Application.Voip);
+            var encoder = OpusEncoder.Create(INPUT_SAMPLE_RATE, 1,  Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Application.Voip);
 
             int pos = 0;
             while (pos +(SEGMENT_FRAMES*2) < resampledBytes.Length)
