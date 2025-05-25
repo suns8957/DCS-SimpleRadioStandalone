@@ -863,7 +863,7 @@ namespace Installer
             //Move custom radios
             MoveCustomRadios(path);
             MoveCustomRadiosJson(path);
-            MoveCustomRadiosJson(path);
+            MoveFavourites(path);
 
             Logger.Info($"Finished installing SRS Program to {path}");
         }
