@@ -328,6 +328,13 @@ SRS.onChatMessage = function(msg, from)
 		local port = SRS.getPortFromMessage(msg)
 		if port ~= nil then 
 			local ip = net.get_server_host()
+
+			-- check if host has port - if it does remove it and re-add the SRS one
+			if string.find(ip, ":", 1, true) then
+				SRS.log("Got Server Host Automatically with port - will strip " .. ip)
+				ip = string.sub(ip, 1, string.find(ip, ":", 1, true) - 1)
+			end
+			
 			host = ip .. ':' .. port
 		else
 			host = SRS.getHostFromMessage(msg)
