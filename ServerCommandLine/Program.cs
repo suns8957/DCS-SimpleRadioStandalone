@@ -31,7 +31,6 @@ internal class Program:IHandle<SRSClientStatus>
     private static void Main(string[] args)
     {
         GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
         Parser.Default.ParseArguments<Options>(args)
             .WithParsed(ProcessArgs);
     }
@@ -362,10 +361,13 @@ public class Options
         Required = false)]
     public bool? RadioEffectOverride { get; set; }
     
-    [Option("radioEffectOverride", 
+    [Option("serverBindIP", 
         HelpText = "Server Bind IP. Default is 0.0.0.0. Dont change unless you know what you're doing!",
         Required = false)]
     public string ServerBindIP { get; set; }
+    
+    [Option('c',"cfg" , Required = false, HelpText = "Configuration file path. Must be the full path to the config file. i.e -cfg=C:\\some-path\\server.cfg")]
+    public string ConfigFile { get; set; }
     
     public override string ToString()
     {

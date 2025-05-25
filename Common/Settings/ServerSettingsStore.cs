@@ -30,7 +30,9 @@ public class ServerSettingsStore
         foreach (var arg in args)
             if (arg.StartsWith("-cfg="))
                 cfgFile = arg.Replace("-cfg=", "").Trim();
-
+            else if (arg.StartsWith("--cfg="))
+                cfgFile = arg.Replace("--cfg=", "").Trim();
+        
         try
         {
             _configuration = Configuration.LoadFromFile(cfgFile);
