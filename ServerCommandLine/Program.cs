@@ -37,6 +37,12 @@ internal class Program:IHandle<SRSClientStatus>
 
     private static void ProcessArgs(Options options)
     {
+        // Apply config file first, and let additional overload from the command line take effect on top.
+        if (options.ConfigFile != null && options.ConfigFile.Trim().Length > 0)
+        {
+            ServerSettingsStore.cfgFile = options.ConfigFile.Trim();
+        }
+
         UpdaterChecker.Instance.CheckForUpdate(ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue,
             result =>
             {
@@ -365,13 +371,15 @@ public class Options
         HelpText = "Server Bind IP. Default is 0.0.0.0. Dont change unless you know what you're doing!",
         Required = false)]
     public string ServerBindIP { get; set; }
-    
+
     [Option('c',"cfg" , Required = false, HelpText = "Configuration file path. Must be the full path to the config file. i.e -cfg=C:\\some-path\\server.cfg")]
     public string ConfigFile { get; set; }
     
+
     public override string ToString()
     {
         return
+            $"{nameof(ConfigFile)}: {ConfigFile}\n" +
             $"{nameof(ConsoleLogs)}: {ConsoleLogs}, \n" +
             $"{nameof(Port)}: {Port}, \n" +
             $"{nameof(CoalitionSecurity)}: {CoalitionSecurity}, \n" +

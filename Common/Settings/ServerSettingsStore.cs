@@ -20,7 +20,7 @@ public class ServerSettingsStore
     private readonly Configuration _configuration;
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    private readonly string cfgFile = CFG_FILE_NAME;
+    public static string cfgFile = CFG_FILE_NAME;
 
     public ServerSettingsStore()
     {
