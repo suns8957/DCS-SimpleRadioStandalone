@@ -517,7 +517,7 @@ namespace Installer
 
             Logger.Info($"Removed SRS program files at {programPath}");
             _progressBarDialog.UpdateProgress(false, $"Removing SRS at {programPath}");
-            if (Directory.Exists(programPath) && File.Exists(programPath + "\\Client\\SR-ClientRadio.exe"))
+            if (Directory.Exists(programPath))
             {
                 DeleteFileIfExists(programPath + "\\Server\\serverlog.txt");
                 DeleteFileIfExists(programPath + "\\Server\\SRS-Server.exe");
