@@ -876,7 +876,14 @@ namespace Installer
             {
                 if (!file.ToLowerInvariant().Contains("server.cfg"))
                 {
-                    File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                    try
+                    {
+                        File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex, $"Error moving Client Configs {file}");
+                    }
                 }
             }
         }
