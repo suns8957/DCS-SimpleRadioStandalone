@@ -103,6 +103,16 @@ public class Bootstrapper : BootstrapperBase
 
     protected override void OnStartup(object sender, StartupEventArgs e)
     {
+        
+        //check commandline
+        var args = Environment.GetCommandLineArgs();
+
+        foreach (var arg in args)
+            if (arg.StartsWith("-cfg="))
+                ServerSettingsStore.CFG_FILE_NAME = arg.Replace("-cfg=", "").Trim();
+            else if (arg.StartsWith("--cfg="))
+                ServerSettingsStore.CFG_FILE_NAME = arg.Replace("--cfg=", "").Trim();
+        
         IDictionary<string, object> settings = new Dictionary<string, object>
         {
             { "Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico")) },

@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Interop;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Input;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Input;
 using NLog;
@@ -553,16 +554,16 @@ public class InputDeviceManager : IDisposable
                 foreach (var bindState in bindStates)
                 {
                     if (bindState.IsActive && bindState.MainDevice.InputBind == InputBinding.OverlayToggle)
-                        //TODO toggle the overlay via message bus
-                        //run on main
-                        //Application.Current.Dispatcher.Invoke(() => { _toggleOverlayCallback(false, false); });
+                    {
+                        EventBus.Instance.PublishOnUIThreadAsync(new ToggleSingleStackRadioOverlayMessage());
                         break;
+                    }
 
                     if (bindState.IsActive && bindState.MainDevice.InputBind == InputBinding.AwacsOverlayToggle)
-                        //TODO toggle the overlay via message bus
-                        //run on main
-                        //Application.Current.Dispatcher.Invoke(() => { _toggleOverlayCallback(false, true); });
+                    {
+                        EventBus.Instance.PublishOnUIThreadAsync(new ToogleAwacsRadioOverlayMessage());
                         break;
+                    }
 
                     if ((int)bindState.MainDevice.InputBind >= (int)InputBinding.Up100 &&
                         (int)bindState.MainDevice.InputBind <= (int)InputBinding.AwacsOverlayToggle)

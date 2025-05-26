@@ -38,7 +38,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
 
 public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientStatusMessage>,
     IHandle<VOIPStatusMessage>, IHandle<ProfileChangedMessage>, IHandle<EAMConnectedMessage>,
-    IHandle<EAMDisconnectMessage>, IHandle<ServerSettingsUpdatedMessage>, IHandle<AutoConnectMessage>
+    IHandle<EAMDisconnectMessage>, IHandle<ServerSettingsUpdatedMessage>, IHandle<AutoConnectMessage>, IHandle<ToogleAwacsRadioOverlayMessage>, IHandle<ToggleSingleStackRadioOverlayMessage>
 {
     private readonly AudioManager _audioManager;
 
@@ -681,7 +681,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         NotifyPropertyChanged(nameof(AudioSettingsEnabled));
     }
 
-    public void StartAudio(IPEndPoint endPoint)
+    private void StartAudio(IPEndPoint endPoint)
     {
         //Must be main thread
         Application.Current.Dispatcher.Invoke(delegate
@@ -706,7 +706,7 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
         });
     }
 
-    public void SingleRadioStackOverlay()
+    private void SingleRadioStackOverlay()
     {
         ToggleSingleRadioStack();
     }
@@ -827,5 +827,19 @@ public class MainWindowViewModel : PropertyChangedBaseClass, IHandle<TCPClientSt
 
         _serverSettingsWindow?.Close();
         _serverSettingsWindow = null;
+    }
+
+    public Task HandleAsync(ToogleAwacsRadioOverlayMessage message, CancellationToken cancellationToken)
+    {
+        // Even though it should be the UI thread - it wasnt working so this forces the UI / STA thread
+        Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(MultiRadioOverlay));
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(ToggleSingleStackRadioOverlayMessage message, CancellationToken cancellationToken)
+    {
+        // Even though it should be the UI thread - it wasnt working so this forces the UI / STA thread
+        Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(ToggleSingleRadioStack));
+        return Task.CompletedTask;
     }
 }

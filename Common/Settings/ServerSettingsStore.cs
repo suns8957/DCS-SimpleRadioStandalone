@@ -11,7 +11,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 
 public class ServerSettingsStore
 {
-    public static readonly string CFG_FILE_NAME = "server.cfg";
+
     public static readonly string CFG_BACKUP_FILE_NAME = "server.cfg.bak";
 
     private static ServerSettingsStore instance;
@@ -20,22 +20,15 @@ public class ServerSettingsStore
     private readonly Configuration _configuration;
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public static string cfgFile = CFG_FILE_NAME;
+    //Can be overridden by a command line flag - hence being static
+    //if overwritten, it will contain a full path
+    public static string CFG_FILE_NAME = "server.cfg";
 
     public ServerSettingsStore()
     {
-        //check commandline
-        var args = Environment.GetCommandLineArgs();
-
-        foreach (var arg in args)
-            if (arg.StartsWith("-cfg="))
-                cfgFile = arg.Replace("-cfg=", "").Trim();
-            else if (arg.StartsWith("--cfg="))
-                cfgFile = arg.Replace("--cfg=", "").Trim();
-        
         try
         {
-            _configuration = Configuration.LoadFromFile(cfgFile);
+            _configuration = Configuration.LoadFromFile(CFG_FILE_NAME);
         }
         catch (FileNotFoundException ex)
         {
@@ -55,7 +48,7 @@ public class ServerSettingsStore
 
             try
             {
-                File.Copy(cfgFile, CFG_BACKUP_FILE_NAME, true);
+                File.Copy(CFG_FILE_NAME, CFG_BACKUP_FILE_NAME, true);
             }
             catch (Exception e)
             {
@@ -175,7 +168,7 @@ public class ServerSettingsStore
         {
             try
             {
-                _configuration.SaveToFile(cfgFile);
+                _configuration.SaveToFile(CFG_FILE_NAME);
             }
             catch (Exception ex)
             {

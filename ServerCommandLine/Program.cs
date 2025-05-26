@@ -40,7 +40,7 @@ internal class Program:IHandle<SRSClientStatus>
         // Apply config file first, and let additional overload from the command line take effect on top.
         if (options.ConfigFile != null && options.ConfigFile.Trim().Length > 0)
         {
-            ServerSettingsStore.cfgFile = options.ConfigFile.Trim();
+            ServerSettingsStore.CFG_FILE_NAME = options.ConfigFile.Trim();
         }
 
         UpdaterChecker.Instance.CheckForUpdate(ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue,
