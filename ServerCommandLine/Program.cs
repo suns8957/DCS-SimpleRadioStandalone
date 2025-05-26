@@ -37,12 +37,11 @@ internal class Program:IHandle<SRSClientStatus>
 
     private static void ProcessArgs(Options options)
     {
-        // Apply config file first, and let additional overload from the command line take effect on top.
         if (options.ConfigFile != null && options.ConfigFile.Trim().Length > 0)
         {
             ServerSettingsStore.CFG_FILE_NAME = options.ConfigFile.Trim();
         }
-
+        
         UpdaterChecker.Instance.CheckForUpdate(ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue,
             result =>
             {
@@ -238,7 +237,8 @@ internal class Program:IHandle<SRSClientStatus>
 
 public class Options
 {
-    
+    private string _configFile;
+
     [Option( "consoleLogs",
         HelpText = "Show basic console logs. Default is true",
         Default = true,
@@ -372,14 +372,33 @@ public class Options
         Required = false)]
     public string ServerBindIP { get; set; }
 
-    [Option('c',"cfg" , Required = false, HelpText = "Configuration file path. Must be the full path to the config file. i.e -cfg=C:\\some-path\\server.cfg")]
-    public string ConfigFile { get; set; }
-    
+    [Option('c', "cfg", Required = false,
+        HelpText =
+            "Configuration file path. Must be the full path to the config file. i.e -cfg=C:\\some-path\\server.cfg")]
+    public string ConfigFile
+    {
+        get => _configFile;
+        set
+        {
+            //tidy up if the value is  fg=xxxxx as it strips -c of the -cfg with a single -
+            _configFile = value;
+
+            if (_configFile != null)
+            {
+                _configFile = _configFile.Trim();
+                if (_configFile.StartsWith("fg="))
+                {
+                    _configFile = _configFile.Replace("fg=", "");
+                }
+            }
+           
+        }
+    }
 
     public override string ToString()
     {
         return
-            $"{nameof(ConfigFile)}: {ConfigFile}\n" +
+            $"{nameof(ConfigFile)}: {ConfigFile}, \n" +
             $"{nameof(ConsoleLogs)}: {ConsoleLogs}, \n" +
             $"{nameof(Port)}: {Port}, \n" +
             $"{nameof(CoalitionSecurity)}: {CoalitionSecurity}, \n" +
