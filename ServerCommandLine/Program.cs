@@ -38,6 +38,12 @@ internal class Program:IHandle<SRSClientStatus>
 
     private static void ProcessArgs(Options options)
     {
+        // Apply config file first, and let additional overload from the command line take effect on top.
+        if (options.ConfigFile != null && options.ConfigFile.Trim().Length > 0)
+        {
+            ServerSettingsStore.cfgFile = options.ConfigFile.Trim();
+        }
+
         UpdaterChecker.Instance.CheckForUpdate(ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.CHECK_FOR_BETA_UPDATES).BoolValue,
             result =>
             {
@@ -362,14 +368,22 @@ public class Options
         Required = false)]
     public bool? RadioEffectOverride { get; set; }
     
-    [Option("radioEffectOverride", 
+    [Option("serverBindIP", 
         HelpText = "Server Bind IP. Default is 0.0.0.0. Dont change unless you know what you're doing!",
         Required = false)]
     public string ServerBindIP { get; set; }
-    
+
+
+    [Option("configFile",
+        HelpText = "Configuration file to set multiple options at once. Additional options specified on the command line will take priority.",
+        Required = false)]
+    public string ConfigFile { get; set; }
+
+
     public override string ToString()
     {
         return
+            $"{nameof(ConfigFile)}: {ConfigFile}\n" +
             $"{nameof(ConsoleLogs)}: {ConsoleLogs}, \n" +
             $"{nameof(Port)}: {Port}, \n" +
             $"{nameof(CoalitionSecurity)}: {CoalitionSecurity}, \n" +
