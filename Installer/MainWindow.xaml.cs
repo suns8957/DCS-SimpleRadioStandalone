@@ -878,7 +878,8 @@ namespace Installer
                 {
                     try
                     {
-                        File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                        if (!File.Exists(path + "\\Client\\" + Path.GetFileName(file)))
+                            File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
                     }
                     catch (Exception ex)
                     {
@@ -899,7 +900,8 @@ namespace Installer
                 {
                     try
                     {
-                        File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                        if (!File.Exists(path + "\\Client\\" + Path.GetFileName(file)))
+                            File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
                     }
                     catch (Exception ex)
                     {
@@ -917,7 +919,8 @@ namespace Installer
             {
                 try
                 {
-                    File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                    if (!File.Exists(path + "\\Client\\" + Path.GetFileName(file)))
+                        File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
                 }
                 catch (Exception ex)
                 {
@@ -934,7 +937,8 @@ namespace Installer
             {
                 try
                 {
-                    File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
+                    if (!File.Exists(path + "\\Client\\" + Path.GetFileName(file)))
+                        File.Move(file, path + "\\Client\\" + Path.GetFileName(file));
                 }
                 catch (Exception ex)
                 {
