@@ -40,11 +40,9 @@ dotnet publish "./DCS-SR-Client/DCS-SR-Client.csproj" `
     --self-contained false `
     @commonParams
 Remove-Item "$outputPath\Client\*.so" -Recurse -ErrorAction SilentlyContinue
-Remove-Item "$outputPath\Client\runtimes\win-x86" -Recurse -ErrorAction SilentlyContinue
-Remove-Item "$outputPath\Client\runtimes\win-x64\native\*.pdb" -Recurse -ErrorAction SilentlyContinue
-Remove-Item "$outputPath\Client\runtimes\win-x64\native\*.exp" -Recurse -ErrorAction SilentlyContinue
-Remove-Item "$outputPath\Client\runtimes\win-x64\native\*.lib" -Recurse -ErrorAction SilentlyContinue
 Remove-Item "$outputPath\Client\*.config"  -Recurse -ErrorAction SilentlyContinue
+Copy-Item "$outputPath\Client\runtimes\win-x64\native\*.dll" -Destination "./$outputPath/Client"
+Remove-Item "$outputPath\Client\runtimes" -Recurse -ErrorAction SilentlyContinue
 
 # Server
 Write-Host "Publishing Server..." -ForegroundColor Green
