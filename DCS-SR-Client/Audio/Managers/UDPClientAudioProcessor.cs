@@ -77,6 +77,7 @@ public class UDPClientAudioProcessor : IDisposable
     {
         _ptt = false;
         _packetNumber = 1;
+
         var decoderThread = new Thread(UdpAudioDecode);
         decoderThread.Start();
         InputDeviceManager.Instance.StartPTTListening(PTTHandler);
@@ -268,7 +269,7 @@ public class UDPClientAudioProcessor : IDisposable
              && radioInfo.selected != 0
              && !_ptt
              && !radioInfo.ptt
-                //remote restriction on hotmic
+                //remove restriction on hotmic
                 //   && radioInfo.control == DCSPlayerRadioInfo.RadioSwitchControls.IN_COCKPIT
             )
             || _intercomPtt)

@@ -274,6 +274,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                 Environment.Exit(1);
             }
 
+        InitVox();
 
         //Start UDP handler
         _udpVoiceHandler =
