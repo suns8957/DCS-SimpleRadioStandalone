@@ -302,10 +302,10 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
 
     public int RecordingQuality
     {
-        get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.RecordingQuality);
+        get => int.Parse(_globalSettings.GetClientSetting(GlobalSettingsKeys.RecordingQuality).StringValue.TrimStart('V'));
         set
         {
-            _globalSettings.SetClientSetting(GlobalSettingsKeys.RecordingQuality, value);
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.RecordingQuality, $"V{value}");
             NotifyPropertyChanged();
         }
     }
