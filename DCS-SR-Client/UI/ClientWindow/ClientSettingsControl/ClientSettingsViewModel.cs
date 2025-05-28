@@ -270,9 +270,9 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         }
     }
 
-    public int VOXMinimumRMS
+    public double VOXMinimumRMS
     {
-        get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMinimumDB);
+        get => _globalSettings.GetClientSettingDouble(GlobalSettingsKeys.VOXMinimumDB);
         set
         {
             _globalSettings.SetClientSetting(GlobalSettingsKeys.VOXMinimumDB, value);
