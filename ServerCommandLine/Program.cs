@@ -327,14 +327,12 @@ public class Options
     
     [Option("showTransmitterName", 
         HelpText = "Enables the ability for players to see who's transmitting. Default is false",
-        Required = false,
-        Default = true)]
+        Required = false)]
     public bool? ShowTransmitterName { get; set; }
     
     [Option("lotATCExport", 
         HelpText = "Enables the export of Transponder data to LOTATC. Default is false.",
-        Required = false,
-        Default = false)]
+        Required = false)]
     public bool? LOTATCExport { get; set; }
     
     [Option("lotATCExportPort", 
