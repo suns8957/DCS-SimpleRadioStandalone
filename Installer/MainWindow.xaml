@@ -66,7 +66,7 @@
                   HorizontalAlignment="Center"
                   Width="165"
                   Height="20"
-                  Margin="146,322,133,37"
+                  Margin="146,300,133,37"
                   IsChecked="True" />
 
         <Button x:Name="InstallButton"
@@ -100,13 +100,13 @@
         <CheckBox x:Name="InstallScriptsCheckbox"
             Content="Install DCS Client Scripts - Only required for SRS Client NOT Server Only Installs"
             Height="20"
-            Margin="17,162,10,197"
+            Margin="17,150,10,197"
             IsChecked="True"
             Checked="InstallScriptsCheckbox_OnChecked"
             Unchecked="InstallScriptsCheckbox_OnUnchecked"/>
         <TextBlock Width="438"
                    IsEnabled="False"
-            Height="60"
+            Height="50"
             Margin="10,257,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"

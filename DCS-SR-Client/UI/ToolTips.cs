@@ -1,70 +1,70 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Properties;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI;
+
+public static class ToolTips
 {
-    public static class ToolTips
+    public static ToolTip ExternalAWACSMode;
+    public static ToolTip ExternalAWACSModeName;
+    public static ToolTip ExternalAWACSModePassword;
+
+    public static void Init()
     {
-        public static ToolTip ExternalAWACSMode;
-        public static ToolTip ExternalAWACSModeName;
-        public static ToolTip ExternalAWACSModePassword;
+        ExternalAWACSMode = new ToolTip();
+        var externalAWACSModeContent = new StackPanel();
 
-        public static void Init()
+        externalAWACSModeContent.Children.Add(new TextBlock
         {
-            ExternalAWACSMode = new ToolTip();
-            StackPanel externalAWACSModeContent = new StackPanel();
+            Text = Resources.ToolTipEAMButton,
+            FontWeight = FontWeights.Bold
+        });
+        externalAWACSModeContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMButtonL1
+        });
+        externalAWACSModeContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMButtonL2
+        });
 
-            externalAWACSModeContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMButton,
-                FontWeight = FontWeights.Bold
-            });
-            externalAWACSModeContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMButtonL1
-            });
-            externalAWACSModeContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMButtonL2
-            });
-
-            ExternalAWACSMode.Content = externalAWACSModeContent;
+        ExternalAWACSMode.Content = externalAWACSModeContent;
 
 
-            ExternalAWACSModeName = new ToolTip();
-            StackPanel externalAWACSModeNameContent = new StackPanel();
+        ExternalAWACSModeName = new ToolTip();
+        var externalAWACSModeNameContent = new StackPanel();
 
-            externalAWACSModeNameContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMName,
-                FontWeight = FontWeights.Bold
-            });
-            externalAWACSModeNameContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMNameL1
-            });
+        externalAWACSModeNameContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMName,
+            FontWeight = FontWeights.Bold
+        });
+        externalAWACSModeNameContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMNameL1
+        });
 
-            ExternalAWACSModeName.Content = externalAWACSModeNameContent;
+        ExternalAWACSModeName.Content = externalAWACSModeNameContent;
 
 
-            ExternalAWACSModePassword = new ToolTip();
-            StackPanel externalAWACSModePasswordContent = new StackPanel();
+        ExternalAWACSModePassword = new ToolTip();
+        var externalAWACSModePasswordContent = new StackPanel();
 
-            externalAWACSModePasswordContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMPassword,
-                FontWeight = FontWeights.Bold
-            });
-            externalAWACSModePasswordContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMPasswordL1
-            });
-            externalAWACSModePasswordContent.Children.Add(new TextBlock
-            {
-                Text = Properties.Resources.ToolTipEAMPasswordL2
-            });
+        externalAWACSModePasswordContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMPassword,
+            FontWeight = FontWeights.Bold
+        });
+        externalAWACSModePasswordContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMPasswordL1
+        });
+        externalAWACSModePasswordContent.Children.Add(new TextBlock
+        {
+            Text = Resources.ToolTipEAMPasswordL2
+        });
 
-            ExternalAWACSModePassword.Content = externalAWACSModePasswordContent;
-        }
+        ExternalAWACSModePassword.Content = externalAWACSModePasswordContent;
     }
 }

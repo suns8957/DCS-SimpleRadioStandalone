@@ -1,92 +1,65 @@
-using System.Runtime.InteropServices;
 using System;
+using System.Runtime.InteropServices;
+using SharpDX.XInput;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client
+namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Input;
+
+internal static unsafe class Native
 {
-    static unsafe class Native
+    [DllImport("XINPUT1_4.DLL")]
+    public static extern uint XInputGetState(uint dwUserIndex, State* pState);
+}
+
+/// <summary>
+///     Controller class that masquerades as a SharpDX.DirectInput.Device.
+/// </summary>
+public class XInputController : IDisposable
+{
+    private State _state;
+
+    public static Guid DeviceGuid => InformationData.ProductGuid;
+
+    // Dispose interface, not much to do.
+    public bool IsDisposed { get; private set; }
+
+    public InformationData Information { get; }
+
+    public void Dispose()
     {
-        [DllImport("XINPUT1_4.DLL")]
-        public static extern uint XInputGetState(uint dwUserIndex, SharpDX.XInput.State* pState);
+        // noop.
+        IsDisposed = true;
     }
 
-    /// <summary>
-    /// Controller class that masquerades as a SharpDX.DirectInput.Device.
-    /// </summary>
-    public class XInputController : IDisposable
+    // SharpDX.DirectInput.Device masquerading.
+    public bool Poll()
     {
-        public struct InformationData
+        unsafe
         {
-            // Randomly generated Guid.
-            static Guid _productGuid = new Guid("bb78c26f-9bfd-41c1-81f0-2f1258d25075");
-
-            public string ProductName
+            fixed (State* pstate = &_state)
             {
-                get { return "XInputController"; }
-            }
-
-            public Guid InstanceGuid
-            {
-                get { return ProductGuid; }
-            }
-
-            public static Guid ProductGuid
-            {
-                get { return _productGuid; }
+                return Native.XInputGetState(0, pstate) == 0;
             }
         }
+    }
 
-        public static Guid DeviceGuid
-        {
-            get { return InformationData.ProductGuid; }
-        }
+    public GamepadButtonFlags GetCurrentState()
+    {
+        return _state.Gamepad.Buttons;
+    }
 
-        private InformationData _information;
-        private bool _disposed = false;
-        private SharpDX.XInput.State _state = new SharpDX.XInput.State();
+    public void Unacquire()
+    {
+        // noop.
+    }
 
-        // Dispose interface, not much to do.
-        public bool IsDisposed
-        {
-            get
-            {
-                return _disposed;
-            }
-        }
+    public struct InformationData
+    {
+        // Randomly generated Guid.
 
-        public void Dispose()
-        {
-            // noop.
-            _disposed = true;
-        }
+        public string ProductName => "XInputController";
 
-        // SharpDX.DirectInput.Device masquerading.
-        public bool Poll()
-        {
-            unsafe
-            {
-                fixed (SharpDX.XInput.State* pstate = &_state)
-                {
-                    return Native.XInputGetState(0, pstate) == 0;
-                }
-            }
-        }
+        public Guid InstanceGuid => ProductGuid;
 
-        public InformationData Information
-        {
-            get
-            {
-                return _information;
-            }
-        }
-
-        public SharpDX.XInput.GamepadButtonFlags GetCurrentState()
-        {
-            return _state.Gamepad.Buttons;
-        }
-
-        public void Unacquire()
-        {
-            // noop.
-        }
+        public static Guid ProductGuid { get; } = new("bb78c26f-9bfd-41c1-81f0-2f1258d25075");
     }
 }
