@@ -4,52 +4,39 @@ using SharpDX.XInput;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Input;
 
-internal static unsafe class Native
-{
-    [DllImport("XINPUT1_4.DLL")]
-    public static extern uint XInputGetState(uint dwUserIndex, State* pState);
-}
-
 /// <summary>
 ///     Controller class that masquerades as a SharpDX.DirectInput.Device.
 /// </summary>
 public class XInputController : IDisposable
 {
-    private State _state;
-
+    private Controller _controller = new Controller(UserIndex.One);
     public static Guid DeviceGuid => InformationData.ProductGuid;
 
-    // Dispose interface, not much to do.
-    public bool IsDisposed { get; private set; }
+    // Dispose interface, assume disposed on disconnect.
+    public bool IsDisposed => _controller == null || !_controller.IsConnected;
 
     public InformationData Information { get; }
 
     public void Dispose()
     {
-        // noop.
-        IsDisposed = true;
+        Unacquire();
     }
 
     // SharpDX.DirectInput.Device masquerading.
     public bool Poll()
     {
-        unsafe
-        {
-            fixed (State* pstate = &_state)
-            {
-                return Native.XInputGetState(0, pstate) == 0;
-            }
-        }
+        // noop.
+        return !IsDisposed;
     }
 
     public GamepadButtonFlags GetCurrentState()
     {
-        return _state.Gamepad.Buttons;
+        return _controller.GetState().Gamepad.Buttons;
     }
 
     public void Unacquire()
     {
-        // noop.
+        _controller = null;
     }
 
     public struct InformationData
