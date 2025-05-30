@@ -1,51 +1,49 @@
 ﻿using System;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
+
+/// <summary>
+///     Interaction logic for RadioChannelConfigUI.xaml
+/// </summary>
+public partial class RadioChannelConfigUi : UserControl
 {
-    /// <summary>
-    ///     Interaction logic for RadioChannelConfigUI.xaml
-    /// </summary>
-    public partial class RadioChannelConfigUi : UserControl
+    public RadioChannelConfigUi()
     {
-        public RadioChannelConfigUi()
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-            //I do this because at this point ProfileSettingKey hasn't been set
-            //but it has when this is called
-            ChannelSelector.Loaded += InitBalanceSlider;
-        }
+        //I do this because at this point ProfileSettingKey hasn't been set
+        //but it has when this is called
+        ChannelSelector.Loaded += InitBalanceSlider;
+    }
 
-        public ProfileSettingsKeys ProfileSettingKey { get; set; }
+    public ProfileSettingsKeys ProfileSettingKey { get; set; }
 
-        private void InitBalanceSlider(object sender, RoutedEventArgs e)
-        {
-            ChannelSelector.IsEnabled = false;
-            Reload();
+    private void InitBalanceSlider(object sender, RoutedEventArgs e)
+    {
+        ChannelSelector.IsEnabled = false;
+        Reload();
 
-            ChannelSelector.ValueChanged += ChannelSelector_SelectionChanged;
-        }
+        ChannelSelector.ValueChanged += ChannelSelector_SelectionChanged;
+    }
 
-        public void Reload()
-        {
-            ChannelSelector.IsEnabled = false;
+    public void Reload()
+    {
+        ChannelSelector.IsEnabled = false;
 
-            ChannelSelector.Value = GlobalSettingsStore.Instance.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingKey);
+        ChannelSelector.Value =
+            GlobalSettingsStore.Instance.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingKey);
 
-            ChannelSelector.IsEnabled = true;
-        }
+        ChannelSelector.IsEnabled = true;
+    }
 
-        private void ChannelSelector_SelectionChanged(object sender, EventArgs eventArgs)
-        {
-            //the selected value changes when 
-            if (ChannelSelector.IsEnabled)
-            {
-                GlobalSettingsStore.Instance.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingKey,(float) ChannelSelector.Value);
-            }
-        }
+    private void ChannelSelector_SelectionChanged(object sender, EventArgs eventArgs)
+    {
+        //the selected value changes when 
+        if (ChannelSelector.IsEnabled)
+            GlobalSettingsStore.Instance.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingKey,
+                (float)ChannelSelector.Value);
     }
 }

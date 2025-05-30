@@ -1,4 +1,4 @@
--- Version 2.1.1.0
+-- Version 2.2.0.2
 -- ONLY COPY THIS WHOLE FILE IS YOU ARE GOING TO HOST A SERVER!
 -- The file must be in Saved Games\DCS\Scripts\Hooks or Saved Games\DCS.openalpha\Scripts\Hooks
 -- Make sure you enter the correct address into SERVER_SRS_HOST and SERVER_SRS_PORT (5002 by default) below.
@@ -84,7 +84,7 @@ SRSAuto.onPlayerConnect = function(id)
         return
     end
     if SRSAuto.SERVER_SEND_AUTO_CONNECT and id ~= HOST_PLAYER_ID then
-        sendAutoConnectMessage(id)
+        SRSAuto.sendAutoConnectMessage(id)
     end
 end
 
@@ -93,7 +93,7 @@ SRSAuto.onPlayerChangeSlot = function(id)
         return
     end
     if SRSAuto.SERVER_SEND_AUTO_CONNECT and id ~= HOST_PLAYER_ID then
-        sendAutoConnectMessage(id)
+        SRSAuto.sendAutoConnectMessage(id)
     end
 end
 
@@ -229,4 +229,4 @@ SRSAuto.sendMessage = function(msg, showTime, gid)
 end
 
 DCS.setUserCallbacks(SRSAuto)
-net.log("Loaded - DCS-SRS-AutoConnect 2.0.7.1")
+net.log("Loaded - DCS-SRS-AutoConnect 2.2.0.2")

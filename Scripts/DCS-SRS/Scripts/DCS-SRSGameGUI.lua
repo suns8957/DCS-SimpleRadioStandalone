@@ -1,8 +1,8 @@
--- Version 2.1.1.0
+-- Version 2.2.0.2
 -- Make sure you COPY this file to the same location as the Export.lua as well! 
 -- Otherwise the Radio Might not work
 
-net.log("Loading - DCS-SRS GameGUI - Ciribob: 2.1.1.0")
+net.log("Loading - DCS-SRS GameGUI - Ciribob: 2.2.0.2")
 local SRS = {}
 
 SRS.CLIENT_ACCEPT_AUTO_CONNECT = true --- Set to false if you want to disable AUTO CONNECT
@@ -72,37 +72,40 @@ SRS.sendUpdate = function(playerID)
         name = "",
         side = 0,
         seat = 0,
+		slot = "",
     }
 
     _update.name = net.get_player_info(playerID, "name" )
-	_update.side = net.get_player_info(playerID,"side")
+	_update.side = net.get_player_info(playerID, "side")
 
-	local slot =  net.get_player_info(playerID,"slot")
+	local slot = net.get_player_info(playerID, "slot")
 
-	if slot and slot ~= '' then 
+	if slot and slot ~= '' then
 		slot = tostring(slot)
-	    
-	    -- Slot 2744_2 -- backseat slot is Unit ID  _2 
+
+		_update.slot = slot
+
+		-- Slot 2744_2 -- backseat slot is Unit ID  _2 
 	    if string.find(tostring(slot), "_", 1, true) then
-	        --extract substring - get the seat ID
-	        slot = string.sub(slot, string.find(slot, "_", 1, true)+1, string.len(slot))
+			--extract substring - get the seat ID
+			slot = string.sub(slot, string.find(slot, "_", 1, true) + 1, string.len(slot))
 
-	        local slotNum = tonumber(slot)
+			local slotNum = tonumber(slot)
 
-	        if slotNum ~= nil and slotNum >= 1 then
-	        	_update.seat = slotNum -1 -- -1 as seat starts at 2
-	        end
-	    end
+			if slotNum ~= nil and slotNum >= 1 then
+				_update.seat = slotNum - 1 -- -1 as seat starts at 2
+			end
+		end
 	end
 
 	local _jsonUpdate = SRS.JSON:encode(_update).." \n"
-    --SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side)
+	--SRS.log("Update -  Slot  ID:"..playerID.." Name: ".._update.name.." Side: ".._update.side)
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 5068))
 	socket.try(SRS.UDPSendSocket:sendto(_jsonUpdate, "127.0.0.1", 9087))
 end
 
-SRS.MESSAGE_PATTERN_OLDER = "This server is running SRS on - (%d+%.%d+%.%d+%.%d+:?%d*)" -- DO NOT MODIFY!!!
-SRS.MESSAGE_PATTERN_OLD = "SRS Running @ (%d+%.%d+%.%d+%.%d+:?%d*)"                     -- DO NOT MODIFY!!!
+SRS.MESSAGE_PATTERN_OLDER = "This server is running SRS on - ([%w%.%-_:]+)" -- DO NOT MODIFY!!!
+SRS.MESSAGE_PATTERN_OLD = "SRS Running @ ([%w%.%-_:]+)"                     -- DO NOT MODIFY!!!
 SRS.MESSAGE_PATTERN = "SRS Running on (%d+)"                                            -- DO NOT MODIFY!!!
 
 function string.startsWith(string, prefix)
@@ -159,7 +162,7 @@ SRS.handleTransponder = function(msg)
 	
 	end
 
-	local keys =  {"POWER","PWR","M1","M3","M4","IDENT"}
+	local keys =  {"POWER","PWR","M1","M2","M3","M4","IDENT"}
 
 	local commands = {}
 
@@ -185,8 +188,20 @@ SRS.handleTransponder = function(msg)
 					if code ~= nil then
 						table.insert(commands, {Command = 7, Code = code})
 					end
-				end
-			
+				end			
+				elseif key == "M2" then
+					 if val == "OFF" then
+						--Command 13 matches to Enum in the UDPInterfaceCommand Enum
+						table.insert(commands, {Command = 13, Code = -1})
+					else
+						local code = tonumber(val)
+	   
+						if code ~= nil then
+							--Command 13 matches to Enum in the UDPInterfaceCommand Enum
+							table.insert(commands, {Command = 13, Code = code})
+						end
+					end
+				
 			elseif key == "M3" then
 				 if val == "OFF" then
 					table.insert(commands, {Command = 8, Code = -1})
@@ -313,6 +328,13 @@ SRS.onChatMessage = function(msg, from)
 		local port = SRS.getPortFromMessage(msg)
 		if port ~= nil then 
 			local ip = net.get_server_host()
+
+			-- check if host has port - if it does remove it and re-add the SRS one
+			if string.find(ip, ":", 1, true) then
+				SRS.log("Got Server Host Automatically with port - will strip " .. ip)
+				ip = string.sub(ip, 1, string.find(ip, ":", 1, true) - 1)
+			end
+			
 			host = ip .. ':' .. port
 		else
 			host = SRS.getHostFromMessage(msg)
@@ -360,5 +382,5 @@ end
 
 DCS.setUserCallbacks(SRS)
 
-net.log("Loaded - DCS-SRS GameGUI - Ciribob: 2.1.1.0")
+net.log("Loaded - DCS-SRS GameGUI - Ciribob: 2.2.0.2")
 

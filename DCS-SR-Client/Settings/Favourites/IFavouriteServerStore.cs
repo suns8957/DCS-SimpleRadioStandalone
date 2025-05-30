@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Preferences
+namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.Favourites;
+
+public interface IFavouriteServerStore
 {
-    public interface IFavouriteServerStore
-    {
-        IEnumerable<ServerAddress> LoadFromStore();
+    IEnumerable<ServerAddress> LoadFromStore();
 
-        bool SaveToStore(IEnumerable<ServerAddress> addresses);
-    }
+    bool SaveToStore(IEnumerable<ServerAddress> addresses);
 }

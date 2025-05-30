@@ -1,16 +1,14 @@
 ﻿using Newtonsoft.Json;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network
+namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.Models;
+
+public class RadioSendingState
 {
-    public class RadioSendingState
-    {
-        [JsonIgnore]
-        public long LastSentAt { get; set; }
+    [JsonIgnore] public long LastSentAt { get; set; }
 
-        public bool IsSending { get; set; }
+    public bool IsSending { get; set; }
 
-        public int SendingOn { get; set; }
+    public int SendingOn { get; set; }
 
-        public int IsEncrypted { get; set; }
-    }
+    public int IsEncrypted { get; set; }
 }
