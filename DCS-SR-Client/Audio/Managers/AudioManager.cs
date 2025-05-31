@@ -168,7 +168,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         {
             micOutput = (MMDevice)_audioOutputSingleton.SelectedMicAudioOutput.Value;
 
-            _passThroughAudioProvider = new ClientAudioProvider(true);
             _micWaveOut = new SRSWasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
 
             _micWaveOutBuffer =
@@ -197,6 +196,9 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
             _micWaveOut.Play();
         }
+
+
+        _passThroughAudioProvider = new ClientAudioProvider(true);
     }
 
     public void InitEncodersSpeex()
