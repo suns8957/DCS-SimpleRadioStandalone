@@ -270,9 +270,9 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         }
     }
 
-    public int VOXMinimumRMS
+    public double VOXMinimumRMS
     {
-        get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMinimumDB);
+        get => _globalSettings.GetClientSettingDouble(GlobalSettingsKeys.VOXMinimumDB);
         set
         {
             _globalSettings.SetClientSetting(GlobalSettingsKeys.VOXMinimumDB, value);
@@ -302,10 +302,10 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
 
     public int RecordingQuality
     {
-        get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.RecordingQuality);
+        get => int.Parse(_globalSettings.GetClientSetting(GlobalSettingsKeys.RecordingQuality).StringValue.TrimStart('V'));
         set
         {
-            _globalSettings.SetClientSetting(GlobalSettingsKeys.RecordingQuality, value);
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.RecordingQuality, $"V{value}");
             NotifyPropertyChanged();
         }
     }
