@@ -382,6 +382,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                     Modulation = jitterBufferAudio.Modulation,
                                     Volume = jitterBufferAudio.Volume,
                                     Decryptable = true,
+                                    Encryption = jitterBufferAudio.Encryption,
                                     Frequency = jitterBufferAudio.Frequency,
                                     IsSecondary = jitterBufferAudio.IsSecondary,
                                     NoAudioEffects = jitterBufferAudio.NoAudioEffects,
