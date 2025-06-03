@@ -4,51 +4,51 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
-using MathNet.Filtering;
-using MathNet.Filtering.IIR;
+using MathNet.Numerics.Distributions;
+using NAudio.Codecs;
 using NAudio.Dsp;
+using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
 using System.Collections.Generic;
 
+
+
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 {
     namespace Wave
     {
-        class OnlineFilterProvider : ISampleProvider
+        class GaussianWhiteNoise : ISampleProvider
         {
+            public float Gain { get; set; } = 1.0f;
+            private Normal Noise = new Normal(0, Math.Sqrt(2) / 2);
 
-            ISampleProvider Source;
-            IOnlineFilter Filter;
-            public WaveFormat WaveFormat => Source.WaveFormat;
+            public WaveFormat WaveFormat { get; private set; }
 
-            public OnlineFilterProvider(ISampleProvider source, IOnlineFilter filter)
+            public GaussianWhiteNoise(int sampleRate, int channels)
             {
-                Source = source;
-                Filter = filter;
+                WaveFormat = new WaveFormat(sampleRate, channels);
             }
 
             public int Read(float[] buffer, int offset, int count)
             {
-                var samplesRead = Source.Read(buffer, offset, count);
-                for (int i = 0; i < count; ++i)
+                var power = Gain;
+                for (int sampleCount = 0; sampleCount < count / WaveFormat.Channels; sampleCount++)
                 {
-                    buffer[offset + i] = (float)Filter.ProcessSample(buffer[offset + i]);
+                    buffer[offset + sampleCount] = (float)(power * Noise.Sample());
                 }
 
-                return samplesRead;
+                return count;
             }
         }
-
         class BiQuadProvider : ISampleProvider
         {
-            BiQuadFilter Filter;
+            public BiQuadFilter[] Filters { get; set; }
             ISampleProvider Source;
 
-            public BiQuadProvider(ISampleProvider source, BiQuadFilter filter)
+            public BiQuadProvider(ISampleProvider source)
             {
-                Filter = filter;
                 Source = source;
             }
 
@@ -59,7 +59,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 var samplesRead = Source.Read(buffer, offset, count);
                 for (int i = 0; i < count; ++i)
                 {
-                    buffer[offset + i] = Filter.Transform(buffer[offset + i]);
+                    var source = buffer[offset + i];
+                    foreach (var filter in Filters)
+                    {
+                            source = filter.Transform(source);
+                    }
+                    buffer[offset + i] = source;
                 }
 
                 return samplesRead;
@@ -196,6 +201,121 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 return samplesRead;
             }
         }
+
+        class ALawProvider : ISampleProvider
+        {
+            private ISampleProvider source;
+            public WaveFormat WaveFormat => source.WaveFormat;
+
+            public ALawProvider(ISampleProvider source)
+            {
+                this.source = source;
+            }
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var samplesRead = source.Read(buffer, offset, count);
+                for (int i = 0; i < count; ++i)
+                {
+                    // A-law works with 13-bit signed integer samples - 2^13 = 8192.
+                    // This'll introduce some additional 'loss precsion' contributing to the effect..
+                    buffer[offset + i] = ALawDecoder.ALawToLinearSample(ALawEncoder.LinearToALawSample((short)(buffer[offset + i] * 8192))) / 8192f;
+                }
+
+                return samplesRead;
+            }
+        }
+
+        class SaturationProvider : ISampleProvider
+        {
+            private ISampleProvider source;
+            public float Gain {  get; set; }
+
+            public float ThresholdDB { get; set; }
+            public WaveFormat WaveFormat => source.WaveFormat;
+            public SaturationProvider(ISampleProvider source)
+            {
+                this.source = source;
+            }
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var linearThreshold = (float)Decibels.DecibelsToLinear(ThresholdDB);
+                var samplesRead = source.Read(buffer, offset, count);
+                for (int i = 0; i < count; ++i)
+                {
+                    var sample = buffer[offset + i];
+                    if (Math.Abs(sample) >= linearThreshold)
+                    {
+                        buffer[offset + i] = (float)Math.Tanh(Gain * sample);
+                    }
+                }
+
+                return samplesRead;
+            }
+        }
+
+        class CVSDProvider : ISampleProvider
+        {
+            private ISampleProvider source;
+            private class CVSD
+            {
+                public int coincidences = 0; // 3-bit coincidence @ 16k Hz. We're sampling 3x that, so 9-bit.
+                public float step = 0; // Current step size
+                public float product = 0; // comparator for quantization
+                public readonly int coincidenceBits;
+
+                public CVSD()
+                {
+                    coincidenceBits = 0b111111111;// (1 << (new Random().Next(3, 10))) - 1;// 0b111;
+                }
+
+
+                // Encoder settings.
+                public float syllabic = 0;
+                public static readonly float BETA_SYLLABIC = 0.9f;
+                public static readonly float DELTA_MAX = 0.1f;// / Math.Max(Constants.OUTPUT_SAMPLE_RATE / (float)Constants.MIC_SAMPLE_RATE, 1);
+                public static readonly float DELTA_MIN = DELTA_MAX / 20;
+                public static readonly float DELTA_NAUGHT = DELTA_MAX * (1.0f - BETA_SYLLABIC);
+                public static readonly float BETA_RECONSTRUCTION = 0.9394f;
+                public static readonly float ALPHA_RECONSTRUCTION = 1;
+            }
+
+            private static CVSD cvsd = new CVSD();
+
+            public WaveFormat WaveFormat => source.WaveFormat;
+
+            public CVSDProvider(ISampleProvider source)
+            {
+                this.source = source;
+            }
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var samplesRead = source.Read(buffer, offset, count);
+                for (int i = 0; i < count; ++i)
+                {
+                    int coincidenceBits = cvsd.coincidenceBits;
+                    // 3-bit accumulator. (9-bit becaues we're at 48kHz and the algorithm is for 16 kHz)
+                    cvsd.coincidences = ((cvsd.coincidences << 1) & coincidenceBits);
+                    // Compute coincidence.
+                    var coincidence = buffer[offset + i] > cvsd.product;
+                    // Insert one if the current signal is greater than we have already quantized.
+                    cvsd.coincidences |= coincidence ? 1 : 0;
+
+                    var runOfCoincidences = cvsd.coincidences == coincidenceBits || cvsd.coincidences == 0;
+                    cvsd.syllabic = CVSD.DELTA_NAUGHT * (runOfCoincidences ? 1 : 0) + CVSD.BETA_SYLLABIC * cvsd.syllabic;
+
+
+                    var symbol = (coincidence ? 1 : -1) * (cvsd.syllabic + CVSD.DELTA_MIN);
+                    cvsd.product = CVSD.ALPHA_RECONSTRUCTION * symbol + CVSD.BETA_RECONSTRUCTION * cvsd.product;
+
+                    buffer[offset + i] = cvsd.product;
+                }
+
+                return samplesRead;
+            }
+        }
     }
 
 
@@ -203,7 +323,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     {
         private readonly Random _random = new Random();
 
-        private IOnlineFilter _bandpassFilter = OnlineIirFilter.CreateBandpass(ImpulseResponse.Finite, Constants.OUTPUT_SAMPLE_RATE, 560, 3900);
         private Dictionary<CachedAudioEffect.AudioEffectTypes, VolumeCachedEffectProvider> _fxProviders = new Dictionary<CachedAudioEffect.AudioEffectTypes, VolumeCachedEffectProvider>();
 
         private readonly BiQuadFilter _highPassFilter;
@@ -220,6 +339,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private bool radioEffects;
         private bool radioBackgroundNoiseEffect;
+        private bool radioEncryptionEffect;
 
         private bool irlRadioRXInterference = false;
 
@@ -269,6 +389,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 radioEffects = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
 
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect);
+                radioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
 
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
             }
@@ -377,7 +498,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 }
                 else
                 {
-                    AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency);
+                    AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency, transmission.Encryption);
                 }
             }
 
@@ -442,7 +563,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return null;
         }
 
-        private VolumeCachedEffectProvider GetNoiseProvider(Modulation modulation, double freq)
+        private ISampleProvider GetNoiseProvider(Modulation modulation, double freq)
         {
             switch (modulation)
             {
@@ -467,32 +588,244 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return null;
         }
 
-        private void AddRadioEffect(float[] buffer, int count, int offset, Modulation modulation, double freq)
+        private struct Compressor
+        {
+            public float Attack;
+            public float MakeUp;
+            public float Release;
+            public float Slope;
+            public float Threshold;
+        };
+
+        private struct Saturation
+        {
+            public float Gain;
+            public float Threshold;
+        }
+
+        private class Radio
+        {
+            public BiQuadFilter[] PrepassFilters { get; set; }
+            public BiQuadFilter[] PostCompressorFilters { get; set; }
+            public BiQuadFilter[] ReceiverFilters { get; set; }
+            public Compressor Compressor { get; set; }
+            public Saturation Saturation { get; set; }
+
+            public float NoiseGain { get; set; }
+            public float PostGain { get; set; }
+        };
+
+        private static readonly Radio Arc210 = new Radio()
+        {
+            PrepassFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 1700, 0.53f),
+                BiQuadFilter.BandPassFilterConstantSkirtGain(Constants.OUTPUT_SAMPLE_RATE, 2801, 0.5f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5538, 0.05f)
+            },
+
+            PostCompressorFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 456, 0.36f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.39f)
+            },
+
+            ReceiverFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 1f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 1f)
+            },
+
+            Compressor = new Compressor
+            {
+                Attack = 0.01f,
+                MakeUp = 6,
+                Release = 0.2f,
+                Threshold = -33,
+                Slope = 0.85f
+            },
+
+            Saturation = new Saturation
+            {
+                Gain = 9,
+                Threshold = -23,
+            },
+
+            NoiseGain = -33,
+            PostGain = 12,
+        };
+
+        private static readonly Radio Arc164 = new Radio()
+        {
+            PrepassFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 954, 0.53f),
+                BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2302, 0.63f, 13),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5165, 0.4f)
+            },
+
+            PostCompressorFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 829, 0.05f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.1f)
+            },
+
+            ReceiverFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 1f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 1f)
+            },
+
+            Compressor = new Compressor
+            {
+                Attack = 0.01f,
+                MakeUp = 5,
+                Release = 0.2f,
+                Threshold = -35,
+                Slope = 0.38f
+            },
+
+            Saturation = new Saturation
+            {
+                Gain = 11,
+                Threshold = -30,
+            },
+
+            NoiseGain = -19,
+             PostGain = -4,
+        };
+
+        private static readonly Radio Arc222 = new Radio()
+        {
+            PrepassFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 1700, 0.53f),
+                BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2801, 0.5f, 5),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5538, 0.05f)
+            },
+
+            PostCompressorFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 456, 0.36f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.39f)
+            },
+
+            ReceiverFilters = new[]
+            {
+                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 1f),
+                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 1f)
+            },
+
+            Compressor = new Compressor
+            {
+                Attack = 0.01f,
+                MakeUp = 6,
+                Release = 0.2f,
+                Threshold = -33,
+                Slope = 0.85f
+            },
+
+            NoiseGain = -36
+        };
+        private void AddRadioEffect(float[] buffer, int count, int offset, Modulation modulation, double freq, short encryption)
         {
             // NAudio version.
             // Chain of effects being applied.
             // TODO: We should be able to precompute a lot of this.
             ISampleProvider voiceProvider = new TransmissionProvider(buffer, offset);
+
+            var radioModel = Arc164;
             if (radioEffectsEnabled)
             {
+                // Variant mirroring the settings from DCS' ARC210 definition.
+                // prepass.
+                var sampleRate = voiceProvider.WaveFormat.SampleRate;
+
+                
+
+
                 if (clippingEnabled)
                 {
                     voiceProvider = new ClippingProvider(voiceProvider, RadioFilter.CLIPPING_MIN, RadioFilter.CLIPPING_MAX);
                 }
 
-                voiceProvider = new OnlineFilterProvider(voiceProvider, _bandpassFilter);
+                var encryptionEffects = radioEncryptionEffect && encryption > 0;
+                if (encryptionEffects)
+                {
+                    voiceProvider = new CVSDProvider(voiceProvider);
+                }
+
+                voiceProvider = new BiQuadProvider(voiceProvider)
+                {
+                    Filters = radioModel.PrepassFilters
+                };
+
+
+                // Bump gain.
+                voiceProvider = new SaturationProvider(voiceProvider)
+                {
+                    Gain = radioModel.Saturation.Gain,
+                    ThresholdDB = radioModel.Saturation.Threshold
+                };
+
+
+                voiceProvider = new SimpleCompressorEffect(voiceProvider)
+                {
+                    Attack = radioModel.Compressor.Attack,
+                    MakeUpGain = radioModel.Compressor.MakeUp,
+                    Release = radioModel.Compressor.Release,
+                    Enabled = true,
+                    Threshold = radioModel.Compressor.Threshold,
+                    Ratio = radioModel.Compressor.Slope,
+                };
+
+                // post
+                voiceProvider = new BiQuadProvider(voiceProvider)
+                {
+                    Filters = radioModel.PostCompressorFilters
+                };
+
+
+
+                // Bump gain.
+                voiceProvider = new VolumeSampleProvider(voiceProvider)
+                {
+                    Volume = (float)Decibels.DecibelsToLinear(radioModel.PostGain)
+                };
+
+                voiceProvider = new MixingSampleProvider(new ISampleProvider[]
+                {
+                    voiceProvider,
+                    new GaussianWhiteNoise(sampleRate, 1)
+                    {
+                        Gain = (float)Decibels.DecibelsToLinear(radioModel.NoiseGain - 50)
+                    },
+                });
+
+
+                // Add receiver bandpass.
+
+                voiceProvider = new BiQuadProvider(voiceProvider)
+                {
+                    Filters = radioModel.ReceiverFilters
+                };
             }
+
+
 
             // Mix in the noise, tones, etc.
             // Note that they are applied LIFO.
-            var fxMixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
+            var fxMixer = new MixingSampleProvider(voiceProvider.WaveFormat);
 
             if (radioBackgroundNoiseEffect)
             {
                 var noise = GetNoiseProvider(modulation, freq);
-                if (noise != null && noise.Active)
+                if (noise != null)
                 {
-                    fxMixer.AddMixerInput(noise);
+                    fxMixer.AddMixerInput(new VolumeSampleProvider(noise)
+                    {
+                        Volume = (float)Decibels.DecibelsToLinear(radioModel.NoiseGain)
+                    });
                 }
             }
 
