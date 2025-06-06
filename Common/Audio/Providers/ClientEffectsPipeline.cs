@@ -716,7 +716,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private class Radio
         {
-            static public readonly float SAMPLE_RATE = 48000;// Constants.OUTPUT_SAMPLE_RATE;
+            static public readonly float SAMPLE_RATE = Constants.OUTPUT_SAMPLE_RATE;
             public Dsp.IFilter[] PrepassFilters { get; set; }
             public Dsp.IFilter[] PostCompressorFilters { get; set; }
             public Dsp.IFilter[] ReceiverFilters { get; set; }
