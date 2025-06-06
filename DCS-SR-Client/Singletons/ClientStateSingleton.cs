@@ -225,7 +225,6 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
 
     public void UpdatePlayerPosition(LatLngPosition latLngPosition)
     {
-        // TODO make sure we're sending position correctly
         PlayerCoaltionLocationMetadata.LngLngPosition = latLngPosition;
         DcsPlayerRadioInfo.latLng = latLngPosition;
     }
