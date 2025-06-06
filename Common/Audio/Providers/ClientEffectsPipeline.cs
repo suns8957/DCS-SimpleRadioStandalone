@@ -9,6 +9,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 
 
 
@@ -181,6 +182,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         public float[] ProcessClientAudioSamples(float[] buffer, int count, int offset, DeJitteredTransmission transmission)
         {
+            ISampleProvider transmissionProvider = new TransmissionProvider(buffer, offset);
             if (!transmission.NoAudioEffects)
             {
                 if (transmission.Modulation == Modulation.MIDS
@@ -189,18 +191,21 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     if (radioEffects)
                     {
-                        AddRadioEffectIntercom(buffer, count, offset, transmission.Modulation);
+                        transmissionProvider = AddRadioEffectIntercom(transmissionProvider, transmission.Modulation);
                     }
                 }
                 else
                 {
-                    AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency, transmission.Encryption);
+                    transmissionProvider = AddRadioEffect(transmissionProvider, transmission.Modulation, transmission.Frequency, transmission.Encryption);
                 }
             }
 
-            //final adjust
-            AdjustVolume(buffer, count, offset, transmission.Volume);
+            transmissionProvider = new VolumeSampleProvider(transmissionProvider)
+            {
+                Volume = transmission.Volume
+            };
 
+            transmissionProvider.Read(buffer, offset, count);
             return buffer;
         }
 
@@ -215,33 +220,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        private void AddRadioEffectIntercom(float[] buffer, int count, int offset, Modulation modulation)
+        private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, Modulation modulation)
         {
-            int outputIndex = offset;
-            while (outputIndex < offset + count)
-            {
-                var audio = _highPassFilter.Transform(buffer[outputIndex]);
-
-                audio = _highPassFilter.Transform(audio);
-
-                if (float.IsNaN(audio))
-                    audio = _lowPassFilter.Transform(buffer[outputIndex]);
-                else
-                    audio = _lowPassFilter.Transform(audio);
-
-                if (!float.IsNaN(audio))
-                {
-                    // clip
-                    if (audio > 1.0f)
-                        audio = 1.0f;
-                    if (audio < -1.0f)
-                        audio = -1.0f;
-
-                    buffer[outputIndex] = audio;
-                }
-
-                outputIndex++;
-            }
+            return BuildMicPipeline(voiceProvider, Intercom, modulation == Modulation.MIDS);
         }
 
         private VolumeCachedEffectProvider GetToneProvider(Modulation modulation)
@@ -310,6 +291,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             public float NoiseGain { get; set; }
             public float PostGain { get; set; }
+            public float InnerNoise { get; set; }
         };
 
 #if true
@@ -584,70 +566,69 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             NoiseGain = -36
         };
 #endif
-        private void AddRadioEffect(float[] buffer, int count, int offset, Modulation modulation, double freq, short encryption)
+
+        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, Radio radioModel, bool encryptionEffects)
+        {
+            voiceProvider = new FiltersProvider(voiceProvider)
+            {
+                Filters = radioModel.PrepassFilters
+            };
+
+            voiceProvider = new SaturationProvider(voiceProvider)
+            {
+                GainDB = radioModel.Saturation.Gain,
+                ThresholdDB = radioModel.Saturation.Threshold
+            };
+
+            voiceProvider = new SimpleCompressorEffect(voiceProvider)
+            {
+                Attack = radioModel.Compressor.Attack,
+                MakeUpGain = radioModel.Compressor.MakeUp,
+                Release = radioModel.Compressor.Release,
+                Enabled = true,
+                Threshold = radioModel.Compressor.Threshold,
+                Ratio = 1f / radioModel.Compressor.Slope,
+            };
+
+            // post
+            voiceProvider = new FiltersProvider(voiceProvider)
+            {
+                Filters = radioModel.PostCompressorFilters
+            };
+
+            // Bump gain.
+            voiceProvider = new VolumeSampleProvider(voiceProvider)
+            {
+                Volume = (float)Decibels.DecibelsToLinear(radioModel.PostGain)
+            };
+
+            if (encryptionEffects)
+            {
+                voiceProvider = new CVSDProvider(voiceProvider);
+            }
+
+            // Add receiver bandpass.
+            voiceProvider = new FiltersProvider(voiceProvider)
+            {
+                Filters = radioModel.ReceiverFilters
+            };
+
+            return voiceProvider;
+        }
+        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, Modulation modulation, double freq, short encryption)
         {
             // NAudio version.
             // Chain of effects being applied.
             // TODO: We should be able to precompute a lot of this.
-            ISampleProvider voiceProvider = new TransmissionProvider(buffer, offset);
-
-            var radioModel = Intercom;
+            var radioModel = Arc210;
             if (radioEffectsEnabled)
             {
-                // Variant mirroring the settings from DCS' ARC210 definition.
-                // prepass.
-                var sampleRate = voiceProvider.WaveFormat.SampleRate;
-
                 if (clippingEnabled)
                 {
                     voiceProvider = new ClippingProvider(voiceProvider, RadioFilter.CLIPPING_MIN, RadioFilter.CLIPPING_MAX);
                 }
 
-
-                voiceProvider = new FiltersProvider(voiceProvider)
-                {
-                    Filters = radioModel.PrepassFilters
-                };
-
-                voiceProvider = new SaturationProvider(voiceProvider)
-                {
-                    GainDB = radioModel.Saturation.Gain,
-                    ThresholdDB = radioModel.Saturation.Threshold
-                };
-
-                voiceProvider = new SimpleCompressorEffect(voiceProvider)
-                {
-                    Attack = radioModel.Compressor.Attack,
-                    MakeUpGain = radioModel.Compressor.MakeUp,
-                    Release = radioModel.Compressor.Release,
-                    Enabled = true,
-                    Threshold = radioModel.Compressor.Threshold,
-                    Ratio =  1f / radioModel.Compressor.Slope,
-                };
-
-                // post
-                voiceProvider = new FiltersProvider(voiceProvider)
-                {
-                    Filters = radioModel.PostCompressorFilters
-                };
-
-                // Bump gain.
-                voiceProvider = new VolumeSampleProvider(voiceProvider)
-                {
-                    Volume = (float)Decibels.DecibelsToLinear(radioModel.PostGain)
-                };
-
-                var encryptionEffects = radioEncryptionEffect && encryption > 0;
-                if (encryptionEffects)
-                {
-                    voiceProvider = new CVSDProvider(voiceProvider);
-                }
-
-                // Add receiver bandpass.
-                voiceProvider = new FiltersProvider(voiceProvider)
-                {
-                    Filters = radioModel.ReceiverFilters
-                };
+                voiceProvider = BuildMicPipeline(voiceProvider, radioModel, radioEncryptionEffect && encryption > 0);
             }
 
 
@@ -682,8 +663,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             voiceProvider = new ClippingProvider(fxMixer, -1, 1);
 
-            // Apply the post processing to the voice!
-            voiceProvider.Read(buffer, offset, count);
+            return voiceProvider;
         }
     }
 }
