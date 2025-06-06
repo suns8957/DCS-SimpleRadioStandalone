@@ -378,7 +378,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 public CVSD()
                 {
-                    coincidenceBits = 0b111111111;// (1 << (new Random().Next(3, 10))) - 1;// 0b111;
+                    coincidenceBits = 0b111;// (1 << (new Random().Next(3, 10))) - 1;// 0b111;
                 }
 
 
@@ -904,11 +904,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                     voiceProvider = new ClippingProvider(voiceProvider, RadioFilter.CLIPPING_MIN, RadioFilter.CLIPPING_MAX);
                 }
 
-                var encryptionEffects = radioEncryptionEffect && encryption > 0;
-                if (encryptionEffects)
-                {
-                    voiceProvider = new CVSDProvider(voiceProvider);
-                }
 
                 voiceProvider = new BiQuadProvider(voiceProvider)
                 {
@@ -954,6 +949,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 #endif
                 });
 
+                var encryptionEffects = radioEncryptionEffect && encryption > 0;
+                if (encryptionEffects)
+                {
+                    voiceProvider = new CVSDProvider(voiceProvider);
+                }
 
                 // Add receiver bandpass.
 
