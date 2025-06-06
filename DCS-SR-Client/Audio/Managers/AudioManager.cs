@@ -161,7 +161,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         _waveOut.Play();
     }
 
-    public void InitMicPassthrough()
+    private void InitMicPassthrough()
     {
         MMDevice micOutput = null;
         if (_audioOutputSingleton.SelectedMicAudioOutput.Value != null)
@@ -196,9 +196,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
             _micWaveOut.Play();
         }
-
-
-        _passThroughAudioProvider = new ClientAudioProvider(true);
     }
 
     public void InitEncodersSpeex()
@@ -214,6 +211,8 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
     public void InitMicInput()
     {
+        _passThroughAudioProvider = new ClientAudioProvider(true);
+        
         var device = (MMDevice)_audioInputSingleton.SelectedAudioInput.Value;
 
         if (device == null) device = WasapiCapture.GetDefaultCaptureDevice();
@@ -369,8 +368,10 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                                     || GlobalSettingsStore.Instance.GetClientSettingBool(
                                                         GlobalSettingsKeys.RecordAudio)))
                         {
+
                             //todo see if we can fix the resample / opus decode
                             //send audio so play over local too
+                            //as its passthrough it comes out as PCM 16
                             var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
 
                             // //process bytes and add effects

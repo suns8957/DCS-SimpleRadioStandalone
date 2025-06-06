@@ -125,6 +125,9 @@ public class LotATCSyncHandler
                 //TODO handle this
                 //via singleton
                 //_clientSideUpdate();
+                //FIX THIS
+                // LOTATC missing in server entirely
+                //
             }
         }
     }

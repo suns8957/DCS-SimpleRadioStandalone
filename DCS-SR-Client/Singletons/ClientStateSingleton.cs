@@ -31,8 +31,7 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
 
     private static readonly DispatcherTimer _timer = new();
     private readonly DCSAutoConnectHandler _dcsAutoConnectHandler;
-
-    private List<RadioUpdatedCallback> _radioCallbacks = new();
+    
 
     private bool isConnected;
 
@@ -226,6 +225,7 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
 
     public void UpdatePlayerPosition(LatLngPosition latLngPosition)
     {
+        // TODO make sure we're sending position correctly
         PlayerCoaltionLocationMetadata.LngLngPosition = latLngPosition;
         DcsPlayerRadioInfo.latLng = latLngPosition;
     }
