@@ -17,6 +17,82 @@ using System.Collections.Generic;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 {
+    namespace Dsp
+    {
+        interface IFilter
+        {
+            float Transform(float input);
+        }
+
+        // https://dsp.stackexchange.com/a/93451
+        class FirstOrderFilter : IFilter
+        {
+            private double b0;
+            private double b1;
+            private double a1;
+
+            private float x_n;
+            private float x_n1;
+            private float y_n1;
+
+            private void SetCoefficients(double aa0, double bb0, double bb1, double aa1)
+            {
+                b0 = bb0 / aa0;
+                b1 = bb1 / aa0;
+                a1 = aa1 / aa0;
+            }
+
+            public static FirstOrderFilter LowPass(float sampleRate, float cutoffFrequency)
+            {
+                // H(s) = 1 / (1 + s)
+                var filter = new FirstOrderFilter();
+                var w0 = 2 * Math.PI * cutoffFrequency / sampleRate;
+                var (sinw0, cosw0) = Math.SinCos(w0);
+
+                var a0 = sinw0 + 1 + cosw0;
+                var a1 = sinw0 - 1 - cosw0;
+                var b0 = sinw0;
+                var b1 = sinw0;
+
+                filter.SetCoefficients(a0, b0, b1, a1);
+                return filter;
+            }
+
+            public static FirstOrderFilter HighPass(float sampleRate, float cutoffFrequency)
+            {
+                // H(s) = s / (1 + s)
+                var filter = new FirstOrderFilter();
+                var w0 = 2 * Math.PI * cutoffFrequency / sampleRate;
+                var (sinw0, cosw0) = Math.SinCos(w0);
+
+                var a0 = sinw0 + 1 + cosw0;
+                var a1 = sinw0 - 1 - cosw0;
+                var b0 = 1 + cosw0;
+                var b1 = -1 - cosw0;
+
+                filter.SetCoefficients(a0, b0, b1, a1);
+                return filter;
+            }
+
+            public float Transform(float input)
+            {
+                y_n1 = (float)(b0 * input + b1 * x_n1 - a1 * y_n1);
+                x_n1 = input;
+
+                return y_n1;
+            }
+        }
+
+        class BiQuadFilter : IFilter
+        {
+            public NAudio.Dsp.BiQuadFilter Filter { get; set; }
+            public float Transform(float input)
+            {
+                return Filter.Transform(input);
+            }
+        }
+    }
+
     namespace Wave
     {
         class GaussianWhiteNoise : ISampleProvider
@@ -44,7 +120,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         }
         class BiQuadProvider : ISampleProvider
         {
-            public BiQuadFilter[] Filters { get; set; }
+            public Dsp.IFilter[] Filters { get; set; }
             ISampleProvider Source;
 
             public BiQuadProvider(ISampleProvider source)
@@ -229,9 +305,36 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         class SaturationProvider : ISampleProvider
         {
             private ISampleProvider source;
-            public float Gain {  get; set; }
 
-            public float ThresholdDB { get; set; }
+            private float _gainLinear;
+            public float GainDB
+            {
+                get
+                {
+                    return (float)Decibels.LinearToDecibels(_gainLinear);
+                }
+                set
+                {
+                    _gainLinear = (float)Decibels.DecibelsToLinear(value);
+                }
+            }
+
+            private float _thresholdLinear;
+            public float ThresholdDB
+            {
+                get
+                {
+                    return (float)Decibels.LinearToDecibels(_thresholdLinear);
+                }
+                set
+                {
+                  _thresholdLinear = (float)Decibels.DecibelsToLinear(value);  
+                }
+            }
+
+            private float _dryGainLinear = (float)Decibels.DecibelsToLinear(0f);
+            private float _wetGainLinear = (float)Decibels.DecibelsToLinear(1f);
+
             public WaveFormat WaveFormat => source.WaveFormat;
             public SaturationProvider(ISampleProvider source)
             {
@@ -240,15 +343,23 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             public int Read(float[] buffer, int offset, int count)
             {
-                var linearThreshold = (float)Decibels.DecibelsToLinear(ThresholdDB);
                 var samplesRead = source.Read(buffer, offset, count);
                 for (int i = 0; i < count; ++i)
                 {
-                    var sample = buffer[offset + i];
-                    if (Math.Abs(sample) >= linearThreshold)
+                    var dry = buffer[offset + i];
+                    var wet = 0f;
+                    var absDry = Math.Abs(dry);
+                    if (absDry > _thresholdLinear)
                     {
-                        buffer[offset + i] = (float)Math.Tanh(Gain * sample);
+                        // dry clips at threshold.
+                        dry = (float)Math.CopySign(_thresholdLinear, dry);
+                        
+                        
+                        // overdrive part.
+                        wet = (float)Math.CopySign(absDry - _thresholdLinear, dry) * _wetGainLinear;
                     }
+
+                    buffer[offset + i] = _gainLinear * dry + wet / _gainLinear;
                 }
 
                 return samplesRead;
@@ -605,9 +716,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private class Radio
         {
-            public BiQuadFilter[] PrepassFilters { get; set; }
-            public BiQuadFilter[] PostCompressorFilters { get; set; }
-            public BiQuadFilter[] ReceiverFilters { get; set; }
+            static public readonly float SAMPLE_RATE = 48000;// Constants.OUTPUT_SAMPLE_RATE;
+            public Dsp.IFilter[] PrepassFilters { get; set; }
+            public Dsp.IFilter[] PostCompressorFilters { get; set; }
+            public Dsp.IFilter[] ReceiverFilters { get; set; }
             public Compressor Compressor { get; set; }
             public Saturation Saturation { get; set; }
 
@@ -615,25 +727,39 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             public float PostGain { get; set; }
         };
 
+#if true
         private static readonly Radio Arc210 = new Radio()
         {
-            PrepassFilters = new[]
+            PrepassFilters = new Dsp.IFilter[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 1700, 0.53f),
-                BiQuadFilter.BandPassFilterConstantSkirtGain(Constants.OUTPUT_SAMPLE_RATE, 2801, 0.5f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5538, 0.05f)
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 1700, 0.53f),
+                    },
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2801, 0.5f, 5f),
+                    },
+
+                Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 5538),
             },
 
-            PostCompressorFilters = new[]
+            PostCompressorFilters = new []
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 456, 0.36f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.39f)
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 456, 0.36f),
+                    },
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.39f)
+                    }
             },
 
             ReceiverFilters = new[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 1f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 1f)
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
+                Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
             },
 
             Compressor = new Compressor
@@ -654,26 +780,41 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             NoiseGain = -33,
             PostGain = 12,
         };
+#endif
 
+#if true
         private static readonly Radio Arc164 = new Radio()
         {
+            
             PrepassFilters = new[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 954, 0.53f),
-                BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2302, 0.63f, 13),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5165, 0.4f)
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.HighPassFilter(Radio.SAMPLE_RATE, 954, 0.09f),
+                    },
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.PeakingEQ(Radio.SAMPLE_RATE, 2302, 0.63f, 13f),
+                    },
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.LowPassFilter(Radio.SAMPLE_RATE, 5165, 0.4f)
+                    }
             },
 
-            PostCompressorFilters = new[]
+            PostCompressorFilters = new Dsp.IFilter[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 829, 0.05f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.1f)
+                Dsp.FirstOrderFilter.HighPass(Radio.SAMPLE_RATE, 829),
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.LowPassFilter(Radio.SAMPLE_RATE, 5435, 0.1f),
+                    }
             },
 
             ReceiverFilters = new[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 1f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 1f)
+                Dsp.FirstOrderFilter.HighPass(Radio.SAMPLE_RATE, 270),
+                Dsp.FirstOrderFilter.LowPass(Radio.SAMPLE_RATE, 4500)
             },
 
             Compressor = new Compressor
@@ -692,28 +833,44 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             },
 
             NoiseGain = -19,
-             PostGain = -4,
+            PostGain = -4,
         };
-
+#endif
+#if false
         private static readonly Radio Arc222 = new Radio()
         {
             PrepassFilters = new[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 1700, 0.53f),
-                BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2801, 0.5f, 5),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5538, 0.05f)
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 1700, 0.53f),
+                },
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.BandPassFilterConstantSkirtGain(Constants.OUTPUT_SAMPLE_RATE, 2801, 0.5f),
+                    GainLinear = (float)Decibels.DecibelsToLinear(5f),
+                },
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5538, 0.05f),
+                },
             },
 
             PostCompressorFilters = new[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 456, 0.36f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.39f)
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 456, 0.36f),
+                },
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.39f),
+                },
             },
 
             ReceiverFilters = new[]
             {
-                BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 1f),
-                BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 1f)
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 270, 0.707f),
+                },
+                new BiQuadProvider.Pass {
+                    Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4500, 0.707f),
+                },
             },
 
             Compressor = new Compressor
@@ -727,6 +884,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             NoiseGain = -36
         };
+#endif
         private void AddRadioEffect(float[] buffer, int count, int offset, Modulation modulation, double freq, short encryption)
         {
             // NAudio version.
@@ -734,15 +892,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             // TODO: We should be able to precompute a lot of this.
             ISampleProvider voiceProvider = new TransmissionProvider(buffer, offset);
 
-            var radioModel = Arc164;
+            var radioModel = Arc210;
             if (radioEffectsEnabled)
             {
                 // Variant mirroring the settings from DCS' ARC210 definition.
                 // prepass.
                 var sampleRate = voiceProvider.WaveFormat.SampleRate;
-
-                
-
 
                 if (clippingEnabled)
                 {
@@ -760,14 +915,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                     Filters = radioModel.PrepassFilters
                 };
 
-
-                // Bump gain.
                 voiceProvider = new SaturationProvider(voiceProvider)
                 {
-                    Gain = radioModel.Saturation.Gain,
+                    GainDB = radioModel.Saturation.Gain,
                     ThresholdDB = radioModel.Saturation.Threshold
                 };
-
 
                 voiceProvider = new SimpleCompressorEffect(voiceProvider)
                 {
@@ -776,7 +928,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                     Release = radioModel.Compressor.Release,
                     Enabled = true,
                     Threshold = radioModel.Compressor.Threshold,
-                    Ratio = radioModel.Compressor.Slope,
+                    Ratio =  1f / radioModel.Compressor.Slope,
                 };
 
                 // post
@@ -784,8 +936,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     Filters = radioModel.PostCompressorFilters
                 };
-
-
 
                 // Bump gain.
                 voiceProvider = new VolumeSampleProvider(voiceProvider)
@@ -796,10 +946,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 voiceProvider = new MixingSampleProvider(new ISampleProvider[]
                 {
                     voiceProvider,
+#if false
                     new GaussianWhiteNoise(sampleRate, 1)
                     {
-                        Gain = (float)Decibels.DecibelsToLinear(radioModel.NoiseGain - 50)
+                        Gain = (float)Decibels.DecibelsToLinear(radioModel.NoiseGain) * 1.1561e-06f
                     },
+#endif
                 });
 
 
