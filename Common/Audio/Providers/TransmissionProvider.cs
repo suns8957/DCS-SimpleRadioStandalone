@@ -10,19 +10,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     internal class TransmissionProvider : ISampleProvider
     {
         public WaveFormat WaveFormat => WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
-        private float[] Buffer;
-        private int Offset;
+        private Memory<float> Buffer { get; set; }
         public TransmissionProvider(float[] buffer, int offset)
         {
-            Buffer = buffer;
-            Offset = offset;
+           Buffer = new Memory<float>(buffer, offset, buffer.Length - offset);
         }
 
         public int Read(float[] buffer, int offset, int count)
         {
-            count = Math.Min(Buffer.Length - Offset, count);
-            Array.Copy(Buffer, Offset, buffer, offset, count);
-
+            var available = Math.Min(Buffer.Length, count);
+            Buffer.Span.CopyTo(new Span<float>(buffer, offset, available));
+            if (available < count)
+            {
+                Array.Clear(buffer, offset + available, count - available);
+            }
             return count;
         }
     }
