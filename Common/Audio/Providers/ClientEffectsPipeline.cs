@@ -349,7 +349,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         };
 #endif
 #if true
-#if true
         private static readonly Radio Intercom = new Radio()
         {
             PrepassFilters = new Dsp.IFilter[]
@@ -407,6 +406,61 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             PostGain = 8,
         };
 #endif
+
+#if true
+        private static readonly Radio Arc134 = new Radio()
+        {
+            PrepassFilters = new Dsp.IFilter[]
+            {
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 954, 0.09f),
+                    },
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2302, 0.63f, 13f),
+                    },
+                new Dsp.BiQuadFilter()
+                    {
+                    Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5165, 0.4f),
+                    },
+
+                Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 5538),
+            },
+
+            PostCompressorFilters = new Dsp.IFilter[]
+            {
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 829),
+                new Dsp.BiQuadFilter()
+                    {
+                        Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.1f)
+                    }
+            },
+
+            ReceiverFilters = new[]
+            {
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
+                Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
+            },
+
+            Compressor = new Compressor
+            {
+                Attack = 0.01f,
+                MakeUp = 5,
+                Release = 0.2f,
+                Threshold = -35,
+                Slope = 0.38f
+            },
+
+            Saturation = new Saturation
+            {
+                Gain = 11,
+                Threshold = -30,
+            },
+
+            NoiseGain = -17,
+            PostGain = -4,
+        };
 #endif
 
 #if true
