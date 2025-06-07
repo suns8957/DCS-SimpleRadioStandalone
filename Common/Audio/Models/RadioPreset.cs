@@ -1,17 +1,27 @@
-﻿namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 {
     internal struct Compressor
     {
+        [JsonInclude, JsonRequired]
         public float Attack;
+        [JsonInclude, JsonRequired]
         public float MakeUp;
+        [JsonInclude, JsonRequired]
         public float Release;
+        [JsonInclude, JsonRequired]
         public float Slope;
+        [JsonInclude, JsonRequired]
         public float Threshold;
     };
 
     internal struct Saturation
     {
+        [JsonInclude]
         public float Gain;
+
+        [JsonInclude, JsonRequired]
         public float Threshold;
     }
     internal class RadioPreset
