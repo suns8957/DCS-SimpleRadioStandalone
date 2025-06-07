@@ -7,9 +7,12 @@ using NAudio.Dsp;
 using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NLog;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
+using System.IO;
+using System.Text.Json;
 
 
 
@@ -23,6 +26,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private Dictionary<CachedAudioEffect.AudioEffectTypes, VolumeCachedEffectProvider> _fxProviders = new Dictionary<CachedAudioEffect.AudioEffectTypes, VolumeCachedEffectProvider>();
 
         private readonly CachedAudioEffectProvider effectProvider = CachedAudioEffectProvider.Instance;
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private bool radioEffectsEnabled;
         private bool clippingEnabled;
@@ -39,6 +43,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private readonly SyncedServerSettings serverSettings;
 
+        private string PresetsFolder
+        {
+            get
+            {
+                return Path.Combine(Directory.GetCurrentDirectory(), "Presets");
+            }
+        }
+
         public ClientEffectsPipeline()
         {
             profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
@@ -53,6 +65,50 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.AM_COLLISION, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.AMCollision)));
 
             RefreshSettings();
+            LoadRadioModels();
+        }
+
+        private IReadOnlyDictionary<string, RadioPreset> Presets;
+
+        private void LoadRadioModels()
+        {
+            var loadedPresets = new Dictionary<string, RadioPreset>();
+            var presets = Directory.EnumerateFiles(PresetsFolder, "*.json");
+            foreach (var presetFile in presets)
+            {
+                var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant().Replace("-custom", null);
+                using (Stream jsonFile = File.OpenRead(presetFile))
+                {
+                    RadioPreset preset = null;
+                    try
+                    {
+                        preset = JsonSerializer.Deserialize<RadioPreset>(jsonFile, new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
+                    }
+
+                    if (preset != null)
+                    {
+                        if (!loadedPresets.TryAdd(presetName, preset))
+                        {
+                            // If we load a customization afterwards, it takes precedence.
+                            // If we happened to have already loaded it, ignore the 'default'.
+                            if (presetName.EndsWith("-custom.json"))
+                            {
+                                loadedPresets.Remove(presetName);
+                                loadedPresets.Add(presetName, preset);
+                            }
+                        }
+                    }
+                }
+            }
+
+            Presets = loadedPresets.ToFrozenDictionary();
         }
 
         private void RefreshSettings()
