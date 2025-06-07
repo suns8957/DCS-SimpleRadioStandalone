@@ -237,7 +237,6 @@ public class UpdaterChecker
             }
             else
             {
-                //TODO fix process start
                 if (beta)
                 {
                     Process.Start(new ProcessStartInfo(autoUpdatePath, "-beta")
