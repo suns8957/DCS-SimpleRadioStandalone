@@ -31,8 +31,7 @@ public sealed class ClientStateSingleton : PropertyChangedBaseClass, IHandle<TCP
 
     private static readonly DispatcherTimer _timer = new();
     private readonly DCSAutoConnectHandler _dcsAutoConnectHandler;
-
-    private List<RadioUpdatedCallback> _radioCallbacks = new();
+    
 
     private bool isConnected;
 

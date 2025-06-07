@@ -849,7 +849,6 @@ namespace Installer
                 if (File.Exists(path + "\\server.cfg"))
                 {
                     File.Move(path + "\\server.cfg", path + "\\Server\\server.cfg");
-                    ;
                 }
             }
             catch (Exception)
@@ -864,6 +863,7 @@ namespace Installer
             MoveCustomRadios(path);
             MoveCustomRadiosJson(path);
             MoveFavourites(path);
+            MoveRecordings(path);
 
             Logger.Info($"Finished installing SRS Program to {path}");
         }
@@ -943,6 +943,21 @@ namespace Installer
                 catch (Exception ex)
                 {
                     Logger.Error(ex, $"Error moving favourites file {file}");
+                }
+            }
+        }
+        
+        private void MoveRecordings(string path)
+        {
+            if(Directory.Exists(path+"\\Recordings") && !Directory.Exists(path+"\\Client\\Recordings"))
+            {
+                try
+                {
+                    Directory.Move(path+"\\Recordings", path+"\\Client\\Recordings");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Error moving Recordings");
                 }
             }
         }

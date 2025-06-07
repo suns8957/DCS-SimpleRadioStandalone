@@ -239,6 +239,28 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         }
     }
 
+    public bool DisallowedAudioTone
+    {
+        get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.DisallowedAudioTone);
+        set
+        {
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.DisallowedAudioTone, value);
+            NotifyPropertyChanged();
+        }
+    }
+
+    public bool DisableExpansionRadios
+    {
+        get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
+            ProfileSettingsKeys.DisableExpansionRadios);
+        set
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.DisableExpansionRadios,
+                value);
+            NotifyPropertyChanged();
+        }
+    }
+
     public bool VOXEnabled
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.VOX);

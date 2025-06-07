@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Network.LotATC.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
@@ -122,9 +123,20 @@ public class LotATCSyncHandler
                 shouldUpdate) // There are 10,000 ticks in a millisecond, or 10 million ticks in a second. Update ever 5 seconds
             {
                 _lastSent = DateTime.Now.Ticks;
-                //TODO handle this
-                //via singleton
-                //_clientSideUpdate();
+              
+                EventBus.Instance.PublishOnCurrentThreadAsync(new UnitUpdateMessage()
+                {
+                    FullUpdate = false,
+                    UnitUpdate = new SRClientBase()
+                    {
+                        ClientGuid = _clientStateSingleton.ShortGUID,
+                        Coalition = _clientStateSingleton.PlayerCoaltionLocationMetadata.side,
+                        LatLngPosition = _clientStateSingleton.PlayerCoaltionLocationMetadata.LngLngPosition,
+                        Seat = _clientStateSingleton.PlayerCoaltionLocationMetadata.seat,
+                        Name = _clientStateSingleton.LastSeenName,
+                        AllowRecord = _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AllowRecording)
+                    }
+                });
             }
         }
     }
