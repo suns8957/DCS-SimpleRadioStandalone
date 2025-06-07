@@ -264,38 +264,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             return null;
         }
-
-        private struct Compressor
-        {
-            public float Attack;
-            public float MakeUp;
-            public float Release;
-            public float Slope;
-            public float Threshold;
-        };
-
-        private struct Saturation
-        {
-            public float Gain;
-            public float Threshold;
-        }
-
-        private class Radio
-        {
-            static public readonly float SAMPLE_RATE = Constants.OUTPUT_SAMPLE_RATE;
-            public Dsp.IFilter[] PrepassFilters { get; set; }
-            public Dsp.IFilter[] PostCompressorFilters { get; set; }
-            public Dsp.IFilter[] ReceiverFilters { get; set; }
-            public Compressor Compressor { get; set; }
-            public Saturation Saturation { get; set; }
-
-            public float NoiseGain { get; set; }
-            public float PostGain { get; set; }
-            public float InnerNoise { get; set; }
-        };
-
 #if true
-        private static readonly Radio Arc210 = new Radio()
+        private static readonly RadioPreset Arc210 = new RadioPreset()
         {
             PrepassFilters = new Dsp.IFilter[]
             {
@@ -349,7 +319,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         };
 #endif
 #if true
-        private static readonly Radio Intercom = new Radio()
+        private static readonly RadioPreset Intercom = new RadioPreset()
         {
             PrepassFilters = new Dsp.IFilter[]
             {
@@ -408,7 +378,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 #endif
 
 #if true
-        private static readonly Radio Arc134 = new Radio()
+        private static readonly RadioPreset Arc134 = new RadioPreset()
         {
             PrepassFilters = new Dsp.IFilter[]
             {
@@ -464,38 +434,38 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 #endif
 
 #if true
-        private static readonly Radio Arc164 = new Radio()
+        private static readonly RadioPreset Arc164 = new RadioPreset()
         {
             
             PrepassFilters = new[]
             {
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.HighPassFilter(Radio.SAMPLE_RATE, 954, 0.09f),
+                        Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 954, 0.09f),
                     },
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.PeakingEQ(Radio.SAMPLE_RATE, 2302, 0.63f, 13f),
+                        Filter = BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2302, 0.63f, 13f),
                     },
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.LowPassFilter(Radio.SAMPLE_RATE, 5165, 0.4f)
+                        Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5165, 0.4f)
                     }
             },
 
             PostCompressorFilters = new Dsp.IFilter[]
             {
-                Dsp.FirstOrderFilter.HighPass(Radio.SAMPLE_RATE, 829),
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 829),
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.LowPassFilter(Radio.SAMPLE_RATE, 5435, 0.1f),
+                        Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.1f),
                     }
             },
 
             ReceiverFilters = new[]
             {
-                Dsp.FirstOrderFilter.HighPass(Radio.SAMPLE_RATE, 270),
-                Dsp.FirstOrderFilter.LowPass(Radio.SAMPLE_RATE, 4500)
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
+                Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
             },
 
             Compressor = new Compressor
@@ -518,38 +488,38 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         };
 #endif
 #if true
-        private static readonly Radio Arc186 = new Radio()
+        private static readonly RadioPreset Arc186 = new RadioPreset()
         {
 
             PrepassFilters = new[]
             {
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.HighPassFilter(Radio.SAMPLE_RATE, 954, 0.09f),
+                        Filter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 954, 0.09f),
                     },
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.PeakingEQ(Radio.SAMPLE_RATE, 2302, 0.63f, 13f),
+                        Filter = BiQuadFilter.PeakingEQ(Constants.OUTPUT_SAMPLE_RATE, 2302, 0.63f, 13f),
                     },
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.LowPassFilter(Radio.SAMPLE_RATE, 5165, 0.4f)
+                        Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5165, 0.4f)
                     }
             },
 
             PostCompressorFilters = new Dsp.IFilter[]
             {
-                Dsp.FirstOrderFilter.HighPass(Radio.SAMPLE_RATE, 829),
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 829),
                 new Dsp.BiQuadFilter()
                     {
-                        Filter = BiQuadFilter.LowPassFilter(Radio.SAMPLE_RATE, 5435, 0.1f),
+                        Filter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 5435, 0.1f),
                     }
             },
 
             ReceiverFilters = new[]
             {
-                Dsp.FirstOrderFilter.HighPass(Radio.SAMPLE_RATE, 270),
-                Dsp.FirstOrderFilter.LowPass(Radio.SAMPLE_RATE, 4500)
+                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
+                Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
             },
 
             Compressor = new Compressor
@@ -572,7 +542,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         };
 #endif
 #if false
-        private static readonly Radio Arc222 = new Radio()
+        private static readonly RadioPreset Arc222 = new RadioPreset()
         {
             PrepassFilters = new[]
             {
@@ -621,7 +591,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         };
 #endif
 
-        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, Radio radioModel, bool encryptionEffects)
+        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, bool encryptionEffects)
         {
             voiceProvider = new MixingSampleProvider(new ISampleProvider[]{
                 voiceProvider,
