@@ -73,40 +73,48 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private void LoadRadioModels()
         {
             var loadedPresets = new Dictionary<string, RadioPreset>();
-            var presets = Directory.EnumerateFiles(PresetsFolder, "*.json");
-            foreach (var presetFile in presets)
+            try
             {
-                var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant().Replace("-custom", null);
-                using (Stream jsonFile = File.OpenRead(presetFile))
+                var presets = Directory.EnumerateFiles(PresetsFolder, "*.json");
+                foreach (var presetFile in presets)
                 {
-                    RadioPreset preset = null;
-                    try
+                    var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant().Replace("-custom", null);
+                    using (Stream jsonFile = File.OpenRead(presetFile))
                     {
-                        preset = JsonSerializer.Deserialize<RadioPreset>(jsonFile, new JsonSerializerOptions
+                        RadioPreset preset = null;
+                        try
                         {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
-                    }
-
-                    if (preset != null)
-                    {
-                        if (!loadedPresets.TryAdd(presetName, preset))
-                        {
-                            // If we load a customization afterwards, it takes precedence.
-                            // If we happened to have already loaded it, ignore the 'default'.
-                            if (presetName.EndsWith("-custom.json"))
+                            preset = JsonSerializer.Deserialize<RadioPreset>(jsonFile, new JsonSerializerOptions
                             {
-                                loadedPresets.Remove(presetName);
-                                loadedPresets.Add(presetName, preset);
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
+                        }
+
+                        if (preset != null)
+                        {
+                            if (!loadedPresets.TryAdd(presetName, preset))
+                            {
+                                // If we load a customization afterwards, it takes precedence.
+                                // If we happened to have already loaded it, ignore the 'default'.
+                                if (presetName.EndsWith("-custom.json"))
+                                {
+                                    loadedPresets.Remove(presetName);
+                                    loadedPresets.Add(presetName, preset);
+                                }
                             }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Logger.Error($"Unable to parse radio preset files {PresetsFolder}", ex);
+            }
+
 
             // If these were loaded from files, the try adds will fail here.
             loadedPresets.TryAdd("intercom", DefaultRadioPresets.Intercom);
