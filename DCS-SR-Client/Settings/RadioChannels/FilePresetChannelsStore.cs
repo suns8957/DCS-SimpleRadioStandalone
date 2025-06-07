@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NLog;
+using LogManager = NLog.LogManager;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 
@@ -180,7 +181,7 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
         return null;
     }
 
-    private string NormaliseString(string str)
+    public static string NormaliseString(string str)
     {
         //only allow alphanumeric, remove all spaces etc
         return NormaliseRegex().Replace(str, "").ToLower();

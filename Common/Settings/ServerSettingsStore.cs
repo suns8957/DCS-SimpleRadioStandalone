@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
+using Newtonsoft.Json;
 using NLog;
 using SharpConfig;
 
@@ -23,6 +25,8 @@ public class ServerSettingsStore
     //Can be overridden by a command line flag - hence being static
     //if overwritten, it will contain a full path
     public static string CFG_FILE_NAME = "server.cfg";
+    
+    private ServerChannelPresetHelper _serverChannelPresetHelper;
 
     public ServerSettingsStore()
     {
@@ -214,6 +218,23 @@ public class ServerSettingsStore
 
         foreach (var setting in _configuration["General Settings"]) settings[setting.Name] = setting.StringValue;
 
+        if (GetServerSetting(ServerSettingsKeys.SERVER_PRESETS_ENABLED).BoolValue)
+        {
+            //load presets
+            if (_serverChannelPresetHelper == null)
+            {
+                _serverChannelPresetHelper = new ServerChannelPresetHelper(Path.GetDirectoryName(CFG_FILE_NAME));
+                _serverChannelPresetHelper.LoadPresets();
+            }
+            
+            //I apologise to the programming gods - but this keeps it backwards compatible :/
+            settings[nameof(ServerSettingsKeys.SERVER_PRESETS)] = JsonConvert.SerializeObject(_serverChannelPresetHelper.Presets);
+        }
+        else
+        {
+            settings[nameof(ServerSettingsKeys.SERVER_PRESETS)] = JsonConvert.SerializeObject(new Dictionary<string,List<ServerPresetChannel>>());
+        }
+        
         return settings;
     }
 

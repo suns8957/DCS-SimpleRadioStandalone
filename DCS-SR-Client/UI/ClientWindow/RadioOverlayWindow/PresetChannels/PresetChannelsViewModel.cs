@@ -2,17 +2,22 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using Caliburn.Micro;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.RadioOverlayWindow.PresetChannels;
 
-public class PresetChannelsViewModel : INotifyPropertyChanged
+public class PresetChannelsViewModel : INotifyPropertyChanged, IHandle<ServerSettingsChangedMessage>
 {
     private readonly IPresetChannelsStore _channelsStore;
 
@@ -103,6 +108,16 @@ public class PresetChannelsViewModel : INotifyPropertyChanged
                     channel.Channel = i++;
                     PresetChannels.Add(channel);
                 }
+            
+            foreach (var channel in SyncedServerSettings.Instance.GetPresetChannels(FilePresetChannelsStore.NormaliseString(radio.name)))
+            {
+                PresetChannels.Add( new PresetChannel()
+                {
+                    Value = channel.Frequency,
+                    Text = channel.Name,
+                    Channel = i++
+                });
+            }
 
             if (PresetChannels.Count > 0)
                 ShowPresetCreate = Visibility.Collapsed;
@@ -116,6 +131,16 @@ public class PresetChannelsViewModel : INotifyPropertyChanged
             {
                 channel.Channel = i++;
                 PresetChannels.Add(channel);
+            }
+
+            foreach (var channel in SyncedServerSettings.Instance.GetPresetChannels(FilePresetChannelsStore.NormaliseString(radio.name)))
+            {
+                PresetChannels.Add( new PresetChannel()
+                {
+                    Value = channel.Frequency,
+                    Text = channel.Name,
+                    Channel = i++
+                });
             }
 
             if (PresetChannels.Count == 0)
@@ -172,5 +197,11 @@ public class PresetChannelsViewModel : INotifyPropertyChanged
     public void Clear()
     {
         PresetChannels.Clear();
+    }
+
+    public Task HandleAsync(ServerSettingsChangedMessage message, CancellationToken cancellationToken)
+    {
+        Reload();
+        return Task.CompletedTask;
     }
 }
