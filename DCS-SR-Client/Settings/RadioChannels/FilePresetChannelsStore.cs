@@ -8,7 +8,7 @@ using NLog;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 
-public class FilePresetChannelsStore : IPresetChannelsStore
+public partial class FilePresetChannelsStore : IPresetChannelsStore
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
@@ -183,6 +183,9 @@ public class FilePresetChannelsStore : IPresetChannelsStore
     private string NormaliseString(string str)
     {
         //only allow alphanumeric, remove all spaces etc
-        return Regex.Replace(str, "[^a-zA-Z0-9]", "").ToLower();
+        return NormaliseRegex().Replace(str, "").ToLower();
     }
+
+    [GeneratedRegex("[^a-zA-Z0-9]")]
+    private static partial Regex NormaliseRegex();
 }

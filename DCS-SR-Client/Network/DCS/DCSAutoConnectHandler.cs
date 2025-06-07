@@ -16,9 +16,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS;
 public class DCSAutoConnectHandler
 {
     private static readonly object _lock = new();
-
-    //TODO use message bus to fix this
-    // private readonly MainWindow.ReceivedAutoConnect _receivedAutoConnect;
+    
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private UdpClient _dcsUdpListener;
 

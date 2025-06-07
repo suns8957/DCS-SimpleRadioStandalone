@@ -162,7 +162,6 @@ internal class AudioPreview
                 "JOIN DISCORD SERVER",
                 "CLOSE",
                 MessageBoxImage.Error);
-            //TODO fix process start
             if (messageBoxResult == MessageBoxResult.Yes)
                 Process.Start(new ProcessStartInfo("ms-settings:privacy-microphone")
                     { UseShellExecute = true });
@@ -172,7 +171,6 @@ internal class AudioPreview
         }
         else
         {
-            //TODO fix process start
             var messageBoxResult = CustomMessageBox.ShowYesNo(
                 "Problem initialising Audio Input!\n\nTry a different Input device and please post your client log to the support Discord server.",
                 "Audio Input Error",
