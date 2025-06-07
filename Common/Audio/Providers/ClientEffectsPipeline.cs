@@ -259,7 +259,29 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 }
                 else
                 {
-                    transmissionProvider = AddRadioEffect(transmissionProvider, transmission.Modulation, transmission.Frequency, transmission.Encryption);
+                    string model = null;
+                    SRClientBase sender = null;
+                    if (ConnectedClientsSingleton.Instance.Clients.TryGetValue(transmission.Guid, out sender))
+                    {
+                        if (sender != null)
+                        {
+                            // Try to find which radio the transmission is coming from.
+                            // "best match".
+                            foreach (var radio in sender.RadioInfo.radios)
+                            {
+                                if (radio.modulation == transmission.Modulation && RadioBase.FreqCloseEnough(transmission.Frequency, radio.freq))
+                                {
+                                    model = radio.Model;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+
+                    RadioPreset preset = Presets.GetValueOrDefault(model, Presets["arc210"]);
+
+                    transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmission.Modulation, transmission.Frequency, transmission.Encryption);
                 }
             }
 
@@ -383,12 +405,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             return voiceProvider;
         }
-        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, Modulation modulation, double freq, short encryption)
+        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioPreset radioModel, Modulation modulation, double freq, short encryption)
         {
             // NAudio version.
             // Chain of effects being applied.
             // TODO: We should be able to precompute a lot of this.
-            var radioModel = Presets["arc210"];
             if (radioEffectsEnabled)
             {
                 if (clippingEnabled)
