@@ -22,9 +22,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private Dictionary<CachedAudioEffect.AudioEffectTypes, VolumeCachedEffectProvider> _fxProviders = new Dictionary<CachedAudioEffect.AudioEffectTypes, VolumeCachedEffectProvider>();
 
-        private readonly BiQuadFilter _highPassFilter;
-        private readonly BiQuadFilter _lowPassFilter;
-
         private readonly CachedAudioEffectProvider effectProvider = CachedAudioEffectProvider.Instance;
 
         private bool radioEffectsEnabled;
@@ -55,8 +52,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.FM_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.FMNoise)));
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.AM_COLLISION, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.AMCollision)));
 
-            _highPassFilter = BiQuadFilter.HighPassFilter(Constants.OUTPUT_SAMPLE_RATE, 520, 0.97f);
-            _lowPassFilter = BiQuadFilter.LowPassFilter(Constants.OUTPUT_SAMPLE_RATE, 4130, 2.0f);
             RefreshSettings();
         }
 
