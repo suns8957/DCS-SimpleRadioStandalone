@@ -86,7 +86,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         {
                             preset = JsonSerializer.Deserialize<RadioPreset>(jsonFile, new JsonSerializerOptions
                             {
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                                AllowTrailingCommas = true,
+                                ReadCommentHandling = JsonCommentHandling.Skip
                             });
                         }
                         catch (Exception ex)
