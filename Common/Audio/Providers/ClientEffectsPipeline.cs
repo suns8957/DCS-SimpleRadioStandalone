@@ -320,14 +320,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
         {
-            voiceProvider = new MixingSampleProvider(new ISampleProvider[]{
-                voiceProvider,
-                new SignalGenerator(voiceProvider.WaveFormat.SampleRate, 1)
-                {
-                    Type = SignalGeneratorType.White,
-                    Gain = (float)Decibels.DecibelsToLinear(radioModel.NoiseGain -30),
-                },
-            });
             voiceProvider = new FiltersProvider(voiceProvider)
             {
                 Filters = radioModel.PrepassFilters
