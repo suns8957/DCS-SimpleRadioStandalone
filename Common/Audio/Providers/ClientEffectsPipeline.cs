@@ -123,11 +123,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 Logger.Error($"Unable to parse radio preset files {PresetsFolder}", ex);
             }
 
-
-            // If these were loaded from files, the try adds will fail here.
-            loadedPresets.TryAdd("intercom", DefaultRadioPresets.Intercom);
-            loadedPresets.TryAdd("arc210", DefaultRadioPresets.Arc210);
-
             Presets = loadedPresets.ToFrozenDictionary();
         }
 
