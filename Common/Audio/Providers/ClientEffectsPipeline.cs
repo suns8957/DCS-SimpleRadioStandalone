@@ -110,8 +110,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                                 // If we happened to have already loaded it, ignore the 'default'.
                                 if (presetName.EndsWith("-custom.json"))
                                 {
-                                    loadedPresets.Remove(presetName);
-                                    loadedPresets.Add(presetName, preset);
+                                    loadedPresets[presetName] = preset;
                                 }
                             }
                         }
