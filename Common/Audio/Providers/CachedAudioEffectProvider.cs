@@ -110,11 +110,6 @@ public class CachedAudioEffectProvider
 
     public CachedAudioEffect HAVEQUICKTone { get; set; }
 
-    public CachedAudioEffect FMNoise { get; set; }
-    public CachedAudioEffect UHFNoise { get; set; }
-    public CachedAudioEffect VHFNoise { get; set; }
-    public CachedAudioEffect HFNoise { get; set; }
-
     public CachedAudioEffect AMCollision { get; set; }
 
     public void LoadEffects()
@@ -140,21 +135,7 @@ public class CachedAudioEffectProvider
 
         HAVEQUICKTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HAVEQUICK_TONE, CachedEffectsLoader);
 
-        FMNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.FM_NOISE, CachedEffectsLoader);
-        VHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.VHF_NOISE, CachedEffectsLoader);
-        UHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.UHF_NOISE, CachedEffectsLoader);
-        HFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HF_NOISE, CachedEffectsLoader);
-
-        //sort out volume (if needed)
-        // CreateAudioEffectDouble(HAVEQUICKTone);
-        // CreateAudioEffectDouble(NATOTone);
-        // CreateAudioEffectDouble(FMNoise);
-        // CreateAudioEffectDouble(UHFNoise);
-        // CreateAudioEffectDouble(VHFNoise);
-        // CreateAudioEffectDouble(HFNoise);
-
         AMCollision = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AM_COLLISION, CachedEffectsLoader);
-        // CreateAudioEffectDouble(AMCollision);
     }
 
     private void LoadRadioStartAndEndEffects()

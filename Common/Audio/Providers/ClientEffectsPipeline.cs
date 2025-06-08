@@ -39,9 +39,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private bool radioBackgroundNoiseEffect;
         private bool radioEncryptionEffect;
 
+        private float NoiseGainOffsetDB { get; set; } = 0f;
+
         private bool irlRadioRXInterference = false;
 
         private readonly SyncedServerSettings serverSettings;
+
+        private struct TransmissionInfo
+        {
+            public double Frequency;
+            public Modulation Modulation;
+
+            public short Encryption { get; internal set; }
+        }
 
         private string PresetsFolder
         {
@@ -58,10 +68,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.NATO_TONE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.NATOTone)));
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.HAVEQUICK_TONE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.HAVEQUICKTone)));
-            _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.UHF_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.UHFNoise)));
-            _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.VHF_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.VHFNoise)));
-            _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.HF_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.HFNoise)));
-            _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.FM_NOISE, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.FMNoise)));
             _fxProviders.Add(CachedAudioEffect.AudioEffectTypes.AM_COLLISION, new VolumeCachedEffectProvider(new CachedEffectProvider(effectProvider.AMCollision)));
 
             RefreshSettings();
@@ -143,17 +149,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
 
-                _fxProviders[CachedAudioEffect.AudioEffectTypes.UHF_NOISE].Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume);
-                _fxProviders[CachedAudioEffect.AudioEffectTypes.VHF_NOISE].Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume);
-                _fxProviders[CachedAudioEffect.AudioEffectTypes.HF_NOISE].Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume);
-                _fxProviders[CachedAudioEffect.AudioEffectTypes.FM_NOISE].Volume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume);
-
                 radioEffects = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
 
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect);
                 radioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
 
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
+
+                NoiseGainOffsetDB = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.NoiseGainDB);
             }
         }
 
@@ -247,7 +250,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         public float[] ProcessClientAudioSamples(float[] buffer, int count, int offset, DeJitteredTransmission transmission)
         {
+            var transmissionDetails = new TransmissionInfo
+            {
+                Frequency = transmission.Frequency,
+                Modulation = transmission.Modulation,
+                Encryption = transmission.Encryption,
+            };
+
             ISampleProvider transmissionProvider = new TransmissionProvider(buffer, offset);
+            transmissionProvider = new VolumeSampleProvider(transmissionProvider)
+            {
+                Volume = transmission.Volume
+            };
+
             if (!transmission.NoAudioEffects)
             {
                 if (transmission.Modulation == Modulation.MIDS
@@ -256,7 +271,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     if (radioEffects)
                     {
-                        transmissionProvider = AddRadioEffectIntercom(transmissionProvider, transmission.Modulation);
+                        transmissionProvider = AddRadioEffectIntercom(transmissionProvider, transmissionDetails);
                     }
                 }
                 else
@@ -269,47 +284,28 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         {
                             // Try to find which radio the transmission is coming from.
                             // "best match".
-                            foreach (var radio in sender.RadioInfo.radios)
+                            // #FIXME this doesn't discriminate if multiple radios are set to the same frequency
+                            var candidate = Array.Find(sender.RadioInfo.radios, radio => radio.modulation == transmission.Modulation && RadioBase.FreqCloseEnough(transmission.Frequency, radio.freq));
+                            
+                            if (candidate != null)
                             {
-                                if (radio.modulation == transmission.Modulation && RadioBase.FreqCloseEnough(transmission.Frequency, radio.freq))
-                                {
-                                    model = radio.Model;
-                                    break;
-                                }
+                                model = candidate.Model;
                             }
                         }
                     }
                     
-
-                    RadioPreset preset = Presets.GetValueOrDefault(model, Presets["arc210"]);
-
-                    transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmission.Modulation, transmission.Frequency, transmission.Encryption);
+                    RadioPreset preset = Presets.GetValueOrDefault(model, DefaultRadioPresets.Arc210);
+                    transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
-
-            transmissionProvider = new VolumeSampleProvider(transmissionProvider)
-            {
-                Volume = transmission.Volume
-            };
 
             transmissionProvider.Read(buffer, offset, count);
             return buffer;
         }
 
-        private void AdjustVolume(float[] buffer, int count, int offset, float volume)
+        private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, TransmissionInfo details)
         {
-            int outputIndex = offset;
-            while (outputIndex < offset + count)
-            {
-                buffer[outputIndex] *= volume;
-
-                outputIndex++;
-            }
-        }
-
-        private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, Modulation modulation)
-        {
-            return BuildMicPipeline(voiceProvider, Presets["intercom"], modulation == Modulation.MIDS);
+            return BuildMicPipeline(voiceProvider, Presets.GetValueOrDefault("intercom", DefaultRadioPresets.Intercom), details);
         }
 
         private VolumeCachedEffectProvider GetToneProvider(Modulation modulation)
@@ -327,31 +323,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return null;
         }
 
-        private ISampleProvider GetNoiseProvider(Modulation modulation, double freq)
-        {
-            switch (modulation)
-            {
-                case Modulation.AM:
-                case Modulation.HAVEQUICK:
-                    if (freq > 200e6) // UHF range
-                    {
-                        return _fxProviders[CachedAudioEffect.AudioEffectTypes.UHF_NOISE];
-                    }
-
-                    if (freq > 80e6)
-                    {
-                        return _fxProviders[CachedAudioEffect.AudioEffectTypes.VHF_NOISE];
-                    }
-
-                    return _fxProviders[CachedAudioEffect.AudioEffectTypes.HF_NOISE];
-                case Modulation.FM:
-                case Modulation.SINCGARS:
-                    return _fxProviders[CachedAudioEffect.AudioEffectTypes.FM_NOISE];
-            }
-
-            return null;
-        }
-        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, bool encryptionEffects)
+        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
         {
             voiceProvider = new MixingSampleProvider(new ISampleProvider[]{
                 voiceProvider,
@@ -394,6 +366,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 Volume = (float)Decibels.DecibelsToLinear(radioModel.PostGain)
             };
 
+
+            var encryptionEffects = radioEncryptionEffect && (details.Modulation == Modulation.MIDS || details.Encryption > 0);
             if (encryptionEffects)
             {
                 voiceProvider = new CVSDProvider(voiceProvider);
@@ -407,52 +381,77 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             return voiceProvider;
         }
-        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioPreset radioModel, Modulation modulation, double freq, short encryption)
+        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
         {
+
+            if (radioEffectsEnabled && clippingEnabled)
+            {
+                voiceProvider = new ClippingProvider(voiceProvider, RadioFilter.CLIPPING_MIN, RadioFilter.CLIPPING_MAX);
+            }
+            
+            if (radioBackgroundNoiseEffect)
+            {
+
+                var backgroundEffectsProvider = new MixingSampleProvider(voiceProvider.WaveFormat);
+                // Noise, initial power depends on frequency band.
+                // HF very susceptible (higher base), V/UHF not as much.
+
+                // #TODO: Control additional noise reduction/augmentation via slider.
+                var noiseGainDB = -10f;
+
+                // #TODO: noise type should be part of the radio preset really.
+                // Tube (red/pink) vs transistor (white/AGWN)
+                var noiseType = SignalGeneratorType.Pink;
+                if (details.Frequency > 50e6)
+                {
+                    noiseType = SignalGeneratorType.White;
+                    noiseGainDB = -20;
+                }
+
+                // Apply user defined noise attenuation/gain
+                noiseGainDB += NoiseGainOffsetDB;
+                // Apply radio model noise attenuation/gain.
+                noiseGainDB += radioModel.NoiseGain;
+
+                var noiseProvider = new SignalGenerator(voiceProvider.WaveFormat.SampleRate, voiceProvider.WaveFormat.Channels)
+                {
+                    Type = noiseType,
+                    Gain = (float)Decibels.DecibelsToLinear(noiseGainDB),
+                };
+                backgroundEffectsProvider.AddMixerInput(new FiltersProvider(noiseProvider)
+                {
+                    Filters = new[] { Dsp.FirstOrderFilter.LowPass(voiceProvider.WaveFormat.SampleRate, 1500) },
+                });
+
+                var tone = GetToneProvider(details.Modulation);
+                if (tone != null && tone.Active)
+                {
+                    backgroundEffectsProvider.AddMixerInput(tone);
+                }
+
+                // #TODO: Mix in ambient
+
+#if false // Mains hum @ 400Hz (aviation standard)
+                fxMixer.AddMixerInput(new SignalGenerator(voiceProvider.WaveFormat.SampleRate, 1)
+                {
+                    Type = SignalGeneratorType.SawTooth,
+                    Frequency = 400,
+                    Gain = (float)Decibels.DecibelsToLinear(-60),
+                });
+#endif
+                backgroundEffectsProvider.AddMixerInput(voiceProvider);
+                voiceProvider = backgroundEffectsProvider;
+            }
+
             // NAudio version.
             // Chain of effects being applied.
             // TODO: We should be able to precompute a lot of this.
             if (radioEffectsEnabled)
             {
-                if (clippingEnabled)
-                {
-                    voiceProvider = new ClippingProvider(voiceProvider, RadioFilter.CLIPPING_MIN, RadioFilter.CLIPPING_MAX);
-                }
-
-                voiceProvider = BuildMicPipeline(voiceProvider, radioModel, radioEncryptionEffect && encryption > 0);
+                voiceProvider = BuildMicPipeline(voiceProvider, radioModel, details);
             }
 
-
-
-            // Mix in the noise, tones, etc.
-            // Note that they are applied LIFO.
-            var fxMixer = new MixingSampleProvider(voiceProvider.WaveFormat);
-
-            if (radioBackgroundNoiseEffect)
-            {
-                var noise = GetNoiseProvider(modulation, freq);
-                if (noise != null)
-                {
-                    fxMixer.AddMixerInput(new VolumeSampleProvider(noise)
-                    {
-                        Volume = (float)Decibels.DecibelsToLinear(radioModel.NoiseGain)
-                    });
-                }
-            }
-
-            // Modulation tone, if applicable.
-            {
-                var tone = GetToneProvider(modulation);
-                if (tone != null && tone.Active)
-                {
-                    fxMixer.AddMixerInput(tone);
-                }
-            }
-
-            // And now the voice.
-            fxMixer.AddMixerInput(voiceProvider);
-
-            voiceProvider = new ClippingProvider(fxMixer, -1, 1);
+            voiceProvider = new ClippingProvider(voiceProvider, -1, 1);
 
             return voiceProvider;
         }
