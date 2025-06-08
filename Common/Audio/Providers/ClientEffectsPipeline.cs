@@ -382,9 +382,13 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 var backgroundEffectsProvider = new MixingSampleProvider(voiceProvider.WaveFormat);
                 // Noise, initial power depends on frequency band.
                 // HF very susceptible (higher base), V/UHF not as much.
-
-                // #TODO: Control additional noise reduction/augmentation via slider.
-                var noiseGainDB = -10f;
+                // We can do a rough estimation applying a log-based rule.
+                // Rough figures for attenuation:
+                // 1-30 (HF): 0-17 dB
+                // 30-100: 17-23 dB
+                // 100-200 (VHF): 23-26 dB
+                // 200-400 (UHF): 26-29 dB
+                var noiseGainDB = -Math.Log(details.Frequency/1e6) * 10 / 2;
 
                 // #TODO: noise type should be part of the radio preset really.
                 // Tube (red/pink) vs transistor (white/AGWN)
@@ -392,7 +396,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 if (details.Frequency > 50e6)
                 {
                     noiseType = SignalGeneratorType.White;
-                    noiseGainDB = -20;
                 }
 
                 // Apply user defined noise attenuation/gain
