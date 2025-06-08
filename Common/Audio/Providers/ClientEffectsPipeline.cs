@@ -377,7 +377,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             
             if (radioBackgroundNoiseEffect)
             {
-
+                // Frequency at which we switch between HF noise (very grainy/rain sounding) vs white noise.
+                var hfNoiseFrequencyCutoff = 25e6;
                 var backgroundEffectsProvider = new MixingSampleProvider(voiceProvider.WaveFormat);
                 // Noise, initial power depends on frequency band.
                 // HF very susceptible (higher base), V/UHF not as much.
@@ -391,26 +392,45 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 // #TODO: noise type should be part of the radio preset really.
                 // Tube (red/pink) vs transistor (white/AGWN)
-                var noiseType = SignalGeneratorType.Pink;
-                if (details.Frequency > 50e6)
-                {
-                    noiseType = SignalGeneratorType.White;
-                }
+                var noiseType = details.Frequency > hfNoiseFrequencyCutoff ? SignalGeneratorType.White : SignalGeneratorType.Pink;
 
                 // Apply user defined noise attenuation/gain
                 noiseGainDB += NoiseGainOffsetDB;
                 // Apply radio model noise attenuation/gain.
                 noiseGainDB += radioModel.NoiseGain;
 
-                var noiseProvider = new SignalGenerator(voiceProvider.WaveFormat.SampleRate, voiceProvider.WaveFormat.Channels)
+                var noiseGeneratorGainDB = details.Frequency > hfNoiseFrequencyCutoff ? noiseGainDB : 0f;
+
+                ISampleProvider noiseProvider = new FiltersProvider(new SignalGenerator(voiceProvider.WaveFormat.SampleRate, voiceProvider.WaveFormat.Channels)
                 {
                     Type = noiseType,
-                    Gain = (float)Decibels.DecibelsToLinear(noiseGainDB),
-                };
-                backgroundEffectsProvider.AddMixerInput(new FiltersProvider(noiseProvider)
+                    Gain = (float)Decibels.DecibelsToLinear(noiseGeneratorGainDB),
+                })
                 {
-                    Filters = new[] { Dsp.FirstOrderFilter.LowPass(voiceProvider.WaveFormat.SampleRate, 1500) },
-                });
+                    Filters = new Dsp.IFilter[] { Dsp.FirstOrderFilter.LowPass(voiceProvider.WaveFormat.SampleRate, 800) },
+                };
+
+                if (details.Frequency <= hfNoiseFrequencyCutoff)
+                {
+                    RadioPreset hfNoise = null;
+                    if (Presets.TryGetValue("hfnoise", out hfNoise))
+                    {
+                        noiseProvider = BuildMicPipeline(noiseProvider, Presets["hfnoise"],
+                        new TransmissionInfo
+                        {
+                            Frequency = details.Frequency,
+                            Modulation = details.Modulation,
+                            Encryption = 0
+                        });
+                    }
+
+                    noiseProvider = new VolumeSampleProvider(noiseProvider)
+                    {
+                        Volume = (float)Decibels.DecibelsToLinear(noiseGainDB)
+                    };
+                }
+
+                backgroundEffectsProvider.AddMixerInput(noiseProvider);
 
                 var tone = GetToneProvider(details.Modulation);
                 if (tone != null && tone.Active)
