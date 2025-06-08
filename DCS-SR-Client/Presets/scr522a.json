@@ -20,7 +20,8 @@
     "postCompressorFilters": [
         {
             "type": "highpass",
-            "frequency": 1981
+            "frequency": 1981,
+            "q": 0.37
         },
         {
             "type": "lowpass",
