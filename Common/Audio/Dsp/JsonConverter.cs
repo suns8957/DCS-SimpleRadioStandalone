@@ -108,6 +108,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Dsp
                         }
                         break;
                     case "type":
+                    case "$type":
                         reader.Read();
                         type = reader.GetString().ToLowerInvariant();
                         if (!ValidTypes.Contains(type))
