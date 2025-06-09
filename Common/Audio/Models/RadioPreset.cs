@@ -1,8 +1,122 @@
-﻿using NAudio.Dsp;
+﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
+using NAudio.Dsp;
+using NAudio.Utils;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using System;
 using System.Text.Json.Serialization;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 {
+    namespace Dto
+    {
+        [JsonDerivedType(typeof(ChainEffect), typeDiscriminator: "chain")]
+        [JsonDerivedType(typeof(FiltersEffect), typeDiscriminator: "filters")]
+
+        [JsonDerivedType(typeof(SaturationEffect), typeDiscriminator: "saturation")]
+        [JsonDerivedType(typeof(CompressorEffect), typeDiscriminator: "compressor")]
+        [JsonDerivedType(typeof(GainEffect), typeDiscriminator: "gain")]
+
+        [JsonDerivedType(typeof(CVSDEffect), typeDiscriminator: "cvsd")]
+        internal abstract class IEffect
+        {
+            public abstract ISampleProvider ToSampleProvider(ISampleProvider source);
+        };
+
+        internal class CVSDEffect : IEffect
+        {
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                return new CVSDProvider(source);
+            }
+        };
+
+        internal class ChainEffect : IEffect
+        {
+            public IEffect[] Effects { get; set; }
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                var last = source;
+                foreach (var effect in Effects)
+                {
+                    last = effect.ToSampleProvider(last);
+                }
+                return last;
+            }
+        };
+
+        internal class FiltersEffect : IEffect
+        {
+            public Dsp.IFilter[] Filters { get; set; }
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                return new FiltersProvider(source)
+                {
+                    Filters = Filters
+                };
+            }
+        };
+
+        internal class SaturationEffect : IEffect
+        {
+            public float Gain { get; set; }
+            public float Threshold { get; set; }
+
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                return new SaturationProvider(source)
+                {
+                    GainDB = Gain,
+                    ThresholdDB = Threshold
+                };
+            }
+        };
+
+        internal class CompressorEffect : IEffect
+        {
+            public float Attack { get; set; }
+            public float MakeUp { get; set; }
+            public float Release { get; set; }
+            public float Threshold { get; set; }
+            public float Slope { get; set; }
+
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                return new SimpleCompressorEffect(source)
+                {
+                    Attack = Attack,
+                    MakeUpGain = MakeUp,
+                    Release = Release,
+                    Threshold = Threshold,
+                    Ratio = 1f / Slope,
+                    Enabled = true,
+                };
+            }
+        };
+
+        internal class GainEffect : IEffect
+        {
+            public float Gain {  get; set; }
+
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                return new VolumeSampleProvider(source)
+                {
+                    Volume = (float)Decibels.DecibelsToLinear(Gain),
+                };
+            }
+        };
+
+        internal class RadioPreset
+        {
+            public int Version { get; set; }
+            public float NoiseGain { get; set; }
+            public IEffect TxEffect { get; set; }
+            public IEffect RxEffect { get; set; }
+            public IEffect EncryptionEffect { get; set; }
+
+        };
+    }
     internal struct Compressor
     {
         [JsonInclude, JsonRequired]
