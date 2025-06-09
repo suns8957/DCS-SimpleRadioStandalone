@@ -19,7 +19,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         public int Read(float[] buffer, int offset, int count)
         {
             var available = Math.Min(Buffer.Length, count);
-            Buffer.Span.CopyTo(new Span<float>(buffer, offset, available));
+            Buffer.Span.Slice(0, available).CopyTo(new Span<float>(buffer, offset, available));
             if (available < count)
             {
                 Array.Clear(buffer, offset + available, count - available);
