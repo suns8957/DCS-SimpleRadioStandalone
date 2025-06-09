@@ -34,7 +34,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         internal class ChainEffect : IEffect
         {
-            public IEffect[] Effects { get; set; }
+            public required IEffect[] Effects { get; set; }
             public override ISampleProvider ToSampleProvider(ISampleProvider source)
             {
                 var last = source;
@@ -48,7 +48,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         internal class FiltersEffect : IEffect
         {
-            public Dsp.IFilter[] Filters { get; set; }
+            public required Dsp.IFilter[] Filters { get; set; }
             public override ISampleProvider ToSampleProvider(ISampleProvider source)
             {
                 return new FiltersProvider(source)
@@ -60,8 +60,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         internal class SaturationEffect : IEffect
         {
-            public float Gain { get; set; }
-            public float Threshold { get; set; }
+            public required float Gain { get; set; }
+            public required float Threshold { get; set; }
 
             public override ISampleProvider ToSampleProvider(ISampleProvider source)
             {
@@ -75,11 +75,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         internal class CompressorEffect : IEffect
         {
-            public float Attack { get; set; }
-            public float MakeUp { get; set; }
-            public float Release { get; set; }
-            public float Threshold { get; set; }
-            public float Slope { get; set; }
+            public required float Attack { get; set; }
+            public required float MakeUp { get; set; }
+            public required float Release { get; set; }
+            public required float Threshold { get; set; }
+            public required float Slope { get; set; }
 
             public override ISampleProvider ToSampleProvider(ISampleProvider source)
             {
@@ -97,7 +97,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         internal class GainEffect : IEffect
         {
-            public float Gain {  get; set; }
+            public required float Gain {  get; set; }
 
             public override ISampleProvider ToSampleProvider(ISampleProvider source)
             {
@@ -110,10 +110,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         internal class RadioPreset
         {
-            public int Version { get; set; }
-            public float NoiseGain { get; set; }
-            public IEffect TxEffect { get; set; }
-            public IEffect RxEffect { get; set; }
+            public required int Version { get; set; }
+            public required float NoiseGain { get; set; }
+            public required IEffect TxEffect { get; set; }
+            public required IEffect RxEffect { get; set; }
             public IEffect EncryptionEffect { get; set; }
 
         };
@@ -121,8 +121,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
     internal class DefaultRadioPresets
     {
         // ARC-210 as default radio FX.
-        public static readonly Dto.RadioPreset Arc210 = new Dto.RadioPreset()
+        public static readonly Dto.RadioPreset Arc210 = new()
         {
+            Version = 1,
             TxEffect = new ChainEffect()
             {
                 Effects = new IEffect[]
@@ -193,8 +194,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             NoiseGain = -33,
         };
 
-        public static readonly Dto.RadioPreset Intercom = new Dto.RadioPreset()
+        public static readonly Dto.RadioPreset Intercom = new()
         {
+            Version = 1,
             TxEffect = new ChainEffect()
             {
                 Effects = new IEffect[]
