@@ -7,18 +7,18 @@
         "$type": "filters",
         "filters": [
           {
-            "type": "highpass",
+            "$type": "highpass",
             "frequency": 637,
             "q": 0.17
           },
           {
-            "type": "peak",
+            "$type": "peak",
             "frequency": 1052,
             "q": 0.6,
             "gain": 8
           },
           {
-            "type": "lowpass",
+            "$type": "lowpass",
             "frequency": 2608,
             "q": 0.15
           }
@@ -41,11 +41,11 @@
         "$type": "filters",
         "filters": [
           {
-            "type": "highpass",
+            "$type": "highpass",
             "frequency": 981
           },
           {
-            "type": "lowpass",
+            "$type": "lowpass",
             "frequency": 2692,
             "q": 0.1
           }
@@ -61,11 +61,11 @@
     "$type": "filters",
     "filters": [
       {
-        "type": "highpass",
+        "$type": "highpass",
         "frequency": 270
       },
       {
-        "type": "lowpass",
+        "$type": "lowpass",
         "frequency": 4500
       }
     ]
