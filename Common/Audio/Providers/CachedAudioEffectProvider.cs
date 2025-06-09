@@ -110,8 +110,6 @@ public class CachedAudioEffectProvider
 
     public CachedAudioEffect HAVEQUICKTone { get; set; }
 
-    public CachedAudioEffect AMCollision { get; set; }
-
     public void LoadEffects()
     {
         //init lists
@@ -134,8 +132,6 @@ public class CachedAudioEffectProvider
         MIDSEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX_END, CachedEffectsLoader);
 
         HAVEQUICKTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HAVEQUICK_TONE, CachedEffectsLoader);
-
-        AMCollision = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AM_COLLISION, CachedEffectsLoader);
     }
 
     private void LoadRadioStartAndEndEffects()

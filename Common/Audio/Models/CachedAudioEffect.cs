@@ -21,7 +21,6 @@ public class CachedAudioEffect
         HAVEQUICK_TONE = 7,
         INTERCOM_TRANS_START = 12,
         INTERCOM_TRANS_END = 13,
-        AM_COLLISION = 14,
         AMBIENT_COCKPIT = 15
     }
 

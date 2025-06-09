@@ -220,9 +220,6 @@
         <Content Include="AudioEffects\Ambient\Yak52.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="AudioEffects\AM_COLLISION.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
         <Content Include="AudioEffects\FM_NOISE.wav">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
