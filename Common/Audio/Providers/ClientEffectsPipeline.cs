@@ -401,11 +401,26 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 var noiseGeneratorGainDB = details.Frequency > hfNoiseFrequencyCutoff ? noiseGainDB : 0f;
 
-                ISampleProvider noiseProvider = new FiltersProvider(new SignalGenerator(voiceProvider.WaveFormat.SampleRate, voiceProvider.WaveFormat.Channels)
+                // #TODO: noise type should be part of the radio preset really.
+                // Tube/HF noise (red/pink) vs transistor (white/AGWN)
+                ISampleProvider noiseProvider = null;
+                if (details.Frequency > hfNoiseFrequencyCutoff)
                 {
-                    Type = noiseType,
-                    Gain = (float)Decibels.DecibelsToLinear(noiseGeneratorGainDB),
-                })
+                    noiseProvider = new VolumeSampleProvider(new GaussianWhiteNoise())
+                    {
+                        Volume = (float)Decibels.DecibelsToLinear(noiseGeneratorGainDB),
+                    };
+                }
+                else
+                {
+                    noiseProvider = new SignalGenerator(voiceProvider.WaveFormat.SampleRate, voiceProvider.WaveFormat.Channels)
+                    {
+                        Type = SignalGeneratorType.Pink,
+                        Gain = (float)Decibels.DecibelsToLinear(noiseGeneratorGainDB),
+                    };
+                }
+
+                noiseProvider = new FiltersProvider(noiseProvider)
                 {
                     Filters = new Dsp.IFilter[] { Dsp.FirstOrderFilter.LowPass(voiceProvider.WaveFormat.SampleRate, 800) },
                 };
