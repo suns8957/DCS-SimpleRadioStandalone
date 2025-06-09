@@ -72,23 +72,23 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             LoadRadioModels();
         }
 
-        private IReadOnlyDictionary<string, RadioPreset> Presets;
+        private IReadOnlyDictionary<string, Models.Dto.RadioPreset> Presets;
 
         private void LoadRadioModels()
         {
-            var loadedPresets = new Dictionary<string, RadioPreset>();
+            var loadedPresets = new Dictionary<string, Models.Dto.RadioPreset>();
             try
             {
                 var presets = Directory.EnumerateFiles(PresetsFolder, "*.json");
                 foreach (var presetFile in presets)
                 {
                     var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant().Replace("-custom", null);
-                    using (Stream jsonFile = File.OpenRead(presetFile))
+                    using (var jsonFile = File.OpenRead(presetFile))
                     {
-                        RadioPreset preset = null;
+                        Models.Dto.RadioPreset preset = null;
                         try
                         {
-                            preset = JsonSerializer.Deserialize<RadioPreset>(jsonFile, new JsonSerializerOptions
+                            preset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, new JsonSerializerOptions
                             {
                                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                                 AllowTrailingCommas = true,
@@ -252,7 +252,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         }
                     }
                     
-                    RadioPreset preset = Presets.GetValueOrDefault(model, DefaultRadioPresets.Arc210);
+                    var preset = Presets.GetValueOrDefault(model, DefaultRadioPresets.Arc210);
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
@@ -281,57 +281,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return null;
         }
 
-        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
+        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, Models.Dto.RadioPreset radioModel, TransmissionInfo details)
         {
-            voiceProvider = new FiltersProvider(voiceProvider)
-            {
-                Filters = radioModel.PrepassFilters
-            };
-
-            voiceProvider = new SaturationProvider(voiceProvider)
-            {
-                GainDB = radioModel.Saturation.Gain,
-                ThresholdDB = radioModel.Saturation.Threshold
-            };
-
-            voiceProvider = new SimpleCompressorEffect(voiceProvider)
-            {
-                Attack = radioModel.Compressor.Attack,
-                MakeUpGain = radioModel.Compressor.MakeUp,
-                Release = radioModel.Compressor.Release,
-                Enabled = true,
-                Threshold = radioModel.Compressor.Threshold,
-                Ratio = 1f / radioModel.Compressor.Slope,
-            };
-
-            // post
-            voiceProvider = new FiltersProvider(voiceProvider)
-            {
-                Filters = radioModel.PostCompressorFilters
-            };
-
-            // Bump gain.
-            voiceProvider = new VolumeSampleProvider(voiceProvider)
-            {
-                Volume = (float)Decibels.DecibelsToLinear(radioModel.PostGain)
-            };
-
+            voiceProvider = radioModel.TxEffect.ToSampleProvider(voiceProvider);
 
             var encryptionEffects = radioEncryptionEffect && (details.Modulation == Modulation.MIDS || details.Encryption > 0);
             if (encryptionEffects)
             {
-                voiceProvider = new CVSDProvider(voiceProvider);
+                voiceProvider = radioModel.EncryptionEffect.ToSampleProvider(voiceProvider);
             }
 
-            // Add receiver bandpass.
-            voiceProvider = new FiltersProvider(voiceProvider)
-            {
-                Filters = radioModel.ReceiverFilters
-            };
-
+            voiceProvider = radioModel.RxEffect.ToSampleProvider(voiceProvider);
             return voiceProvider;
         }
-        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
+        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, Models.Dto.RadioPreset radioModel, TransmissionInfo details)
         {
 
             if (radioEffectsEnabled && clippingEnabled)
@@ -387,7 +350,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 if (details.Frequency <= hfNoiseFrequencyCutoff)
                 {
-                    RadioPreset hfNoise = null;
+                    Models.Dto.RadioPreset hfNoise = null;
                     if (Presets.TryGetValue("hfnoise", out hfNoise))
                     {
                         noiseProvider = BuildMicPipeline(noiseProvider, Presets["hfnoise"],
