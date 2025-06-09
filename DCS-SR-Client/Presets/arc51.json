@@ -70,6 +70,8 @@
       }
     ]
   },
-
+  "encryptionEffect": {
+    "$type": "cvsd"
+  },
   "noiseGain": -17
 }
