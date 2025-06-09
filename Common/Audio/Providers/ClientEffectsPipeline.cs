@@ -72,11 +72,39 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             LoadRadioModels();
         }
 
-        private IReadOnlyDictionary<string, Models.Dto.RadioPreset> Presets;
+        private class RadioPreset
+        {
+            public DeferredSourceProvider TxSource { get; } = new DeferredSourceProvider();
+            public DeferredSourceProvider RxSource { get; } = new DeferredSourceProvider();
 
+            public ISampleProvider RxEffectProvider { get; set; }
+            public ISampleProvider TxEffectProvider { get; set; }
+
+            public ISampleProvider EncryptionProvider { get; set; }
+
+            public float NoiseGain { get; set; }
+
+            public RadioPreset(Models.Dto.RadioPreset dtoPreset)
+            {
+                RxEffectProvider = dtoPreset.RxEffect.ToSampleProvider(RxSource);
+                TxEffectProvider = dtoPreset.TxEffect.ToSampleProvider(TxSource);
+
+                if (dtoPreset.EncryptionEffect != null)
+                {
+                    EncryptionProvider = dtoPreset.EncryptionEffect.ToSampleProvider(TxEffectProvider);
+                }
+
+                NoiseGain = dtoPreset.NoiseGain;
+            }
+        }
+
+        private IReadOnlyDictionary<string, RadioPreset> Presets;
+
+        private static readonly RadioPreset Arc210 = new RadioPreset(DefaultRadioPresets.Arc210);
+        private static readonly RadioPreset Intercom = new RadioPreset(DefaultRadioPresets.Intercom);
         private void LoadRadioModels()
         {
-            var loadedPresets = new Dictionary<string, Models.Dto.RadioPreset>();
+            var loadedPresets = new Dictionary<string, RadioPreset>();
             try
             {
                 var presets = Directory.EnumerateFiles(PresetsFolder, "*.json");
@@ -85,15 +113,17 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                     var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant().Replace("-custom", null);
                     using (var jsonFile = File.OpenRead(presetFile))
                     {
-                        Models.Dto.RadioPreset preset = null;
+                        RadioPreset preset = null;
                         try
                         {
-                            preset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, new JsonSerializerOptions
+                            var loadedPreset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, new JsonSerializerOptions
                             {
                                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                                 AllowTrailingCommas = true,
                                 ReadCommentHandling = JsonCommentHandling.Skip
                             });
+
+                            preset = new RadioPreset(loadedPreset);
                         }
                         catch (Exception ex)
                         {
@@ -252,7 +282,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         }
                     }
                     
-                    var preset = Presets.GetValueOrDefault(model, DefaultRadioPresets.Arc210);
+                    var preset = Presets.GetValueOrDefault(model, Arc210);
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
@@ -263,7 +293,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, TransmissionInfo details)
         {
-            return BuildMicPipeline(voiceProvider, Presets.GetValueOrDefault("intercom", DefaultRadioPresets.Intercom), details);
+            return BuildMicPipeline(voiceProvider, Presets.GetValueOrDefault("intercom", Intercom), details);
         }
 
         private VolumeCachedEffectProvider GetToneProvider(Modulation modulation)
@@ -281,20 +311,24 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return null;
         }
 
-        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, Models.Dto.RadioPreset radioModel, TransmissionInfo details)
+        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
         {
-            voiceProvider = radioModel.TxEffect.ToSampleProvider(voiceProvider);
-
+            radioModel.TxSource.Source = voiceProvider;
             var encryptionEffects = radioEncryptionEffect && (details.Modulation == Modulation.MIDS || details.Encryption > 0);
-            if (encryptionEffects && radioModel.EncryptionEffect != null)
+            if (encryptionEffects && radioModel.EncryptionProvider != null)
             {
-                voiceProvider = radioModel.EncryptionEffect.ToSampleProvider(voiceProvider);
+                voiceProvider = radioModel.EncryptionProvider;
+            }
+            else
+            {
+                voiceProvider = radioModel.TxEffectProvider;
             }
 
-            voiceProvider = radioModel.RxEffect.ToSampleProvider(voiceProvider);
+            radioModel.RxSource.Source = voiceProvider;
+            voiceProvider = radioModel.RxEffectProvider;
             return voiceProvider;
         }
-        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, Models.Dto.RadioPreset radioModel, TransmissionInfo details)
+        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
         {
 
             if (radioEffectsEnabled && clippingEnabled)
@@ -350,7 +384,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 if (details.Frequency <= hfNoiseFrequencyCutoff)
                 {
-                    Models.Dto.RadioPreset hfNoise = null;
+                    RadioPreset hfNoise = null;
                     if (Presets.TryGetValue("hfnoise", out hfNoise))
                     {
                         noiseProvider = BuildMicPipeline(noiseProvider, Presets["hfnoise"],
