@@ -3,7 +3,6 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
-using NAudio.Dsp;
 using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -160,84 +159,50 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             DeJitteredTransmission lastTransmission = transmissions[0];
 
             clientTransmissionLength = 0;
-            foreach (var transmission in transmissions)
-            {
-                for (int i = 0; i < transmission.PCMAudioLength; i++)
-                {
-                    tempBuffer[i] += transmission.PCMMonoAudio[i];
-                }
 
-                clientTransmissionLength = Math.Max(clientTransmissionLength, transmission.PCMAudioLength);
+            // We get one pipeline per radio, so all transmissions should be of the same type (GUARD channels are separate pipelines too).
+
+            // #FIXME: Should some of these settings (modulation, NoAudioEffects) be on the radio instance instead?
+            if (lastTransmission.Modulation == Modulation.FM && !lastTransmission.NoAudioEffects && irlRadioRXInterference)
+            {
+                // FM capture effect: https://www.youtube.com/watch?v=yHRDjhkrDbo
+                //FM picketing / picket fencing - pick one transmission at random
+                //TODO improve this to pick the stronger frequency?
+
+                int index = _random.Next(transmissions.Count);
+                var transmission = transmissions[index];
+
+                clientTransmissionLength = transmission.PCMMonoAudio.Length;
+                Array.Copy(transmission.PCMMonoAudio, tempBuffer, clientTransmissionLength);
+                tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, transmission);
             }
-
-            bool process = true;
-
-            // take info account server setting AND volume of this radio AND if its AM or FM
-            // FOR HAVEQUICK - only if its MORE THAN TWO
-            if (lastTransmission.ReceivedRadio != 0
-                && !lastTransmission.NoAudioEffects
-                && (lastTransmission.Modulation == Modulation.AM
-                    || lastTransmission.Modulation == Modulation.FM
-                    || lastTransmission.Modulation == Modulation.SINCGARS
-                    || lastTransmission.Modulation == Modulation.HAVEQUICK)
-                && irlRadioRXInterference)
+            else
             {
-                if (transmissions.Count > 1)
+                // Everything else should mix (either datalink/satcom type radios, or AM).
+
+                // #TODO: Could trade memory for time and process in parallel, then merge in the destination buffer.
+                float[] transmissionBuffer = new float[lastTransmission.PCMAudioLength];
+                foreach (var transmission in transmissions)
                 {
-                    //All AM is wrecked if more than one transmission
-                    //For HQ - only if more than TWO transmissions and its totally fucked
-                    var amCollisionProvider = _fxProviders[CachedAudioEffect.AudioEffectTypes.AM_COLLISION];
-                    if (lastTransmission.Modulation == Modulation.HAVEQUICK && transmissions.Count > 2 && amCollisionProvider.Active)
+                    if (transmissionBuffer.Length < transmission.PCMAudioLength)
                     {
-                        var collisionProvider = new VolumeSampleProvider(amCollisionProvider);
-                        collisionProvider.Volume = lastTransmission.Volume;
-
-                        //replace the buffer with our own
-                        collisionProvider.Read(tempBuffer, 0, clientTransmissionLength);
-
-                        process = false;
+                        transmissionBuffer = new float[transmission.PCMAudioLength];
                     }
-                    else if (lastTransmission.Modulation == Modulation.AM && amCollisionProvider.Active)
+                    Array.Copy(transmission.PCMMonoAudio, transmissionBuffer, transmission.PCMAudioLength);
+
+                    if (!transmission.NoAudioEffects)
                     {
-                        //AM https://www.youtube.com/watch?v=yHRDjhkrDbo
-                        //Heterodyne tone AND audio from multiple transmitters in a horrible mess
-                        //TODO improve this
-
-
-                        //process here first
-                        tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, lastTransmission);
-                        process = false;
-
-                        //apply heterodyne tone to the mixdown
-                        // TODO: merge into the mixer living in ProcessClientAudioSamples().
-                        var collisionMixer = new MixingSampleProvider(new List<ISampleProvider>{
-                            new VolumeSampleProvider(amCollisionProvider)
-                            {
-                                Volume = lastTransmission.Volume,
-                            },
-                            new TransmissionProvider(tempBuffer, clientTransmissionLength)
-                        });
-
-                        collisionMixer.Read(tempBuffer, 0, clientTransmissionLength);
+                        transmissionBuffer = ProcessClientAudioSamples(transmissionBuffer, transmission.PCMAudioLength, 0, transmission);
                     }
-                    else if (lastTransmission.Modulation == Modulation.FM || lastTransmission.Modulation == Modulation.SINCGARS)
+
+                    for (int i = 0; i < transmission.PCMAudioLength; i++)
                     {
-                        //FM picketing / picket fencing - pick one transmission at random
-                        //TODO improve this to pick the stronger frequency?
-
-                        int index = _random.Next(transmissions.Count);
-                        var transmission = transmissions[index];
-
-                        Array.Copy(transmission.PCMMonoAudio, tempBuffer, transmission.PCMMonoAudio.Length);
-                        clientTransmissionLength = transmission.PCMMonoAudio.Length;
+                        tempBuffer[i] += transmissionBuffer[i];
                     }
+
+                    clientTransmissionLength = Math.Max(clientTransmissionLength, transmission.PCMAudioLength);
                 }
             }
-
-            //only process if AM effect doesnt apply
-            if (process)
-                tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, lastTransmission);
-
 
             return tempBuffer;
         }
@@ -389,10 +354,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 // 100-200 (VHF): 23-26 dB
                 // 200-400 (UHF): 26-29 dB
                 var noiseGainDB = -Math.Log(details.Frequency/1e6) * 10 / 2;
-
-                // #TODO: noise type should be part of the radio preset really.
-                // Tube (red/pink) vs transistor (white/AGWN)
-                var noiseType = details.Frequency > hfNoiseFrequencyCutoff ? SignalGeneratorType.White : SignalGeneratorType.Pink;
 
                 // Apply user defined noise attenuation/gain
                 noiseGainDB += NoiseGainOffsetDB;
