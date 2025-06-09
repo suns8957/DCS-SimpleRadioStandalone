@@ -329,6 +329,9 @@
         <None Update="Presets\hfnoise.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Presets\HOWTO.md">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
         <None Update="Presets\intercom.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
