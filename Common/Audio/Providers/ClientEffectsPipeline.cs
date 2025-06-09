@@ -286,7 +286,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             voiceProvider = radioModel.TxEffect.ToSampleProvider(voiceProvider);
 
             var encryptionEffects = radioEncryptionEffect && (details.Modulation == Modulation.MIDS || details.Encryption > 0);
-            if (encryptionEffects)
+            if (encryptionEffects && radioModel.EncryptionEffect != null)
             {
                 voiceProvider = radioModel.EncryptionEffect.ToSampleProvider(voiceProvider);
             }
