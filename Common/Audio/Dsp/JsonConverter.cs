@@ -107,7 +107,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Dsp
                             throw new JsonException($"frequency must be positive.");
                         }
                         break;
-                    case "type":
                     case "$type":
                         reader.Read();
                         type = reader.GetString().ToLowerInvariant();
