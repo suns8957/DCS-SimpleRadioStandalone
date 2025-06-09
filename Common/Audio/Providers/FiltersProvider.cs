@@ -22,14 +22,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         public int Read(float[] buffer, int offset, int count)
         {
             var samplesRead = Source.Read(buffer, offset, count);
-            for (int i = 0; i < count; ++i)
+            foreach (var filter in Filters)
             {
-                var source = buffer[offset + i];
-                foreach (var filter in Filters)
+                for (int i = 0; i < count; ++i)
                 {
-                    source = filter.Transform(source);
+                    buffer[offset + i] = filter.Transform(buffer[offset + i]);
                 }
-                buffer[offset + i] = source;
             }
 
             return samplesRead;
