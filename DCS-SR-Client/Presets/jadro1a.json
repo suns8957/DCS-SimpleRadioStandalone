@@ -1,0 +1,55 @@
+{
+    "prepassFilters": [
+        {
+            "type": "highpass",
+            "frequency": 1825,
+            "q": 0.68
+        },
+        {
+            "type": "peak",
+            "frequency": 2053,
+            "q": 0.67,
+            "gain": 7
+        },
+        {
+            "type": "lowpass",
+            "frequency": 3919,
+            "q": 0.21
+        }
+    ],
+    "postCompressorFilters": [
+        {
+            "type": "highpass",
+            "frequency": 456,
+            "q": 0.37
+        },
+        {
+            "type": "lowpass",
+            "frequency": 5498,
+            "q": 0.36
+        }
+    ],
+    "receiverFilters": [
+        {
+            "type": "highpass",
+            "frequency": 270
+        },
+        {
+            "type": "lowpass",
+            "frequency": 4500
+        }
+    ],
+    "compressor": {
+        "attack": 0.01,
+        "makeUp": 8,
+        "release": 0.2,
+        "threshold": -26,
+        "slope": 0.85
+    },
+    "saturation": {
+        "gain": 9,
+        "threshold": -17
+    },
+    "noiseGain": -23,
+    "postGain": 3
+}
