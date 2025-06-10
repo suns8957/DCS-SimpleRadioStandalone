@@ -338,6 +338,9 @@
         <None Update="Presets\jadro1a.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Presets\link16.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
         <None Update="Presets\r1155.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
