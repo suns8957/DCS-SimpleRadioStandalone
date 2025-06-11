@@ -34,7 +34,7 @@
         "makeUp": 6,
         "release": 0.2,
         "threshold": -33,
-        "slope": 0.85
+        "ratio": 1.18
       },
       {
         "$type": "filters",

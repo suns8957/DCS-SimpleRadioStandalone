@@ -79,7 +79,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             public required float MakeUp { get; set; }
             public required float Release { get; set; }
             public required float Threshold { get; set; }
-            public required float Slope { get; set; }
+            public required float Ratio { get; set; }
 
             public override ISampleProvider ToSampleProvider(ISampleProvider source)
             {
@@ -89,7 +89,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                     MakeUpGain = MakeUp,
                     Release = Release,
                     Threshold = Threshold,
-                    Ratio = 1f / Slope,
+                    Ratio = Ratio,
                     Enabled = true,
                 };
             }
@@ -157,7 +157,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         MakeUp = 6,
                         Release = 0.2f,
                         Threshold = -33,
-                        Slope = 0.85f
+                        Ratio = 1.18f
                     },
 
                     new FiltersEffect()
@@ -234,7 +234,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         MakeUp = -1,
                         Release = 0.2f,
                         Threshold = -17,
-                        Slope = 0.85f
+                        Ratio = 1.18f
                     },
 
                     new FiltersEffect

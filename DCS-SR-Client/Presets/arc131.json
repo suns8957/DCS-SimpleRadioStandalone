@@ -37,7 +37,7 @@
         "makeUp": 5,
         "release": 0.2,
         "threshold": -35,
-        "slope": 0.38
+        "ratio": 2.63
       },
 
       {

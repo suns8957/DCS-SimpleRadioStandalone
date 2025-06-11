@@ -54,11 +54,12 @@ If no q factor are specified, it's a first order pass.
     "makeUp": 6,
     "release": 0.2,
     "threshold": -33,
-    "slope": 0.85
+    "ratio": 0.85
 }
 ```
 
 gain and threshold expressed in dB.
+Translating from DCS' presets, ratio = 1 / slope.
 
 ### Saturation
 ```json
