@@ -29,6 +29,9 @@
         <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1" />
         <PackageReference Include="Sentry.Protocol" Version="2.1.8" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Properties\" />
+    </ItemGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <PlatformTarget>x64</PlatformTarget>
         <DebugSymbols>False</DebugSymbols>

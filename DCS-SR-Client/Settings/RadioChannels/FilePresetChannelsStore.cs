@@ -13,6 +13,8 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+    public static  readonly double MHz = 100000.0;
+    public static readonly double MidsOffsetMHz = 1030.0 * 1000000.0;
 
     private string PresetsFolder
     {
@@ -104,13 +106,6 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
                     }
             }
 
-        var i = 1;
-        foreach (var channel in channels)
-        {
-            channel.Text = i + ": " + channel.Text;
-            i++;
-        }
-
         return channels;
     }
 
@@ -119,8 +114,7 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
         var channels = new List<PresetChannel>();
         var lines = File.ReadAllLines(filePath);
 
-        const double MHz = 100000.0;
-        const double MidsOffsetMHz = 1030.0 * 1000000.0;
+       
         if (lines?.Length > 0)
             foreach (var line in lines)
             {
@@ -146,8 +140,9 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
                         if (midsChannel > 0 && midsChannel < 126)
                             channels.Add(new PresetChannel
                             {
-                                Text = name + " | " + midsChannel,
-                                Value = midsChannel * MHz + MidsOffsetMHz
+                                Text = name,
+                                Value = midsChannel * MHz + MidsOffsetMHz,
+                                MidsChannel = midsChannel
                             });
                     }
                     catch (Exception)
@@ -155,13 +150,6 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
                         Logger.Log(LogLevel.Info, "Error parsing frequency  " + trimmed);
                     }
             }
-
-        var i = 1;
-        foreach (var channel in channels)
-        {
-            channel.Text = i + ": " + channel.Text;
-            i++;
-        }
 
         return channels;
     }

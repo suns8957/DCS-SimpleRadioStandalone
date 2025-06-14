@@ -61,8 +61,7 @@ public partial class ServerChannelPresetHelper
     {
         var channels = new List<ServerPresetChannel>();
         var lines = File.ReadAllLines(filePath);
-
-        const double MHz = 1000000;
+        
         if (lines?.Length > 0)
             foreach (var line in lines)
             {
@@ -85,10 +84,11 @@ public partial class ServerChannelPresetHelper
                             frequency = double.Parse(trimmed, CultureInfo.InvariantCulture);
                         }
 
+                        //assume its in MHz - will transform client side to save some bytes 
                         channels.Add(new ServerPresetChannel
                         {
                             Name = name,
-                            Frequency = frequency * MHz
+                            Frequency = frequency
                         });
                     }
                     catch (Exception)
@@ -104,9 +104,7 @@ public partial class ServerChannelPresetHelper
     {
         var channels = new List<ServerPresetChannel>();
         var lines = File.ReadAllLines(filePath);
-
-        const double MHz = 100000.0;
-        const double MidsOffsetMHz = 1030.0 * 1000000.0;
+        
         if (lines?.Length > 0)
             foreach (var line in lines)
             {
@@ -133,8 +131,7 @@ public partial class ServerChannelPresetHelper
                             channels.Add(new ServerPresetChannel
                             {
                                 Name = name + " | " + midsChannel,
-                                //TODO move those to Constants
-                                Frequency = midsChannel * MHz + MidsOffsetMHz
+                                Frequency = midsChannel
                             });
                     }
                     catch (Exception)
@@ -147,8 +144,6 @@ public partial class ServerChannelPresetHelper
         return channels;
     }
 
-    
-
     private string NormaliseString(string str)
     {
         //only allow alphanumeric, remove all spaces etc
@@ -157,6 +152,4 @@ public partial class ServerChannelPresetHelper
 
     [GeneratedRegex("[^a-zA-Z0-9]")]
     private static partial Regex NormaliseRegex();
-
-
 }

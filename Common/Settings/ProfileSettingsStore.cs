@@ -71,7 +71,15 @@ public enum ProfileSettingsKeys
     AmbientCockpitNoiseEffect,
     AmbientCockpitNoiseEffectVolume,
     AmbientCockpitIntercomNoiseEffect,
-    DisableExpansionRadios
+    DisableExpansionRadios,
+    ServerPresetSelection,
+}
+
+public enum ServerPresetConfiguration
+{
+    USE_SERVER_ONLY_IF_SET,
+    USE_CLIENT_ONLY,
+    USE_CLIENT_AND_SERVER_IF_SET,
 }
 
 public class ProfileSettingsStore
@@ -134,8 +142,15 @@ public class ProfileSettingsStore
             ProfileSettingsKeys.AmbientCockpitNoiseEffectVolume.ToString(), "1.0"
         }, //relative volume as the incoming volume is variable
         { ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect.ToString(), "false" },
-        { ProfileSettingsKeys.DisableExpansionRadios.ToString(), "false" }
+        { ProfileSettingsKeys.DisableExpansionRadios.ToString(), "false" },
+        
+        //server-only
+        //client-only
+        //both
+        { ProfileSettingsKeys.ServerPresetSelection.ToString(), nameof(ServerPresetConfiguration.USE_CLIENT_AND_SERVER_IF_SET) }
     };
+
+    public static readonly List<string> ServerPresetSettings;
 
     private readonly GlobalSettingsStore _globalSettings;
 
@@ -147,8 +162,17 @@ public class ProfileSettingsStore
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private string _currentProfileName = "default";
 
+    static ProfileSettingsStore()
+    {
+        ServerPresetSettings = new List<string>();
+        foreach (var setting in Enum.GetNames(typeof(ServerPresetConfiguration)))
+        {
+            ServerPresetSettings.Add(setting);
+        }
+    }
     public ProfileSettingsStore(GlobalSettingsStore globalSettingsStore)
     {
+        
         _globalSettings = globalSettingsStore;
         Path = GlobalSettingsStore.Path;
 

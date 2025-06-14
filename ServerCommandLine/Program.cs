@@ -188,6 +188,10 @@ internal class Program:IHandle<SRSClientStatus>
         {
             ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.CLIENT_EXPORT_FILE_PATH, options.ClientExportPath);
         }
+        if (options.ServerPresetChannelsEnabled != null && options.ServerPresetChannelsEnabled.HasValue)
+        {
+            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SERVER_PRESETS_ENABLED, options.ServerPresetChannelsEnabled.Value);
+        }
         
         Console.WriteLine($"Final Settings:");
         foreach (var setting in ServerSettingsStore.Instance.GetAllSettings())
@@ -392,6 +396,11 @@ public class Options
            
         }
     }
+    
+    [Option("serverPresetChannelsEnabled", 
+        HelpText = "Enables Server Channel Presets to be used by clients - put the *.txt files in a folder called Presets alongside your server.cfg file",
+        Required = false)]
+    public bool? ServerPresetChannelsEnabled { get; set; }
 
     public override string ToString()
     {
@@ -420,6 +429,7 @@ public class Options
             $"{nameof(StrictRadioEncryption)}: {StrictRadioEncryption}, \n" +
             $"{nameof(TransmissionLogEnabled)}: {LotATCExportIP}, \n" +
             $"{nameof(RadioEffectOverride)}: {RadioEffectOverride}, \n" +
+            $"{nameof(ServerPresetChannelsEnabled)}: {ServerPresetChannelsEnabled}, \n" +
             $"{nameof(ServerBindIP)}: {ServerBindIP}";
         
     }

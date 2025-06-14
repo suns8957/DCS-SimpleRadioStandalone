@@ -217,8 +217,8 @@ public class ServerSettingsStore
             new Dictionary<string, string>(_configuration["General Settings"].SettingCount);
 
         foreach (var setting in _configuration["General Settings"]) settings[setting.Name] = setting.StringValue;
-
-        if (GetServerSetting(ServerSettingsKeys.SERVER_PRESETS_ENABLED).BoolValue)
+        
+        if (GetGeneralSetting(ServerSettingsKeys.SERVER_PRESETS_ENABLED).BoolValue)
         {
             //load presets
             if (_serverChannelPresetHelper == null)
