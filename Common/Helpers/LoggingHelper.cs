@@ -27,7 +27,7 @@ public static class LoggingHelper
 
 
         var transmissionRule = new LoggingRule(
-            "Ciribob.DCS.SimpleRadio.Standalone.Server.Network.Models.TransmissionLoggingQueue",
+            "Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server.TransmissionLogging.TransmissionLoggingQueue",
             LogLevel.Info,
             transmissionWrapper
         );

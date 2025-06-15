@@ -31,31 +31,39 @@ public partial class ServerChannelPresetHelper
     
     private void FindRadioFiles()
     {
-        var files = Directory.EnumerateFiles(_presetsFolder);
+        try
+        {
+            if(Directory.Exists(_presetsFolder) == false) return;
+            
+            var files = Directory.EnumerateFiles(_presetsFolder);
 
-        foreach (var fileAndPath in files)
-            if (Path.GetExtension(fileAndPath).ToLowerInvariant() == ".txt")
-            {
-                var name = Path.GetFileNameWithoutExtension(fileAndPath);
-
-                name = NormaliseString(name);
-
-                List<ServerPresetChannel> presets;
-                if (name.Contains("mids"))
+            foreach (var fileAndPath in files)
+                if (Path.GetExtension(fileAndPath).ToLowerInvariant() == ".txt")
                 {
-                    presets = ReadMidsFrequenciesFromFile(fileAndPath);
-                }
-                else
-                {
-                    presets = ReadFrequenciesFromFile(fileAndPath);
-                }
+                    var name = Path.GetFileNameWithoutExtension(fileAndPath);
 
-                if (presets.Count > 0)
-                {
-                    Presets[name] = presets;
+                    name = NormaliseString(name);
+
+                    List<ServerPresetChannel> presets;
+                    if (name.Contains("mids"))
+                    {
+                        presets = ReadMidsFrequenciesFromFile(fileAndPath);
+                    }
+                    else
+                    {
+                        presets = ReadFrequenciesFromFile(fileAndPath);
+                    }
+
+                    if (presets.Count > 0)
+                    {
+                        Presets[name] = presets;
+                    }
                 }
-            }
-        
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error loading Server Presets");
+        }
     }
     private List<ServerPresetChannel> ReadFrequenciesFromFile(string filePath)
     {

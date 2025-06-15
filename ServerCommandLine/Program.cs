@@ -427,7 +427,7 @@ public class Options
             $"{nameof(LotATCExportIP)}: {LotATCExportIP}, \n" +
             $"{nameof(RetransmissionNodeLimit)}: {RetransmissionNodeLimit}, \n" +
             $"{nameof(StrictRadioEncryption)}: {StrictRadioEncryption}, \n" +
-            $"{nameof(TransmissionLogEnabled)}: {LotATCExportIP}, \n" +
+            $"{nameof(TransmissionLogEnabled)}: {TransmissionLogEnabled}, \n" +
             $"{nameof(RadioEffectOverride)}: {RadioEffectOverride}, \n" +
             $"{nameof(ServerPresetChannelsEnabled)}: {ServerPresetChannelsEnabled}, \n" +
             $"{nameof(ServerBindIP)}: {ServerBindIP}";

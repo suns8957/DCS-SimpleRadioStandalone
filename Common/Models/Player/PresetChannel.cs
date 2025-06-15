@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
+﻿namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 public class ServerPresetChannel
 {

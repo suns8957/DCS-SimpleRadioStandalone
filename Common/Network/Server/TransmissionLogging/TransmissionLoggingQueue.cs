@@ -13,31 +13,26 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server.TransmissionL
 internal class TransmissionLoggingQueue
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
-    private FileTarget _fileTarget;
-    private bool _log;
+    private ConcurrentDictionary<SRClientBase, TransmissionLog> _currentTransmissionLog { get; } = new();
     private bool _stop;
+    private bool _log;
+    private FileTarget _fileTarget;
+    private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
 
     public TransmissionLoggingQueue()
     {
-        _log = _serverSettings.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue;
         _stop = false;
-
-        var b = (WrapperTargetBase)LogManager.Configuration.FindTargetByName("asyncTransmissionFileTarget");
-        _fileTarget = b != null ? (FileTarget)b.WrappedTarget : null;
-        //_fileTarget = (FileTarget)b.WrappedTarget;
     }
-
-    private ConcurrentDictionary<SRClientBase, TransmissionLog> _currentTransmissionLog { get; } = new();
 
     public void LogTransmission(SRClientBase client)
     {
         if (!_stop)
             try
             {
-                _currentTransmissionLog.AddOrUpdate(client,
-                    new TransmissionLog(client.LastTransmissionReceived, client.TransmittingFrequency),
-                    (k, v) => UpdateTransmission(client, v));
+                if (_log)
+                    _currentTransmissionLog.AddOrUpdate(client,
+                        new TransmissionLog(client.LastTransmissionReceived, client.TransmittingFrequency),
+                        (k, v) => UpdateTransmission(client, v));
             }
             catch
             {
@@ -65,9 +60,9 @@ internal class TransmissionLoggingQueue
         while (!_stop)
         {
             Thread.Sleep(500);
-            if (_log != !_serverSettings.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue)
+            if (_log != _serverSettings.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue)
             {
-                _log = !_serverSettings.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue;
+                _log = _serverSettings.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue;
                 var newSetting = _log ? "TRANSMISSION LOGGING ENABLED" : "TRANSMISSION LOGGING DISABLED";
 
                 if (_serverSettings.GetGeneralSetting(ServerSettingsKeys.TRANSMISSION_LOG_ENABLED).BoolValue
