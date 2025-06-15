@@ -12,8 +12,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 public partial class ServerChannelPresetHelper
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    
-    public ConcurrentDictionary<string,List<ServerPresetChannel>> Presets { get; } = new();
 
     private readonly string _presetsFolder;
 
@@ -22,19 +20,21 @@ public partial class ServerChannelPresetHelper
         _presetsFolder = Path.Combine(workingDirectory, "Presets");
     }
 
+    public ConcurrentDictionary<string, List<ServerPresetChannel>> Presets { get; } = new();
+
     public void LoadPresets()
     {
-        Presets.Clear(); 
+        Presets.Clear();
 
         FindRadioFiles();
     }
-    
+
     private void FindRadioFiles()
     {
         try
         {
-            if(Directory.Exists(_presetsFolder) == false) return;
-            
+            if (Directory.Exists(_presetsFolder) == false) return;
+
             var files = Directory.EnumerateFiles(_presetsFolder);
 
             foreach (var fileAndPath in files)
@@ -46,18 +46,11 @@ public partial class ServerChannelPresetHelper
 
                     List<ServerPresetChannel> presets;
                     if (name.Contains("mids"))
-                    {
                         presets = ReadMidsFrequenciesFromFile(fileAndPath);
-                    }
                     else
-                    {
                         presets = ReadFrequenciesFromFile(fileAndPath);
-                    }
 
-                    if (presets.Count > 0)
-                    {
-                        Presets[name] = presets;
-                    }
+                    if (presets.Count > 0) Presets[name] = presets;
                 }
         }
         catch (Exception ex)
@@ -65,11 +58,12 @@ public partial class ServerChannelPresetHelper
             Logger.Error(ex, "Error loading Server Presets");
         }
     }
+
     private List<ServerPresetChannel> ReadFrequenciesFromFile(string filePath)
     {
         var channels = new List<ServerPresetChannel>();
         var lines = File.ReadAllLines(filePath);
-        
+
         if (lines?.Length > 0)
             foreach (var line in lines)
             {
@@ -104,7 +98,7 @@ public partial class ServerChannelPresetHelper
                         Logger.Log(LogLevel.Info, "Error parsing frequency  " + trimmed);
                     }
             }
-        
+
         return channels;
     }
 
@@ -112,7 +106,7 @@ public partial class ServerChannelPresetHelper
     {
         var channels = new List<ServerPresetChannel>();
         var lines = File.ReadAllLines(filePath);
-        
+
         if (lines?.Length > 0)
             foreach (var line in lines)
             {
@@ -147,7 +141,7 @@ public partial class ServerChannelPresetHelper
                         Logger.Log(LogLevel.Info, "Error parsing frequency  " + trimmed);
                     }
             }
-        
+
 
         return channels;
     }

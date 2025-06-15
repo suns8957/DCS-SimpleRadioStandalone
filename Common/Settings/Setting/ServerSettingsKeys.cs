@@ -35,7 +35,9 @@ public enum ServerSettingsKeys
     RADIO_EFFECT_OVERRIDE = 28,
     SERVER_IP = 29,
     SERVER_PRESETS_ENABLED = 30,
-    SERVER_PRESETS = 31
+    SERVER_PRESETS = 31,
+    HTTP_SERVER_ENABLED = 32,
+    HTTP_SERVER_PORT = 33,
 }
 
 public class DefaultServerSettings
@@ -72,7 +74,8 @@ public class DefaultServerSettings
         { ServerSettingsKeys.TRANSMISSION_LOG_RETENTION.ToString(), "2" },
         { ServerSettingsKeys.RADIO_EFFECT_OVERRIDE.ToString(), "false" },
         { ServerSettingsKeys.SERVER_IP.ToString(), "0.0.0.0" },
-        //TODO flip to false
-        { ServerSettingsKeys.SERVER_PRESETS_ENABLED.ToString(), "true" },
+        { ServerSettingsKeys.SERVER_PRESETS_ENABLED.ToString(), "false" },
+        { ServerSettingsKeys.HTTP_SERVER_ENABLED.ToString(), "false" },
+        { ServerSettingsKeys.HTTP_SERVER_PORT.ToString(), "8080" }
     };
 }

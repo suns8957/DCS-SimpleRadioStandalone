@@ -28,8 +28,8 @@ public class SyncedServerSettings
     }
 
     public List<double> GlobalFrequencies { get; set; } = new();
-    
-    private Dictionary<string,List<ServerPresetChannel>> ServerPresetChannels { get; set; } = new();
+
+    private Dictionary<string, List<ServerPresetChannel>> ServerPresetChannels { get; set; } = new();
 
     public string ServerVersion { get; set; }
 
@@ -68,10 +68,7 @@ public class SyncedServerSettings
 
     public List<ServerPresetChannel> GetPresetChannels(string radio)
     {
-        if (ServerPresetChannels.TryGetValue(radio, out var presets))
-        {
-            return presets;
-        }
+        if (ServerPresetChannels.TryGetValue(radio, out var presets)) return presets;
 
         return new List<ServerPresetChannel>();
     }
@@ -108,7 +105,8 @@ public class SyncedServerSettings
             {
                 try
                 {
-                    ServerPresetChannels = JsonConvert.DeserializeObject<Dictionary<string,List<ServerPresetChannel>>>(kvp.Value);
+                    ServerPresetChannels =
+                        JsonConvert.DeserializeObject<Dictionary<string, List<ServerPresetChannel>>>(kvp.Value);
                 }
                 catch (Exception)
                 {

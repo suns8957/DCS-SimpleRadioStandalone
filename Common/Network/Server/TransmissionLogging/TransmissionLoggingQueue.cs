@@ -13,16 +13,17 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Server.TransmissionL
 internal class TransmissionLoggingQueue
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private ConcurrentDictionary<SRClientBase, TransmissionLog> _currentTransmissionLog { get; } = new();
-    private bool _stop;
-    private bool _log;
-    private FileTarget _fileTarget;
     private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
+    private FileTarget _fileTarget;
+    private bool _log;
+    private bool _stop;
 
     public TransmissionLoggingQueue()
     {
         _stop = false;
     }
+
+    private ConcurrentDictionary<SRClientBase, TransmissionLog> _currentTransmissionLog { get; } = new();
 
     public void LogTransmission(SRClientBase client)
     {

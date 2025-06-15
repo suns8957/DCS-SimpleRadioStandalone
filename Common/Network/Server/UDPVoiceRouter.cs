@@ -42,8 +42,6 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         new();
 
     private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
-
-    private TransmissionLoggingQueue _transmissionLoggingQueue;
     private List<double> _globalFrequencies = new();
 
     private UdpClient _listener;
@@ -52,6 +50,8 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
 
     private volatile bool _stop;
     private List<double> _testFrequencies = new();
+
+    private TransmissionLoggingQueue _transmissionLoggingQueue;
 
     public UDPVoiceRouter(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator)
     {
@@ -118,10 +118,9 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
 
     public void Listen()
     {
-
         _transmissionLoggingQueue = new TransmissionLoggingQueue();
         _transmissionLoggingQueue.Start();
-        
+
         //start threads
         //packets that need processing
         new Thread(ProcessPackets).Start();
@@ -205,9 +204,10 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
         catch (Exception e)
         {
         }
+
         _transmissionLoggingQueue?.Stop();
         _transmissionLoggingQueue = null;
-        
+
         _outgoingCancellationToken.Cancel();
         _pendingProcessingCancellationToken.Cancel();
     }

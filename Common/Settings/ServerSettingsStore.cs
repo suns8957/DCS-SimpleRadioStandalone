@@ -13,19 +13,18 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 
 public class ServerSettingsStore
 {
-
     public static readonly string CFG_BACKUP_FILE_NAME = "server.cfg.bak";
 
     private static ServerSettingsStore instance;
     private static readonly object _lock = new();
 
-    private readonly Configuration _configuration;
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
     //Can be overridden by a command line flag - hence being static
     //if overwritten, it will contain a full path
     public static string CFG_FILE_NAME = "server.cfg";
-    
+
+    private readonly Configuration _configuration;
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
     private ServerChannelPresetHelper _serverChannelPresetHelper;
 
     public ServerSettingsStore()
@@ -85,12 +84,8 @@ public class ServerSettingsStore
     {
         var list = new List<string>();
         foreach (var section in _configuration)
-        {
-            foreach (var setting in section)
-            {
-                list.Add($"{setting.Name} = {setting.RawValue}");
-            }
-        }
+        foreach (var setting in section)
+            list.Add($"{setting.Name} = {setting.RawValue}");
 
         return list;
     }
@@ -119,7 +114,7 @@ public class ServerSettingsStore
     {
         SetSetting("Server Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
     }
-    
+
     public void SetServerSetting(ServerSettingsKeys key, string value)
     {
         SetSetting("Server Settings", key.ToString(), value.Trim());
@@ -217,7 +212,7 @@ public class ServerSettingsStore
             new Dictionary<string, string>(_configuration["General Settings"].SettingCount);
 
         foreach (var setting in _configuration["General Settings"]) settings[setting.Name] = setting.StringValue;
-        
+
         if (GetGeneralSetting(ServerSettingsKeys.SERVER_PRESETS_ENABLED).BoolValue)
         {
             //load presets
@@ -226,15 +221,17 @@ public class ServerSettingsStore
                 _serverChannelPresetHelper = new ServerChannelPresetHelper(Path.GetDirectoryName(CFG_FILE_NAME));
                 _serverChannelPresetHelper.LoadPresets();
             }
-            
+
             //I apologise to the programming gods - but this keeps it backwards compatible :/
-            settings[nameof(ServerSettingsKeys.SERVER_PRESETS)] = JsonConvert.SerializeObject(_serverChannelPresetHelper.Presets);
+            settings[nameof(ServerSettingsKeys.SERVER_PRESETS)] =
+                JsonConvert.SerializeObject(_serverChannelPresetHelper.Presets);
         }
         else
         {
-            settings[nameof(ServerSettingsKeys.SERVER_PRESETS)] = JsonConvert.SerializeObject(new Dictionary<string,List<ServerPresetChannel>>());
+            settings[nameof(ServerSettingsKeys.SERVER_PRESETS)] =
+                JsonConvert.SerializeObject(new Dictionary<string, List<ServerPresetChannel>>());
         }
-        
+
         return settings;
     }
 

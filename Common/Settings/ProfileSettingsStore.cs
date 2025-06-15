@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Input;
 using NLog;
 using SharpConfig;
@@ -72,14 +71,14 @@ public enum ProfileSettingsKeys
     AmbientCockpitNoiseEffectVolume,
     AmbientCockpitIntercomNoiseEffect,
     DisableExpansionRadios,
-    ServerPresetSelection,
+    ServerPresetSelection
 }
 
 public enum ServerPresetConfiguration
 {
     USE_SERVER_ONLY_IF_SET,
     USE_CLIENT_ONLY,
-    USE_CLIENT_AND_SERVER_IF_SET,
+    USE_CLIENT_AND_SERVER_IF_SET
 }
 
 public class ProfileSettingsStore
@@ -143,11 +142,14 @@ public class ProfileSettingsStore
         }, //relative volume as the incoming volume is variable
         { ProfileSettingsKeys.AmbientCockpitIntercomNoiseEffect.ToString(), "false" },
         { ProfileSettingsKeys.DisableExpansionRadios.ToString(), "false" },
-        
+
         //server-only
         //client-only
         //both
-        { ProfileSettingsKeys.ServerPresetSelection.ToString(), nameof(ServerPresetConfiguration.USE_CLIENT_AND_SERVER_IF_SET) }
+        {
+            ProfileSettingsKeys.ServerPresetSelection.ToString(),
+            nameof(ServerPresetConfiguration.USE_CLIENT_AND_SERVER_IF_SET)
+        }
     };
 
     public static readonly List<string> ServerPresetSettings;
@@ -165,14 +167,11 @@ public class ProfileSettingsStore
     static ProfileSettingsStore()
     {
         ServerPresetSettings = new List<string>();
-        foreach (var setting in Enum.GetNames(typeof(ServerPresetConfiguration)))
-        {
-            ServerPresetSettings.Add(setting);
-        }
+        foreach (var setting in Enum.GetNames(typeof(ServerPresetConfiguration))) ServerPresetSettings.Add(setting);
     }
+
     public ProfileSettingsStore(GlobalSettingsStore globalSettingsStore)
     {
-        
         _globalSettings = globalSettingsStore;
         Path = GlobalSettingsStore.Path;
 
@@ -245,7 +244,7 @@ public class ProfileSettingsStore
         {
             _settingsCache.Clear();
             _currentProfileName = value;
-            
+
             //TODO check if this is needed
             //EventBus.Instance.PublishOnUIThreadAsync(new ProfileChangedMessage());
         }
