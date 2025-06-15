@@ -5,6 +5,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 public partial class RadioBase
 {
+    private string _name = "";
     public bool enc; // encryption enabled
     public byte encKey;
     public double freq = 1;
@@ -26,12 +27,28 @@ public partial class RadioBase
             value = value.ToLowerInvariant().Trim();
 
             value = NormaliseRadioRegex().Replace(value, "");
+            _model = value;
+        }
+    }
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            value ??= "";
+
+            value = value.ToLowerInvariant().Trim();
+
+            value = NormaliseRadioRegex().Replace(value, "");
             
             if (value.Length > 32)
             {
                 value = value.Substring(0, 32);
             }
-            _model = value;
+
+            if (value.Length > 32) value = value.Substring(0, 32);
+            _name = value;
         }
     }
 
@@ -80,9 +97,8 @@ public partial class RadioBase
             Model = Model
         };
     }
-    
+
 
     [GeneratedRegex("[^a-zA-Z0-9]")]
     private static partial Regex NormaliseRadioRegex();
 }
-
