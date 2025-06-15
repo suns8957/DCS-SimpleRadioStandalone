@@ -508,7 +508,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 EventBus.Instance.PublishOnUIThreadAsync(new TCPClientStatusMessage(false));
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
 
