@@ -27,6 +27,10 @@ public partial class RadioBase
             value = value.ToLowerInvariant().Trim();
 
             value = NormaliseRadioRegex().Replace(value, "");
+            if (value.Length > 32)
+            {
+                value = value.Substring(0, 32);
+            }
             _model = value;
         }
     }
@@ -46,8 +50,6 @@ public partial class RadioBase
             {
                 value = value.Substring(0, 32);
             }
-
-            if (value.Length > 32) value = value.Substring(0, 32);
             _name = value;
         }
     }
