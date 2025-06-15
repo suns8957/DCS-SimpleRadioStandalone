@@ -60,6 +60,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
+        private string PresetsCustomFolder
+        {
+            get
+            {
+                return Path.Combine(Directory.GetCurrentDirectory(), "PresetsCustom");
+            }
+        }
+
         public ClientEffectsPipeline()
         {
             profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
@@ -104,52 +112,52 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private static readonly RadioPreset Intercom = new RadioPreset(DefaultRadioPresets.Intercom);
         private void LoadRadioModels()
         {
+            var presetsFolders = new List<string> { PresetsFolder, PresetsCustomFolder };
             var loadedPresets = new Dictionary<string, RadioPreset>();
-            try
+
+            var deserializerOptions = new JsonSerializerOptions
             {
-                var presets = Directory.EnumerateFiles(PresetsFolder, "*.json");
-                foreach (var presetFile in presets)
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // "propertyName" (starts lowercase)
+                AllowTrailingCommas = true, // 
+                ReadCommentHandling = JsonCommentHandling.Skip, // Allow comments but ignore them.
+            };
+
+
+            foreach (var presetsFolder in presetsFolders)
+            {
+                try
                 {
-                    var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant().Replace("-custom", null);
-                    using (var jsonFile = File.OpenRead(presetFile))
+                    var presets = Directory.EnumerateFiles(presetsFolder, "*.json");
+                    foreach (var presetFile in presets)
                     {
-                        RadioPreset preset = null;
-                        try
+                        var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant();
+                        using (var jsonFile = File.OpenRead(presetFile))
                         {
-                            var loadedPreset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, new JsonSerializerOptions
+                            try
                             {
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                                AllowTrailingCommas = true,
-                                ReadCommentHandling = JsonCommentHandling.Skip
-                            });
+                                var loadedPreset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, deserializerOptions);
 
-                            preset = new RadioPreset(loadedPreset);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
-                        }
-
-                        if (preset != null)
-                        {
-                            if (!loadedPresets.TryAdd(presetName, preset))
-                            {
-                                // If we load a customization afterwards, it takes precedence.
-                                // If we happened to have already loaded it, ignore the 'default'.
-                                if (presetName.EndsWith("-custom.json"))
+                                var preset = new RadioPreset(loadedPreset);
+                                if (preset != null)
                                 {
                                     loadedPresets[presetName] = preset;
                                 }
                             }
+                            catch (Exception ex)
+                            {
+                                Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
+                            }
+
+                            
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Unable to parse radio preset files {presetsFolder}", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                Logger.Error($"Unable to parse radio preset files {PresetsFolder}", ex);
-            }
-
+                
             Presets = loadedPresets.ToFrozenDictionary();
         }
 
