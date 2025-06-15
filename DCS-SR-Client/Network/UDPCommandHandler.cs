@@ -52,7 +52,7 @@ public class UDPCommandHandler
                     //          bytes, 0, bytes.Length));
                     var message =
                         JsonSerializer.Deserialize<UDPInterfaceCommand>(Encoding.UTF8.GetString(
-                            bytes, 0, bytes.Length));
+                            bytes, 0, bytes.Length), new JsonSerializerOptions() { IncludeFields = true, PropertyNameCaseInsensitive = true, });
 
                     if (message?.Command == UDPInterfaceCommand.UDPCommandType.FREQUENCY_DELTA)
                         RadioHelper.UpdateRadioFrequency(message.Frequency, message.RadioId);

@@ -107,7 +107,10 @@ public class SRSClientSession : TcpSession
 
             try
             {
-                var networkMessage = JsonSerializer.Deserialize<NetworkMessage>(message.Trim());
+                var networkMessage = JsonSerializer.Deserialize<NetworkMessage>(message.Trim(), new JsonSerializerOptions()
+                {
+                    IncludeFields = true,
+                });
                 //trim the received part
                 messages.Add(networkMessage);
             }

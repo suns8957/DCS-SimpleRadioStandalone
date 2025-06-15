@@ -112,7 +112,7 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                         bytes, 0, bytes.Length).Trim();
 
                     var message =
-                        JsonSerializer.Deserialize<DCSPlayerRadioInfo>(str);
+                        JsonSerializer.Deserialize<DCSPlayerRadioInfo>(str, new JsonSerializerOptions() { IncludeFields = true });
 
                     Logger.Debug($"Recevied Message from DCS {str}");
 
@@ -230,8 +230,9 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                 //   NullValueHandling = NullValueHandling.Ignore,
                 TypeInfoResolver = new DefaultJsonTypeInfoResolver()
                 {
-                    Modifiers = { JsonDCSPropertiesResolver.StripDCSIgnored }
-                }
+                    Modifiers = { JsonDCSPropertiesResolver.StripDCSIgnored },
+                },
+                IncludeFields = true,
             }) + "\n";
 
             var byteData =
@@ -624,7 +625,11 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                 try
                 {
                     radioJson = File.ReadAllText(customAwacsRadiosFile);
-                    awacsRadios = JsonSerializer.Deserialize<DCSRadio[]>(radioJson);
+                    awacsRadios = JsonSerializer.Deserialize<DCSRadio[]>(radioJson, new JsonSerializerOptions()
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        IncludeFields = true,
+                    });
 
                     foreach (var radio in awacsRadios)
                         if (radio.modulation == Modulation.MIDS)
@@ -649,7 +654,11 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
             if (awacsRadios == null)
             {
                 radioJson = File.ReadAllText(awacsRadiosFile);
-                awacsRadios = JsonSerializer.Deserialize<DCSRadio[]>(radioJson);
+                awacsRadios = JsonSerializer.Deserialize<DCSRadio[]>(radioJson, new JsonSerializerOptions()
+                {
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true,
+                });
 
                 foreach (var radio in awacsRadios)
                     if (radio.modulation == Modulation.MIDS)

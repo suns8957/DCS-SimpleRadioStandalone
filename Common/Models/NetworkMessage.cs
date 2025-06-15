@@ -29,6 +29,7 @@ public class NetworkMessage
             Modifiers = { JsonNetworkPropertiesResolver.StripNetworkIgnored } // strip out things not required for the TCP sync
         },
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        IncludeFields = true,
     };
 
     public SRClientBase Client { get; set; }

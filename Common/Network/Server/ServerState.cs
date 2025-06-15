@@ -164,7 +164,8 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
                         TypeInfoResolver = new DefaultJsonTypeInfoResolver()
                         {
                             Modifiers = { JsonNetworkPropertiesResolver.StripNetworkIgnored }
-                        }
+                        },
+                        IncludeFields = true,
                     }) + "\n";
                     try
                     {
@@ -265,7 +266,8 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
                                         TypeInfoResolver = new DefaultJsonTypeInfoResolver()
                                         {
                                             Modifiers = { JsonNetworkPropertiesResolver.StripNetworkIgnored }
-                                        }
+                                        },
+                                        IncludeFields = true,
                                     }) + "\n");
 
                             udpSocket.Send(byteData, byteData.Length, host);

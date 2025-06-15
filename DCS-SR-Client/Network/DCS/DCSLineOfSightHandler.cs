@@ -70,7 +70,7 @@ public class DCSLineOfSightHandler
                             bytes, 0, bytes.Length));*/
                     var playerInfo =
                         JsonSerializer.Deserialize<DCSLosCheckResult[]>(Encoding.UTF8.GetString(
-                            bytes, 0, bytes.Length));
+                            bytes, 0, bytes.Length), new JsonSerializerOptions() { IncludeFields = true });
 
                     foreach (var player in playerInfo)
                     {
@@ -126,7 +126,10 @@ public class DCSLineOfSightHandler
                             {
                                 // Logger.Info( "Sending LOS Request: "+ JsonConvert.SerializeObject(clientSubList));
                                 var byteData =
-                                    Encoding.UTF8.GetBytes(JsonSerializer.Serialize(clientSubList) + "\n");
+                                    Encoding.UTF8.GetBytes(JsonSerializer.Serialize(clientSubList, new JsonSerializerOptions()
+                                    {
+                                        IncludeFields = true,
+                                    }) + "\n");
 
                                 _udpSocket.Send(byteData, byteData.Length, _host);
 

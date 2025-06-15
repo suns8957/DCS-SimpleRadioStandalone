@@ -59,7 +59,10 @@ public class DCSGameGuiHandler
 
                     var updatedPlayerInfo =
                         JsonSerializer.Deserialize<DCSPlayerSideInfo>(Encoding.UTF8.GetString(
-                            bytes, 0, bytes.Length));
+                            bytes, 0, bytes.Length), new JsonSerializerOptions()
+                            {
+                                IncludeFields = true,
+                            });
 
                     if (updatedPlayerInfo != null)
                     {

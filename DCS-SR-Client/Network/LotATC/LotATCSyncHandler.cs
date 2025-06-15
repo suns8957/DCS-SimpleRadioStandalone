@@ -175,7 +175,7 @@ public class LotATCSyncHandler
                                 foreach (var losRequest in clientsList)
                                 {
                                     var byteData =
-                                        Encoding.UTF8.GetBytes(JsonSerializer.Serialize(losRequest) + "\n");
+                                        Encoding.UTF8.GetBytes(JsonSerializer.Serialize(losRequest, new JsonSerializerOptions() { IncludeFields = true, PropertyNameCaseInsensitive = true }) + "\n");
 
                                     _udpSocket.Send(byteData, byteData.Length, _host);
 

@@ -54,7 +54,7 @@ public class VAICOMSyncHandler
 
                     var vaicomMessageWrapper =
                         JsonSerializer.Deserialize<VAICOMMessageWrapper>(Encoding.UTF8.GetString(
-                            bytes, 0, bytes.Length));
+                            bytes, 0, bytes.Length), new JsonSerializerOptions() { IncludeFields = true, PropertyNameCaseInsensitive = true, });
 
                     if (vaicomMessageWrapper != null)
                         if (vaicomMessageWrapper.MessageType == 1)

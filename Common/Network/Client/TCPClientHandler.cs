@@ -266,7 +266,10 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 while ((line = reader.ReadLine()) != null)
                     try
                     {
-                        var serverMessage = JsonSerializer.Deserialize<NetworkMessage>(line);
+                        var serverMessage = JsonSerializer.Deserialize<NetworkMessage>(line, new JsonSerializerOptions()
+                        {
+                            IncludeFields = true
+                        });
                         decodeErrors = 0; //reset counter
                         if (serverMessage != null)
                             Logger.Debug("Received " + serverMessage.MsgType);
