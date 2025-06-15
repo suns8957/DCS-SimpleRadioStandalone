@@ -322,7 +322,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
                     _bannedIps.Add(ip);
                 }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Logger.Error("Unable to read banned.txt");
         }
