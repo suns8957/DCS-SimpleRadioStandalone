@@ -321,7 +321,6 @@
         <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
         <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
-        <PackageReference Include="MvvmEventBinding" Version="1.0.0" />
         <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
         <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
         <PackageReference Include="Sentry" Version="5.7.0" />
