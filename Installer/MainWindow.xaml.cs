@@ -968,6 +968,9 @@ namespace Installer
 
             string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
                 "DCS-SRS Client.lnk");
+            
+            if(File.Exists(shortcutPath))
+                File.Delete(shortcutPath);
 
             Logger.Info(
                 $"Adding SRS Shortcut {path + "Client\\SR-ClientRadio.exe"} - {shortcutPath} - Working Directory{
