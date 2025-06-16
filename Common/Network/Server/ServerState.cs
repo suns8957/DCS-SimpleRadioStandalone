@@ -37,6 +37,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
     private UDPVoiceRouter _serverListener;
     private ServerSync _serverSync;
     private volatile bool _stop = true;
+    private HttpServer _httpServer;
 
     public ServerState(IEventAggregator eventAggregator)
     {
@@ -103,7 +104,15 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
             serverSyncThread.Start();
 
             StartExport();
+
+            StartHttpServer();
         }
+    }
+
+    private void StartHttpServer()
+    {
+        _httpServer = new HttpServer(_connectedClients, this);
+        _httpServer.Start();
     }
 
     public void StopServer()
@@ -115,6 +124,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
             _serverSync = null;
             _serverListener.RequestStop();
             _serverListener = null;
+            _httpServer?.Stop();
         }
     }
 
@@ -329,7 +339,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
     }
 
 
-    private void KickClient(SRClientBase client)
+    public void KickClient(SRClientBase client)
     {
         if (client != null)
             try
@@ -342,7 +352,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
             }
     }
 
-    private void WriteBanIP(SRClientBase client)
+    public void WriteBanIP(SRClientBase client)
     {
         try
         {
@@ -354,6 +364,8 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
 
             File.AppendAllText(GetCurrentDirectory() + Path.DirectorySeparatorChar + "banned.txt",
                 remoteIpEndPoint.Address + "\r\n");
+            
+            KickClient(client);
         }
         catch (Exception ex)
         {
