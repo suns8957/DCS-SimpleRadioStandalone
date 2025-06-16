@@ -13,7 +13,7 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-    public static  readonly double MHz = 100000.0;
+    public static  readonly double MHz = 1000000.0;
     public static readonly double MidsOffsetMHz = 1030.0 * 1000000.0;
 
     private string PresetsFolder
@@ -70,8 +70,7 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
     {
         var channels = new List<PresetChannel>();
         var lines = File.ReadAllLines(filePath);
-
-        const double MHz = 1000000;
+        
         if (lines?.Length > 0)
             foreach (var line in lines)
             {
