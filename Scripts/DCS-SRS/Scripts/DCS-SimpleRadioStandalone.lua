@@ -2278,24 +2278,24 @@ function SR.exportRadioCH47F(_data)
     _data.radios[1].modulation = 2 --Special intercom modulation
 
     _data.radios[2].name = "ARC-201 FM1" -- ARC 201
-    _data.radios[2].freq = SR.getRadioFrequency(49)
-    _data.radios[2].modulation = SR.getRadioModulation(49)
+    _data.radios[2].freq = SR.getRadioFrequency(51)
+    _data.radios[2].modulation = SR.getRadioModulation(51)
 
     _data.radios[2].encKey = 1
     _data.radios[2].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[3].name = "ARC-164 UHF" -- ARC_164
-    _data.radios[3].freq = SR.getRadioFrequency(47)
-    _data.radios[3].modulation = SR.getRadioModulation(47)
+    _data.radios[3].freq = SR.getRadioFrequency(49)
+    _data.radios[3].modulation = SR.getRadioModulation(49)
 
     _data.radios[3].encKey = 1
     _data.radios[3].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[4].name = "ARC-186 VHF" -- ARC_186
-    _data.radios[4].freq = SR.getRadioFrequency(48)
-    _data.radios[4].modulation = SR.getRadioModulation(48)
+    _data.radios[4].freq = SR.getRadioFrequency(50)
+    _data.radios[4].modulation = SR.getRadioModulation(50)
 
     _data.radios[4].encKey = 1
     _data.radios[4].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
@@ -2312,8 +2312,8 @@ function SR.exportRadioCH47F(_data)
 
 
     _data.radios[5].name = "ARC-220 HF" -- ARC_220
-    _data.radios[5].freq = SR.getRadioFrequency(50)
-    _data.radios[5].modulation = SR.getRadioModulation(50)
+    _data.radios[5].freq = SR.getRadioFrequency(52)
+    _data.radios[5].modulation = SR.getRadioModulation(52)
 
     _data.radios[5].encMode = 0
 
