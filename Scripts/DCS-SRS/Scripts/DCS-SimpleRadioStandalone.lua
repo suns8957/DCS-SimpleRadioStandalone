@@ -23,12 +23,12 @@ SR.lastKnownSlot = ''
 SR.MIDS_FREQ = 1030.0 * 1000000 -- Start at UHF 300
 SR.MIDS_FREQ_SEPARATION = 1.0 * 100000 -- 0.1 MHZ between MIDS channels
 
-SR.logFile = io.open(lfs.writedir() .. [[Logs\DCS-SimpleRadioStandalone.log]], "w")
 function SR.log(str)
-    if SR.logFile then
-        SR.logFile:write(str .. "\n")
-        SR.logFile:flush()
-    end
+    log.write('SRS-export', log.INFO, str)
+end
+
+function SR.error(str)
+    log.write('SRS-export', log.ERROR, str)
 end
 
 package.path = package.path .. ";.\\LuaSocket\\?.lua;"
@@ -133,7 +133,7 @@ function SR.ModsPuginsRecursiveSearch(modsPath)
    
     -- Check that Mod folder actually exists, if not then do nothing
     if mode == nil or mode ~= "directory" then
-        SR.log("Error: SR.RecursiveSearch(): modsPath is not a directory or is null: '" .. modsPath)
+        SR.error("SR.RecursiveSearch(): modsPath is not a directory or is null: '" .. modsPath)
         return
     end
 
@@ -150,7 +150,7 @@ function SR.ModsPuginsRecursiveSearch(modsPath)
             local status, error = pcall(function () loadfile(modAutoloadPath)().register(SR) end)
             
             if error then
-                SR.log("Failed loading SRS Mod plugin due to an error in '"..modAutoloadPath.."'")
+                SR.error("Failed loading SRS Mod plugin due to an error in '"..modAutoloadPath.."'")
             else
                 SR.log("Loaded SRS Mod plugin '"..modAutoloadPath.."'")
             end
@@ -2278,24 +2278,24 @@ function SR.exportRadioCH47F(_data)
     _data.radios[1].modulation = 2 --Special intercom modulation
 
     _data.radios[2].name = "ARC-201 FM1" -- ARC 201
-    _data.radios[2].freq = SR.getRadioFrequency(49)
-    _data.radios[2].modulation = SR.getRadioModulation(49)
+    _data.radios[2].freq = SR.getRadioFrequency(51)
+    _data.radios[2].modulation = SR.getRadioModulation(51)
 
     _data.radios[2].encKey = 1
     _data.radios[2].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[3].name = "ARC-164 UHF" -- ARC_164
-    _data.radios[3].freq = SR.getRadioFrequency(47)
-    _data.radios[3].modulation = SR.getRadioModulation(47)
+    _data.radios[3].freq = SR.getRadioFrequency(49)
+    _data.radios[3].modulation = SR.getRadioModulation(49)
 
     _data.radios[3].encKey = 1
     _data.radios[3].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
     _data.radios[4].name = "ARC-186 VHF" -- ARC_186
-    _data.radios[4].freq = SR.getRadioFrequency(48)
-    _data.radios[4].modulation = SR.getRadioModulation(48)
+    _data.radios[4].freq = SR.getRadioFrequency(50)
+    _data.radios[4].modulation = SR.getRadioModulation(50)
 
     _data.radios[4].encKey = 1
     _data.radios[4].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
@@ -2312,8 +2312,8 @@ function SR.exportRadioCH47F(_data)
 
 
     _data.radios[5].name = "ARC-220 HF" -- ARC_220
-    _data.radios[5].freq = SR.getRadioFrequency(50)
-    _data.radios[5].modulation = SR.getRadioModulation(50)
+    _data.radios[5].freq = SR.getRadioFrequency(52)
+    _data.radios[5].modulation = SR.getRadioModulation(52)
 
     _data.radios[5].encMode = 0
 
@@ -7471,7 +7471,7 @@ LuaExportActivityNextEvent = function(tCurrent)
         local _status, _result = pcall(SR.exporter)
 
         if not _status then
-            SR.log('ERROR: ' ..  SR.debugDump(_result))
+            SR.error(SR.debugDump(_result))
         end
     end
 
@@ -7486,12 +7486,12 @@ LuaExportActivityNextEvent = function(tCurrent)
                 tNext = _result
             end
         else
-            SR.log('ERROR Calling other LuaExportActivityNextEvent from another script: ' .. SR.debugDump(_result))
+            SR.error('Calling other LuaExportActivityNextEvent from another script: ' .. SR.debugDump(_result))
         end
     end
 
     if terrain == nil then
-        SR.log("Terrain Export is not working")
+        SR.error("Terrain Export is not working")
         --SR.log("EXPORT CHECK "..tostring(terrain.isVisible(1,100,1,1,100,1)))
         --SR.log("EXPORT CHECK "..tostring(terrain.isVisible(1,1,1,1,-100,-100)))
     end
@@ -7508,20 +7508,20 @@ LuaExportBeforeNextFrame = function()
     local _status, _result = pcall(SR.readLOSSocket)
 
     if not _status then
-        SR.log('ERROR LuaExportBeforeNextFrame readLOSSocket SRS: ' .. SR.debugDump(_result))
+        SR.error('LuaExportBeforeNextFrame readLOSSocket SRS: ' .. SR.debugDump(_result))
     end
 
     _status, _result = pcall(SR.readSeatSocket)
 
     if not _status then
-        SR.log('ERROR LuaExportBeforeNextFrame readSeatSocket SRS: ' .. SR.debugDump(_result))
+        SR.error('LuaExportBeforeNextFrame readSeatSocket SRS: ' .. SR.debugDump(_result))
     end
 
     -- call original
     if _prevLuaExportBeforeNextFrame then
         _status, _result = pcall(_prevLuaExportBeforeNextFrame)
         if not _status then
-            SR.log('ERROR Calling other LuaExportBeforeNextFrame from another script: ' .. SR.debugDump(_result))
+            SR.error('Calling other LuaExportBeforeNextFrame from another script: ' .. SR.debugDump(_result))
         end
     end
 end
