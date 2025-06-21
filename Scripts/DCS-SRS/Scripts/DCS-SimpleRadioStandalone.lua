@@ -511,7 +511,7 @@ function SR.exportRadioA10A(_data)
     _data.radios[3].encKey = 1
     _data.radios[3].encMode = 1 -- FC3 Gui Toggle + Gui Enc key setting
 
-    _data.radios[4].name = "AN/ARC-186(V)FM"
+    _data.radios[4].name = "AN/ARC-186(V) FM"
     _data.radios[4].freq = 30.0 * 1000000 --VHF/FM opera entre 30.000 y 76.000 MHz.
     _data.radios[4].modulation = 1
     _data.radios[4].volume = 1.0
@@ -753,30 +753,30 @@ function SR.exportRadioAH64D(_data)
     _data.radios[1].modulation = 2 --Special intercom modulation
     _data.radios[1].volMode = 0
 
-    _data.radios[2].name = "VHF-ARC-186"
+    _data.radios[2].name = "AN/ARC-186 VHF"
     _data.radios[2].freq = SR.getRadioFrequency(58)
     _data.radios[2].modulation = SR.getRadioModulation(58)
     _data.radios[2].volMode = 0
 
-    _data.radios[3].name = "UHF-ARC-164"
+    _data.radios[3].name = "AN/ARC-164 UHF"
     _data.radios[3].freq = SR.getRadioFrequency(57)
     _data.radios[3].modulation = SR.getRadioModulation(57)
     _data.radios[3].volMode = 0
     _data.radios[3].encMode = 2
 
-    _data.radios[4].name = "FM1-ARC-201D"
+    _data.radios[4].name = "AN/ARC201D FM1"
     _data.radios[4].freq = SR.getRadioFrequency(59)
     _data.radios[4].modulation = SR.getRadioModulation(59)
     _data.radios[4].volMode = 0
     _data.radios[4].encMode = 2
 
-    _data.radios[5].name = "FM2-ARC-201D"
+    _data.radios[5].name = "AN/ARC-201D FM2"
     _data.radios[5].freq = SR.getRadioFrequency(60)
     _data.radios[5].modulation = SR.getRadioModulation(60)
     _data.radios[5].volMode = 0
     _data.radios[5].encMode = 2
 
-    _data.radios[6].name = "HF-ARC-220"
+    _data.radios[6].name = "AN/ARC-220 HF"
     _data.radios[6].freq = SR.getRadioFrequency(61)
     _data.radios[6].modulation = 0
     _data.radios[6].volMode = 0
@@ -1430,7 +1430,7 @@ function SR.exportRadioSK60(_data)
     _data.radios[1].volume = 1.0
     _data.radios[1].volMode = 1
 
-    _data.radios[2].name = "UHF Radio AN/ARC-164"
+    _data.radios[2].name = "AN/ARC-164 UHF"
     _data.radios[2].freq = SR.getRadioFrequency(6)
     _data.radios[2].modulation = 1
     _data.radios[2].volume = 1.0
@@ -2277,7 +2277,7 @@ function SR.exportRadioCH47F(_data)
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
 
-    _data.radios[2].name = "ARC-201 FM1" -- ARC 201
+    _data.radios[2].name = "AN/ARC-201 FM1" -- ARC 201
     _data.radios[2].freq = SR.getRadioFrequency(51)
     _data.radios[2].modulation = SR.getRadioModulation(51)
 
@@ -2285,7 +2285,7 @@ function SR.exportRadioCH47F(_data)
     _data.radios[2].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
-    _data.radios[3].name = "ARC-164 UHF" -- ARC_164
+    _data.radios[3].name = "AN/ARC-164 UHF" -- ARC_164
     _data.radios[3].freq = SR.getRadioFrequency(49)
     _data.radios[3].modulation = SR.getRadioModulation(49)
 
@@ -2293,7 +2293,7 @@ function SR.exportRadioCH47F(_data)
     _data.radios[3].encMode = 3 -- Cockpit Toggle + Gui Enc key setting
 
 
-    _data.radios[4].name = "ARC-186 VHF" -- ARC_186
+    _data.radios[4].name = "AN/ARC-186 VHF" -- ARC_186
     _data.radios[4].freq = SR.getRadioFrequency(50)
     _data.radios[4].modulation = SR.getRadioModulation(50)
 
@@ -2311,14 +2311,14 @@ function SR.exportRadioCH47F(_data)
     end
 
 
-    _data.radios[5].name = "ARC-220 HF" -- ARC_220
+    _data.radios[5].name = "AN/ARC-220 HF" -- ARC_220
     _data.radios[5].freq = SR.getRadioFrequency(52)
     _data.radios[5].modulation = SR.getRadioModulation(52)
 
     _data.radios[5].encMode = 0
 
     -- TODO (still in overlay)
-    _data.radios[6].name = "ARC-201 FM2"
+    _data.radios[6].name = "AN/ARC-201 FM2"
    -- _data.radios[6].freq = SR.getRadioFrequency(32)
     _data.radios[6].freq = 32000000
     _data.radios[6].modulation = 1
@@ -2617,7 +2617,7 @@ function SR.exportRadioSA342(_data)
     _data.radios[2].volume = SR.getRadioVolume(0, vhfVolume, { 1.0, 0.0 }, true)
     _data.radios[2].rtMode = 1
 
-    _data.radios[3].name = "UHF TRA 6031"
+    _data.radios[3].name = "TRA 6031 UHF"
 
     -- deal with odd radio tune & rounding issue... BUG you cannot set frequency 243.000 ever again
     local freq = SR.getRadioFrequency(_uhfId, 500)
@@ -2746,26 +2746,26 @@ function SR.exportRadioOH58D(_data)
     _data.radios[1].modulation = 2 --Special intercom modulation
     _data.radios[1].volMode = 0
 
-    _data.radios[2].name = "FM1"
+    _data.radios[2].name = "AN/ARC-201D FM1"
     _data.radios[2].freq = SR.getRadioFrequency(29)
     _data.radios[2].modulation = SR.getRadioModulation(29)
     _data.radios[2].volMode = 0
     _data.radios[2].encMode = 2
 
-    _data.radios[3].name = "UHF"
+    _data.radios[3].name = "AN/ARC-164 UHF"
     _data.radios[3].freq = SR.getRadioFrequency(30)
     _data.radios[3].modulation = SR.getRadioModulation(30)
     _data.radios[3].volMode = 0
     _data.radios[3].encMode = 2
 
-    _data.radios[4].name = "VHF"
+    _data.radios[4].name = "AN/ARC-186 VHF"
     _data.radios[4].freq = SR.getRadioFrequency(31)
     _data.radios[4].modulation = SR.getRadioModulation(31)
     _data.radios[4].volMode = 0
     _data.radios[4].encMode = 2
 
 
-    _data.radios[5].name = "FM2"
+    _data.radios[5].name = "AN/ARC-201D FM2"
     _data.radios[5].freq = SR.getRadioFrequency(32)
     _data.radios[5].modulation = SR.getRadioModulation(32)
     _data.radios[5].volMode = 0
@@ -3075,7 +3075,7 @@ function SR.exportRadioKA50(_data)
 
     local _panel = GetDevice(0)
 
-    _data.radios[2].name = "R-800L14 VHF/UHF"
+    _data.radios[2].name = "R-800L14 V/UHF"
     _data.radios[2].freq = SR.getRadioFrequency(48)
 
     -- Get modulation mode
@@ -4258,7 +4258,7 @@ function SR.exportRadioFA18C(_data)
     -- AN/ARC-210 - 1
     -- Set radio data
     local _radio = _data.radios[2]
-    _radio.name = "AN/ARC-210 - 1"
+    _radio.name = "AN/ARC-210 - COMM1"
     _radio.freq = SR.getRadioFrequency(38)
     _radio.modulation = SR.getRadioModulation(38)
     _radio.volume = SR.getRadioVolume(0, 108, { 0.0, 1.0 }, false)
@@ -4272,7 +4272,7 @@ function SR.exportRadioFA18C(_data)
     -- AN/ARC-210 - 2
     -- Set radio data
     _radio = _data.radios[3]
-    _radio.name = "AN/ARC-210 - 2"
+    _radio.name = "AN/ARC-210 - COMM2"
     _radio.freq = SR.getRadioFrequency(39)
     _radio.modulation = SR.getRadioModulation(39)
     _radio.volume = SR.getRadioVolume(0, 123, { 0.0, 1.0 }, false)
@@ -5672,7 +5672,7 @@ function SR.exportRadioC101CC(_data)
         _data.radios[2].secFreq = 0
     end
 
-    _data.radios[3].name = "VHF-20B"
+    _data.radios[3].name = "20B VHF"
     _data.radios[3].modulation = 0
     _data.radios[3].volume = 1.0 --SR.getRadioVolume(0, 412,{0.0,1.0},false)
     _data.radios[3].volMode = 1
@@ -6124,7 +6124,7 @@ function SR.exportRadioF1CE(_data)
 
     _data.capabilities = { dcsPtt = false, dcsIFF = true, dcsRadioSwitch = false, intercomHotMic = false, desc = "" }
 
-    _data.radios[2].name = "V/UHF TRAP-136"
+    _data.radios[2].name = "TRAP-136 V/UHF"
     _data.radios[2].freq = SR.getRadioFrequency(6)
     _data.radios[2].modulation = 0
     _data.radios[2].volume = SR.getRadioVolume(0, 311,{0.0,1.0},false)
@@ -6138,7 +6138,7 @@ function SR.exportRadioF1CE(_data)
         _data.radios[2].channel = SR.getNonStandardSpinner(283, {[0.000]= "1", [0.050]= "2",[0.100]= "3",[0.150]= "4",[0.200]= "5",[0.250]= "6",[0.300]= "7",[0.350]= "8",[0.400]= "9",[0.450]= "10",[0.500]= "11",[0.550]= "12",[0.600]= "13",[0.650]= "14",[0.700]= "15",[0.750]= "16",[0.800]= "17",[0.850]= "18",[0.900]= "19",[0.950]= "20"},0.05,3)
     end
 
-    _data.radios[3].name = "UHF TRAP-137B"
+    _data.radios[3].name = "TRAP-137B UHF"
     _data.radios[3].freq = SR.getRadioFrequency(8)
     _data.radios[3].modulation = 0
     _data.radios[3].volume = SR.getRadioVolume(0, 314,{0.0,1.0},false)
@@ -6236,13 +6236,13 @@ function SR.exportRadioF1BE(_data)
     _data.radios[1].volMode = 1.0
 
 
-    _data.radios[2].name = "V/UHF TRAP-136"
+    _data.radios[2].name = "TRAP-136 V/UHF"
     _data.radios[2].freq = SR.getRadioFrequency(6)
     _data.radios[2].modulation = 0
     _data.radios[2].volMode = 0
 
 
-    _data.radios[3].name = "UHF TRAP-137B"
+    _data.radios[3].name = "TRAP-137B UHF"
     _data.radios[3].freq = SR.getRadioFrequency(8)
     _data.radios[3].modulation = 0
     _data.radios[3].volMode = 0
@@ -6650,7 +6650,7 @@ end
 
 
 
-    _data.radios[2].name = "ARC-210 COM 1"
+    _data.radios[2].name = "ARC-210 - COMM1"
     _data.radios[2].freq = SR.getRadioFrequency(2)
     _data.radios[2].modulation = SR.getRadioModulation(2)
     _data.radios[2].volume = SR.getRadioVolume(0, 298, { 0.0, 1.0 }, false)
@@ -6679,7 +6679,7 @@ end
     --_data.radios[2].channel =  SR.getSelectorPosition(178,0.01)  --add 1 as channel 0 is channel 1
     --end
 
-    _data.radios[3].name = "ARC-210 COM 2"
+    _data.radios[3].name = "ARC-210 - COMM2"
     _data.radios[3].freq = SR.getRadioFrequency(3)
     _data.radios[3].modulation = SR.getRadioModulation(3)
     _data.radios[3].volume = SR.getRadioVolume(0, 299, { 0.0, 1.0 }, false)
