@@ -543,6 +543,7 @@ namespace Installer
                 DeleteFileIfExists(programPath + "\\Client\\sni.dll");
                 DeleteFileIfExists(programPath + "\\Client\\speexdsp.dll");
                 DeleteFileIfExists(programPath + "\\Client\\SR-ClientRadio.exe");
+                DeleteFileIfExists(programPath + "\\Client\\WebRtcVad.dll");
 
                 //Old structure
                 DeleteFileIfExists(programPath + "\\SR-ClientRadio.exe");

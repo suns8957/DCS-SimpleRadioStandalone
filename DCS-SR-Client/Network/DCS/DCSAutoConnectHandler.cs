@@ -128,5 +128,13 @@ public class DCSAutoConnectHandler
     {
         _cts.Cancel();
         _cts.Dispose();
+
+        try
+        {
+            _dcsUdpListener?.Close();
+        } catch(Exception){
+            // ignored
+        }
+
     }
 }
