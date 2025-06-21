@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
@@ -14,7 +16,6 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.EventMessages;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
-using Newtonsoft.Json;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -49,29 +50,40 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
 
     public async Task HandleAsync(BanClientMessage message, CancellationToken cancellationToken)
     {
-        WriteBanIP(message.Client);
-
-        KickClient(message.Client);
+        await Task.Run(() =>
+        {
+            WriteBanIP(message.Client);
+            KickClient(message.Client);
+        });
     }
 
     public async Task HandleAsync(KickClientMessage message, CancellationToken cancellationToken)
     {
-        var client = message.Client;
-        KickClient(client);
+        await Task.Run(() =>
+        {
+            var client = message.Client;
+            KickClient(client);
+        });
     }
 
     public async Task HandleAsync(StartServerMessage message, CancellationToken cancellationToken)
     {
-        StartServer();
-        _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
-            new List<SRClientBase>(_connectedClients.Values)));
+        await Task.Run(() =>
+        {
+            StartServer();
+            _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
+                new List<SRClientBase>(_connectedClients.Values)));
+        });
     }
 
     public async Task HandleAsync(StopServerMessage message, CancellationToken cancellationToken)
     {
-        StopServer();
-        _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(false,
-            new List<SRClientBase>(_connectedClients.Values)));
+        await Task.Run(() =>
+        {
+            StopServer();
+            _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(false,
+                new List<SRClientBase>(_connectedClients.Values)));
+        });
     }
 
 
@@ -168,8 +180,14 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
                 {
                     var data = new ClientListExport
                         { Clients = _connectedClients.Values, ServerVersion = UpdaterChecker.VERSION };
-                    var json = JsonConvert.SerializeObject(data,
-                        new JsonSerializerSettings { ContractResolver = new JsonNetworkPropertiesResolver() }) + "\n";
+                    var json = JsonSerializer.Serialize(data, new JsonSerializerOptions()
+                    {
+                        TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+                        {
+                            Modifiers = { JsonNetworkPropertiesResolver.StripNetworkIgnored }
+                        },
+                        IncludeFields = true,
+                    }) + "\n";
                     try
                     {
                         File.WriteAllText(exportFilePath, json);
@@ -263,9 +281,15 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
                             }
 
                             var byteData =
-                                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data,
-                                    new JsonSerializerSettings
-                                        { ContractResolver = new JsonNetworkPropertiesResolver() }) + "\n");
+                                Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data,
+                                    new JsonSerializerOptions()
+                                    {
+                                        TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+                                        {
+                                            Modifiers = { JsonNetworkPropertiesResolver.StripNetworkIgnored }
+                                        },
+                                        IncludeFields = true,
+                                    }) + "\n");
 
                             udpSocket.Send(byteData, byteData.Length, host);
                         }
@@ -311,7 +335,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
                     _bannedIps.Add(ip);
                 }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Logger.Error("Unable to read banned.txt");
         }

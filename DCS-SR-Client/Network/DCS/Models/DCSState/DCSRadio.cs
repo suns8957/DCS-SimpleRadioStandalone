@@ -67,6 +67,9 @@ public class DCSRadio
 
     [JsonNetworkIgnoreSerialization] public string name = "";
 
+    // Radio model (arc210, link16, r812, etc).
+    [JsonNetworkIgnoreSerialization] public string model = "";
+
     //should the radio restransmit?
     public bool retransmit;
 
@@ -98,6 +101,7 @@ public class DCSRadio
         var compare = (DCSRadio)obj;
 
         if (!name.Equals(compare.name)) return false;
+        if (!model.Equals(compare.model)) return false;
         if (!DCSPlayerRadioInfo.FreqCloseEnough(freq, compare.freq)) return false;
         if (modulation != compare.modulation) return false;
         if (enc != compare.enc) return false;
@@ -121,6 +125,8 @@ public class DCSRadio
         return true;
     }
 
+    public override int GetHashCode() => (name, freq, modulation, enc, encKey, retransmit, secFreq).GetHashCode();
+
     public DCSRadio DeepClone()
     {
         //probably can use memberswise clone
@@ -139,6 +145,7 @@ public class DCSRadio
             modulation = modulation,
             secFreq = secFreq,
             name = name,
+            model = model,
             simul = simul,
             volMode = volMode,
             volume = volume,

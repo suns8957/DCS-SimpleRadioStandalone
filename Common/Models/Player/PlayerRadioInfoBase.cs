@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
@@ -81,6 +81,8 @@ public class PlayerRadioInfoBase
 
         return true;
     }
+
+    public override int GetHashCode() => (unit, unitId, iff, ambient, radios).GetHashCode();
 
 
     public PlayerRadioInfoBase DeepClone()
