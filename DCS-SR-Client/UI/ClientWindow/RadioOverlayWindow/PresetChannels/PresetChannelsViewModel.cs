@@ -42,7 +42,7 @@ public class PresetChannelsViewModel : INotifyPropertyChanged, IHandle<ProfileCh
         EventBus.Instance.SubscribeOnUIThread(this);
     }
 
-    public DelegateCommand DropDownClosedCommand { get; set; }
+    public ICommand DropDownClosedCommand { get; }
 
     public DelegateCommand PresetCreateCommand { get; set; }
 
@@ -86,7 +86,7 @@ public class PresetChannelsViewModel : INotifyPropertyChanged, IHandle<ProfileCh
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    private void DropDownClosed(object args)
+    private void DropDownClosed()
     {
         if (SelectedPresetChannel != null
             && SelectedPresetChannel.Value is double
