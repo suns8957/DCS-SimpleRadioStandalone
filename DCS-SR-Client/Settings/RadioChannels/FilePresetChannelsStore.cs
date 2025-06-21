@@ -162,7 +162,7 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
             {
                 var name = Path.GetFileNameWithoutExtension(fileAndPath);
 
-                if (NormaliseString(name) == radioName) return fileAndPath;
+                if (radioName.StartsWith(NormaliseString(name))) return fileAndPath;
             }
 
         return null;
