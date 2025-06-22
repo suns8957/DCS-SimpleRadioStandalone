@@ -114,13 +114,21 @@ public partial class App : Application
 
     private void RequireAdmin()
     {
-        if (!GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin)) return;
-
         var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
         var hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
+        
+        Logger.Info($"User running as admin: {hasAdministrativeRight}");
+        if (!GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
+        {
+            Logger.Info("Admin rights not required");
+            return;
+        }
 
         if (!hasAdministrativeRight &&
             GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
+        {
+            Logger.Info($"Attempting to elevant to admin");
+
             Task.Factory.StartNew(() =>
             {
                 var location = AppDomain.CurrentDomain.BaseDirectory;
@@ -152,7 +160,7 @@ public partial class App : Application
                         {
                             // ignored
                         }
-                        
+
                         Environment.Exit(0);
                     }));
                 }
@@ -163,6 +171,7 @@ public partial class App : Application
                         "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             });
+        }
     }
 
     private string GetArgsString()
