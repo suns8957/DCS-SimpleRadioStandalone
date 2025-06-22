@@ -177,10 +177,16 @@ public partial class MainWindow : Window
                     if (path.Length > 0)
                     {
                         var latestVersion = new Version(release.TagName.Replace("v", ""));
-                        var serverVersion = Assembly.LoadFile(Path.Combine(path, "SR-Server.exe")).GetName()
-                            .Version;
+                        var serverExe = Path.Combine(path, "SR-Server.exe");
+                        var useThisVersion = true;
+                        if (Path.Exists(serverExe))
+                        {
+                            var serverVersion = Assembly.LoadFile(serverExe).GetName().Version;
+                            useThisVersion = serverVersion < latestVersion;
+                        }
+                        
 
-                        if (serverVersion < latestVersion) return new Uri(releaseAsset.BrowserDownloadUrl);
+                        if (useThisVersion) return new Uri(releaseAsset.BrowserDownloadUrl);
 
                         //no update
                         return null;
