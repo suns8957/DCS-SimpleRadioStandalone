@@ -274,11 +274,11 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        ClientStateSingleton.Instance.Close();
+        
         if (_notifyIcon != null)
             _notifyIcon.Visible = false;
         base.OnExit(e);
-
-        ClientStateSingleton.Instance.Close();
     }
 
     private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
