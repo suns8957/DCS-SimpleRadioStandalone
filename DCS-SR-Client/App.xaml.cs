@@ -144,6 +144,15 @@ public partial class App : Application
                         if (_notifyIcon != null)
                             _notifyIcon.Visible = false;
 
+                        try
+                        {
+                            ClientStateSingleton.Instance.Close();
+                        }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
+                        
                         Environment.Exit(0);
                     }));
                 }
