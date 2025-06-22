@@ -343,6 +343,8 @@ public partial class MainWindow : Window
             procInfo.UseShellExecute = false;
             Process.Start(procInfo);
 
+            installerProcess?.WaitForExit();
+
 
             //Process.Start(changelogURL);
         }
