@@ -127,7 +127,7 @@ public partial class App : Application
         if (!hasAdministrativeRight &&
             GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
         {
-            Logger.Info($"Attempting to elevant to admin");
+            Logger.Info($"Attempting to elevate to admin");
 
             Task.Factory.StartNew(() =>
             {
