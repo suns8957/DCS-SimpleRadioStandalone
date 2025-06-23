@@ -243,7 +243,7 @@ public partial class MainWindow : Window
     private bool WaitInstaller()
     {
         foreach (var arg in Environment.GetCommandLineArgs())
-            if arg.Trim().Equals("-wait"))
+            if (arg.Trim().Equals("-wait"))
                 return true;
 
         return false;
