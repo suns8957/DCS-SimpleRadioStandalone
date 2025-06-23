@@ -146,7 +146,7 @@ public partial class MainWindow : Window
         //allowing alpha gives you beta if its newer
         if ((allowBeta || allowAlpha) && latestBeta != null && lastBetaVersion > lastStableVersion)
         {
-            return latestAlpha;
+            return latestBeta;
         }
             
         return latestStable;
