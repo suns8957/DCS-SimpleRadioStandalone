@@ -9,6 +9,7 @@ SR.RadioModels = {
     Intercom = "intercom",
 
     -- WW2
+    AN_ARC5 = "arc5",
     FUG_16_ZY = "fug16zy",
     R1155 = "r1155",
     SCR522A = "scr522a",
@@ -7464,6 +7465,7 @@ function SR.exportRadioF4U (_data)
     _data.radios[2].volume = SR.getRadioVolume(devices.Cockpit, 081, {0.0,1.0},false)
     _data.radios[2].rxOnly = rxOn and not txOn
     _data.radios[2].modulation = anarc5:get_modulation()
+    _data.radios[2].model = SR.RadioModels.AN_ARC5
 
     if voiceSelected and (txOn or rxOn) then
         _data.radios[2].freq = SR.round(anarc5:get_frequency(), 5e3) or 0
