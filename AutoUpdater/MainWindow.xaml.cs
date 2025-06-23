@@ -240,6 +240,15 @@ public partial class MainWindow : Window
         return false;
     }
 
+    private bool WaitInstaller()
+    {
+        foreach (var arg in Environment.GetCommandLineArgs())
+            if arg.Trim().Equals("-wait"))
+                return true;
+
+        return false;
+    }
+
     public void ShowError()
     {
         MessageBox.Show(
@@ -347,9 +356,13 @@ public partial class MainWindow : Window
 
             procInfo.FileName = Path.Combine(Path.Combine(_directory, "extract"), "installer.exe");
             procInfo.UseShellExecute = false;
-            Process.Start(procInfo);
+            var installerProcess = Process.Start(procInfo);
 
-            installerProcess?.WaitForExit();
+            if (WaitInstaller() && installerProcess != null)
+            {
+                installerProcess.WaitForExit();
+            }
+            
 
 
             //Process.Start(changelogURL);
