@@ -388,4 +388,3 @@ end
 DCS.setUserCallbacks(SRS)
 
 net.log("Loaded - DCS-SRS GameGUI - Ciribob: 2.2.1.0")
-
