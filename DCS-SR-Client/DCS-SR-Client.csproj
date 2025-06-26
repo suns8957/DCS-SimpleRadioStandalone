@@ -25,10 +25,10 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Company>Ciribob - GitHub.com/Ciribob</Company>
         <Product>DCS-SimpleRadio Standalone</Product>
-        <ApplicationVersion>2.2.0.4</ApplicationVersion>
-        <AssemblyVersion>2.2.0.4</AssemblyVersion>
-        <FileVersion>2.2.0.4</FileVersion>
-        <Version>2.2.0.4</Version>
+        <ApplicationVersion>2.2.0.5</ApplicationVersion>
+        <AssemblyVersion>2.2.0.5</AssemblyVersion>
+        <FileVersion>2.2.0.5</FileVersion>
+        <Version>2.2.0.5</Version>
         <ApplicationIcon>audio-headset.ico</ApplicationIcon>
     </PropertyGroup>
     <PropertyGroup>
@@ -284,6 +284,10 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <AppDesigner Include="Properties\" />
+        <None Remove="AudioEffects\Ambient\F4U.wav" />
+        <Content Include="AudioEffects\Ambient\F4U.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Common\Common.csproj" />
@@ -321,7 +325,6 @@
         <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
         <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
-        <PackageReference Include="MvvmEventBinding" Version="1.0.0" />
         <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
         <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
         <PackageReference Include="Sentry" Version="5.7.0" />

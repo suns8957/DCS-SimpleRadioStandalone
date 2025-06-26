@@ -32,12 +32,25 @@ public class Bootstrapper : BootstrapperBase
 
     public Bootstrapper()
     {
+        InitCfgPath();
+        
         SentrySdk.Init("https://0935ffeb7f9c46e28a420775a7f598f4@o414743.ingest.sentry.io/5315043");
 
         Initialize();
         SetupLogging();
 
         GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+    }
+    
+    private void InitCfgPath(){
+        //check commandline
+        var args = Environment.GetCommandLineArgs();
+
+        foreach (var arg in args)
+            if (arg.StartsWith("-cfg="))
+                ServerSettingsStore.CFG_FILE_NAME = arg.Replace("-cfg=", "").Trim();
+            else if (arg.StartsWith("--cfg="))
+                ServerSettingsStore.CFG_FILE_NAME = arg.Replace("--cfg=", "").Trim();
     }
 
     private void SetupLogging()
@@ -103,16 +116,6 @@ public class Bootstrapper : BootstrapperBase
 
     protected override void OnStartup(object sender, StartupEventArgs e)
     {
-        
-        //check commandline
-        var args = Environment.GetCommandLineArgs();
-
-        foreach (var arg in args)
-            if (arg.StartsWith("-cfg="))
-                ServerSettingsStore.CFG_FILE_NAME = arg.Replace("-cfg=", "").Trim();
-            else if (arg.StartsWith("--cfg="))
-                ServerSettingsStore.CFG_FILE_NAME = arg.Replace("--cfg=", "").Trim();
-        
         IDictionary<string, object> settings = new Dictionary<string, object>
         {
             { "Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico")) },
