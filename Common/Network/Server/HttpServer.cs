@@ -17,10 +17,16 @@ public class HttpServer
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly ConcurrentDictionary<string, SRClientBase> _connectedClients;
     private readonly bool _enabled;
-    private readonly int _port = 8080;
+    private readonly int _port;
     private readonly ServerState _serverState;
 
     private HttpListener _listener;
+    
+    private static readonly string CLIENT_BAN_GUID = "/client/ban/guid";
+    private static readonly string CLIENT_BAN_NAME = "/client/ban/name";
+    private static readonly string CLIENT_KICK_GUID = "/client/kick/guid";
+    private static readonly string CLIENT_KICK_NAME = "/client/kick/name";
+    private static readonly string CLIENTS_LIST = "/clients";
 
     public HttpServer(ConcurrentDictionary<string, SRClientBase> connectedClients, ServerState serverState)
     {
@@ -105,7 +111,7 @@ public class HttpServer
             return;
 
         if (context.Request.HttpMethod == "GET" && context.Request.Url != null &&
-            context.Request.Url.AbsolutePath == "/clients")
+            context.Request.Url.AbsolutePath == CLIENTS_LIST)
         {
             var data = new ClientListExport
                 { Clients = _connectedClients.Values, ServerVersion = UpdaterChecker.VERSION };
@@ -123,18 +129,18 @@ public class HttpServer
         }
         else if (context.Request.HttpMethod == "POST")
         {
-            if (context.Request.Url.AbsolutePath.StartsWith("/client/ban/guid/"))
+            if (context.Request.Url.AbsolutePath.StartsWith(CLIENT_BAN_GUID))
             {
-                var clientGuid = context.Request.Url.AbsolutePath.Replace("/client/ban/guid", "");
+                var clientGuid = context.Request.Url.AbsolutePath.Replace(CLIENT_BAN_GUID, "");
 
                 if (_connectedClients.TryGetValue(clientGuid, out var client))
                     _serverState.WriteBanIP(client);
                 else
                     context.Response.StatusCode = 404;
             }
-            else if (context.Request.Url.AbsolutePath.StartsWith("/client/ban/name/"))
+            else if (context.Request.Url.AbsolutePath.StartsWith(CLIENT_BAN_NAME))
             {
-                var clientName = context.Request.Url.AbsolutePath.Replace("/client/ban/name/", "").Trim()
+                var clientName = context.Request.Url.AbsolutePath.Replace(CLIENT_BAN_NAME, "").Trim()
                     .ToLowerInvariant();
 
                 foreach (var client in _connectedClients)
@@ -147,9 +153,9 @@ public class HttpServer
 
                 context.Response.StatusCode = 404;
             }
-            else if (context.Request.Url.AbsolutePath.StartsWith("/client/kick/guid/"))
+            else if (context.Request.Url.AbsolutePath.StartsWith(CLIENT_KICK_GUID))
             {
-                var clientGuid = context.Request.Url.AbsolutePath.Replace("/client/kick/guid/", "");
+                var clientGuid = context.Request.Url.AbsolutePath.Replace(CLIENT_KICK_GUID, "");
 
                 if (_connectedClients.TryGetValue(clientGuid, out var client))
                 {
@@ -161,9 +167,9 @@ public class HttpServer
                     context.Response.StatusCode = 404;
                 }
             }
-            else if (context.Request.Url.AbsolutePath.StartsWith("/client/kick/name/"))
+            else if (context.Request.Url.AbsolutePath.StartsWith(CLIENT_KICK_NAME))
             {
-                var clientName = context.Request.Url.AbsolutePath.Replace("/client/kick/name/", "").Trim()
+                var clientName = context.Request.Url.AbsolutePath.Replace(CLIENT_KICK_NAME, "").Trim()
                     .ToLowerInvariant();
 
                 foreach (var client in _connectedClients)

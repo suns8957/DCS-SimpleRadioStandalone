@@ -68,8 +68,13 @@ public class SyncedServerSettings
 
     public List<ServerPresetChannel> GetPresetChannels(string radio)
     {
-        if (ServerPresetChannels.TryGetValue(radio, out var presets)) return presets;
-
+        foreach (var radioPreset in ServerPresetChannels.Keys)
+        {
+            if (radio.StartsWith(radioPreset))
+            {
+                return ServerPresetChannels[radioPreset];
+            }
+        }
         return new List<ServerPresetChannel>();
     }
 
