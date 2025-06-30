@@ -190,7 +190,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        public float[] ProcessClientTransmissions(float[] tempBuffer, List<DeJitteredTransmission> transmissions, out int clientTransmissionLength)
+        public void ProcessClientTransmissions(float[] tempBuffer, int offset, List<DeJitteredTransmission> transmissions, out int clientTransmissionLength)
         {
             RefreshSettings();
             DeJitteredTransmission lastTransmission = transmissions[0];
@@ -211,7 +211,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 clientTransmissionLength = transmission.PCMMonoAudio.Length;
                 Array.Copy(transmission.PCMMonoAudio, tempBuffer, clientTransmissionLength);
-                tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, transmission);
+                ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, offset, transmission);
             }
             else
             {
@@ -223,28 +223,26 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     if (transmissionBuffer.Length < transmission.PCMAudioLength)
                     {
-                        transmissionBuffer = new float[transmission.PCMAudioLength];
+                        Array.Resize(ref transmissionBuffer, transmission.PCMAudioLength);
                     }
                     Array.Copy(transmission.PCMMonoAudio, transmissionBuffer, transmission.PCMAudioLength);
 
                     if (!transmission.NoAudioEffects)
                     {
-                        transmissionBuffer = ProcessClientAudioSamples(transmissionBuffer, transmission.PCMAudioLength, 0, transmission);
+                        ProcessClientAudioSamples(transmissionBuffer, transmission.PCMAudioLength, 0, transmission);
                     }
 
                     for (int i = 0; i < transmission.PCMAudioLength; i++)
                     {
-                        tempBuffer[i] += transmissionBuffer[i];
+                        tempBuffer[offset + i] += transmissionBuffer[i];
                     }
 
                     clientTransmissionLength = Math.Max(clientTransmissionLength, transmission.PCMAudioLength);
                 }
             }
-
-            return tempBuffer;
         }
 
-        public float[] ProcessClientAudioSamples(float[] buffer, int count, int offset, DeJitteredTransmission transmission)
+        public void ProcessClientAudioSamples(float[] buffer, int count, int offset, DeJitteredTransmission transmission)
         {
             var transmissionDetails = new TransmissionInfo
             {
@@ -290,13 +288,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         }
                     }
                     
-                    var preset = Presets.GetValueOrDefault(model, Arc210);
+                    var preset = model != null? Presets.GetValueOrDefault(model, Arc210) : Arc210;
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
 
             transmissionProvider.Read(buffer, offset, count);
-            return buffer;
         }
 
         private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, TransmissionInfo details)
