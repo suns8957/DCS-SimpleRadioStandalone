@@ -75,9 +75,6 @@ public class RadioMixingProvider : ISampleProvider
     /// <returns>Number of samples read</returns>
     public int Read(float[] buffer, int offset, int count)
     {
-        // If we were receiving, we played the start tone.
-        var wasReceiving = availableInBuffer > 0;
-
         // Accumulate in local mono buffer before switching to stereo.
         var monoCount = count / 2;
         List<DeJitteredTransmission> mainAudio = new();
@@ -129,35 +126,14 @@ public class RadioMixingProvider : ISampleProvider
         //at this point
         if (hasIncomingAudio)
         {
-            if (!IsReceiving)
-            {
-                // Start
-                effectsBuffer.Reset(); // In case we were playing the end tone, cut it short.
-                PlaySoundEffectStartReceive(ky58Tone, lastModulation);
-                IsReceiving = true;
-            }
-
             lastReceivedAt = DateTime.Now.Ticks;
             _audioRecordingManager.AppendClientAudio(mainAudio, secondaryAudio, radioId);
-        }
-
-        if (IsReceiving)
-        {
-            if (!hasIncomingAudio && availableInBuffer == 0 && IsEndOfTransmission)
-            {
-                IsReceiving = false;
-                // end.
-                //TODO not sure about simultaneous
-                //We used to have this logic https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/cd8fcbf7e2b2fafcf30875fc958276e3083e0ebb/DCS-SR-Client/Network/UDPVoiceHandler.cs#L135
-                //if (!radioReceivingState.IsSimultaneous)
-                PlaySoundEffectEndReceive(lastModulation);
-            }
         }
         
         var monoBuffer = new float[monoCount];
 
         // #FIXME: Should copy into mixBuffer, and use that throughout as our primary mixdown here.
-        var monoOffset = HandleStartEndTones(monoBuffer, 0, monoCount);
+        var monoOffset = HandleStartEndTones(hasIncomingAudio || availableInBuffer > 0, ky58Tone, monoBuffer, 0, monoCount);
 
         // Drain current.
         var toRead = Math.Min(monoCount - monoOffset, availableInBuffer);
@@ -174,13 +150,14 @@ public class RadioMixingProvider : ISampleProvider
         if (hasIncomingAudio)
         {
             // Need to be able to hold whatever is left over + incoming audio.
-            var totalSize = availableInBuffer + Math.Max(longestMainLength, longestSecondaryLength);
+            var longestTransmissionLength = Math.Max(longestMainLength, longestSecondaryLength);
+            var totalSize = availableInBuffer + longestTransmissionLength;
             if (mixBuffer == null || mixBuffer.Length < totalSize)
             {
                 Array.Resize(ref mixBuffer, totalSize);
             }
 
-            var targetSpan = mixBuffer.AsSpan(availableInBuffer);
+            var targetSpan = mixBuffer.AsSpan(availableInBuffer, longestTransmissionLength);
             targetSpan.Clear();
             var primarySamples = 0;
             if (mainAudio.Count > 0)
@@ -188,8 +165,6 @@ public class RadioMixingProvider : ISampleProvider
                 //targetSpan.Slice(0, longestMainLength).Clear();
                 pipeline.ProcessClientTransmissions(mixBuffer, availableInBuffer, mainAudio, out primarySamples);
             }
-
-            
 
             //handle guard
             if (secondaryAudio.Count > 0)
@@ -203,8 +178,8 @@ public class RadioMixingProvider : ISampleProvider
             }
 
             //now clip all mixing
-            AudioManipulationHelper.ClipArray(targetSpan.Slice(0, Math.Max(longestMainLength, longestSecondaryLength)));
-            availableInBuffer += Math.Max(longestMainLength, longestSecondaryLength);
+            AudioManipulationHelper.ClipArray(targetSpan);
+            availableInBuffer += targetSpan.Length;
 
             // Drain newly queued audio.
             toRead = Math.Min(monoCount - monoOffset, availableInBuffer);
@@ -273,8 +248,29 @@ public class RadioMixingProvider : ISampleProvider
         }
     }
 
-    private int HandleStartEndTones(float[] buffer, int offset, int count)
+    private int HandleStartEndTones(bool isActive, bool encryption, float[] buffer, int offset, int count)
     {
+        if (isActive ^ IsReceiving)
+        {
+            // State change.
+            if (isActive)
+            {
+                // Start
+                effectsBuffer.Reset(); // In case we were playing the end tone, cut it short.
+                PlaySoundEffectStartReceive(encryption, lastModulation);
+                IsReceiving = true;
+            }
+            else if (IsEndOfTransmission)
+            {
+                IsReceiving = false;
+                // end.
+                //TODO not sure about simultaneous
+                //We used to have this logic https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/cd8fcbf7e2b2fafcf30875fc958276e3083e0ebb/DCS-SR-Client/Network/UDPVoiceHandler.cs#L135
+                //if (!radioReceivingState.IsSimultaneous)
+                PlaySoundEffectEndReceive(lastModulation);
+            }
+        }
+
         //read
         var outputSamples = Math.Min(effectsBuffer.Count, count);
         if (outputSamples > 0)
