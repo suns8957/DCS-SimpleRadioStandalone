@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
@@ -15,6 +16,7 @@ public class RadioMixingProvider : ISampleProvider
     private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
 
     private readonly CachedAudioEffectProvider _cachedAudioEffectsProvider;
+    private List<float[]> buffers = new();
     private readonly List<DeJitteredTransmission> _mainAudio = new();
     private readonly List<DeJitteredTransmission> _secondaryAudio = new();
 
@@ -64,7 +66,7 @@ public class RadioMixingProvider : ISampleProvider
     /// </summary>
     public IEnumerable<ClientAudioProvider> MixerInputs => sources;
 
-    public bool IsEndOfTransmission => DateTime.Now.Ticks - lastReceivedAt < 3500000;
+    public bool IsEndOfTransmission => TimeSpan.FromTicks(DateTime.Now.Ticks - lastReceivedAt).TotalMilliseconds < 350;
 
     /// <summary>
     ///     The output WaveFormat of this sample provider
@@ -88,8 +90,8 @@ public class RadioMixingProvider : ISampleProvider
         mixBuffer = BufferHelpers.Ensure(mixBuffer, count);
         secondaryMixBuffer = BufferHelpers.Ensure(secondaryMixBuffer, count);
 
-        ClearArray(mixBuffer);
-        ClearArray(secondaryMixBuffer);
+        Array.Clear(mixBuffer);
+        Array.Clear(secondaryMixBuffer);
 
         var ky58Tone = false;
 
@@ -190,13 +192,6 @@ public class RadioMixingProvider : ISampleProvider
         {
             sources.Clear();
         }
-    }
-
-    public float[] ClearArray(float[] buffer)
-    {
-        for (var i = 0; i < buffer.Length; i++) buffer[i] = 0;
-
-        return buffer;
     }
 
     private float[] HandleStartEndTones(float[] mixBuffer, int count, bool transmisson,
