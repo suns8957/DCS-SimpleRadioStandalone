@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
+﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
+using NAudio.SoundFont;
 using NAudio.Utils;
 using NAudio.Wave;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
@@ -16,10 +17,6 @@ public class RadioMixingProvider : ISampleProvider
     private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
 
     private readonly CachedAudioEffectProvider _cachedAudioEffectsProvider;
-    private List<float[]> buffers = new();
-    private readonly List<DeJitteredTransmission> _mainAudio = new();
-    private readonly List<DeJitteredTransmission> _secondaryAudio = new();
-
     private readonly CircularFloatBuffer effectsBuffer;
 
 
@@ -31,17 +28,13 @@ public class RadioMixingProvider : ISampleProvider
     private readonly int radioId;
     private readonly List<ClientAudioProvider> sources;
 
-
-    // put these in a struct? 
-    private bool hasPlayedTransmissionEnd = true;
-    private bool hasPlayedTransmissionStart;
-
     private Modulation lastModulation = Modulation.DISABLED;
     private long lastReceivedAt;
+    private bool IsReceiving { get; set; } = false;
     private float lastVolume = 1;
 
     private float[] mixBuffer;
-    private float[] secondaryMixBuffer;
+    private int availableInBuffer = 0;
 
     //  private readonly WaveFileWriter waveWriter;
     public RadioMixingProvider(WaveFormat waveFormat, int radioId)
@@ -66,7 +59,7 @@ public class RadioMixingProvider : ISampleProvider
     /// </summary>
     public IEnumerable<ClientAudioProvider> MixerInputs => sources;
 
-    public bool IsEndOfTransmission => TimeSpan.FromTicks(DateTime.Now.Ticks - lastReceivedAt).TotalMilliseconds < 350;
+    public bool IsEndOfTransmission => TimeSpan.FromTicks(DateTime.Now.Ticks - lastReceivedAt).TotalMilliseconds > 350;
 
     /// <summary>
     ///     The output WaveFormat of this sample provider
@@ -82,19 +75,18 @@ public class RadioMixingProvider : ISampleProvider
     /// <returns>Number of samples read</returns>
     public int Read(float[] buffer, int offset, int count)
     {
-        _mainAudio.Clear();
-        _secondaryAudio.Clear();
-        var primarySamples = 0;
-        var secondarySamples = 0;
+        // If we were receiving, we played the start tone.
+        var wasReceiving = availableInBuffer > 0;
 
-        mixBuffer = BufferHelpers.Ensure(mixBuffer, count);
-        secondaryMixBuffer = BufferHelpers.Ensure(secondaryMixBuffer, count);
+        // Accumulate in local mono buffer before switching to stereo.
+        var monoCount = count / 2;
+        List<DeJitteredTransmission> mainAudio = new();
+        List<DeJitteredTransmission> secondaryAudio = new();
 
-        Array.Clear(mixBuffer);
-        Array.Clear(secondaryMixBuffer);
-
+        // Update sources by queueing incoming audio.
         var ky58Tone = false;
-
+        var longestMainLength = 0;
+        var longestSecondaryLength = 0;
         lock (sources)
         {
             var index = sources.Count - 1;
@@ -103,62 +95,149 @@ public class RadioMixingProvider : ISampleProvider
                 var source = sources[index];
 
                 //ask for count/2 as the source is MONO but the request for this is STEREO
-                var transmission = source.JitterBufferProviderInterface[radioId].Read(count / 2);
+                var transmission = source.JitterBufferProviderInterface[radioId].Read(monoCount);
 
                 if (transmission.PCMAudioLength > 0)
                 {
-                    if (transmission.IsSecondary)
-                        _secondaryAudio.Add(transmission);
+                    if (!transmission.IsSecondary)
+                    {
+                        mainAudio.Add(transmission);
+                        longestMainLength = Math.Max(longestMainLength, transmission.PCMAudioLength);
+
+                    } 
                     else
-                        _mainAudio.Add(transmission);
+                    {
+                        secondaryAudio.Add(transmission);
+                        longestSecondaryLength = Math.Max(longestSecondaryLength, transmission.PCMAudioLength);
+                    }
+                        
 
                     if (transmission.Decryptable && transmission.Encryption > 0) ky58Tone = true;
 
                     lastModulation = transmission.Modulation;
                     lastVolume = transmission.Volume;
+
+                    
                 }
 
                 index--;
             }
         }
 
+        var hasIncomingAudio = mainAudio.Count > 0 || secondaryAudio.Count > 0;
         //copy to the recording service - as we have everything we need to know about the audio
         //at this point
-        if (_mainAudio.Count > 0 || _secondaryAudio.Count > 0)
+        if (hasIncomingAudio)
         {
+            if (!IsReceiving)
+            {
+                // Start
+                effectsBuffer.Reset(); // In case we were playing the end tone, cut it short.
+                PlaySoundEffectStartReceive(ky58Tone, lastModulation);
+                IsReceiving = true;
+            }
+
             lastReceivedAt = DateTime.Now.Ticks;
-            hasPlayedTransmissionEnd = false;
-            _audioRecordingManager.AppendClientAudio(_mainAudio, _secondaryAudio, radioId);
+            _audioRecordingManager.AppendClientAudio(mainAudio, secondaryAudio, radioId);
         }
 
-        if (_mainAudio.Count > 0)
-            mixBuffer = pipeline.ProcessClientTransmissions(mixBuffer, _mainAudio, out primarySamples);
+        if (IsReceiving)
+        {
+            if (!hasIncomingAudio && availableInBuffer == 0 && IsEndOfTransmission)
+            {
+                IsReceiving = false;
+                // end.
+                //TODO not sure about simultaneous
+                //We used to have this logic https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/cd8fcbf7e2b2fafcf30875fc958276e3083e0ebb/DCS-SR-Client/Network/UDPVoiceHandler.cs#L135
+                //if (!radioReceivingState.IsSimultaneous)
+                PlaySoundEffectEndReceive(lastModulation);
+            }
+        }
+        
+        var monoBuffer = new float[monoCount];
 
-        //handle guard
-        if (_secondaryAudio.Count > 0)
-            secondaryMixBuffer =
-                pipeline.ProcessClientTransmissions(secondaryMixBuffer, _secondaryAudio, out secondarySamples);
+        // #FIXME: Should copy into mixBuffer, and use that throughout as our primary mixdown here.
+        var monoOffset = HandleStartEndTones(monoBuffer, 0, monoCount);
 
-        //reuse mix buffer
-        mixBuffer = AudioManipulationHelper.MixArraysNoClipping(mixBuffer, primarySamples, secondaryMixBuffer,
-            secondarySamples, out var outputSamples);
+        // Drain current.
+        var toRead = Math.Min(monoCount - monoOffset, availableInBuffer);
+        if (toRead > 0)
+        {
+            Array.Copy(mixBuffer, 0, monoBuffer, monoOffset, toRead);
+            availableInBuffer -= toRead;
+            // Shift elements so that the data available is always at the beginning.
+            Array.Copy(mixBuffer, toRead, mixBuffer, 0, availableInBuffer);
+            monoOffset += toRead;
+        }
 
-        //Now mix in start and end tones, Beeps etc
-        mixBuffer = HandleStartEndTones(mixBuffer, count / 2, _mainAudio.Count > 0 || _secondaryAudio.Count > 0,
-            lastModulation, ky58Tone, out var effectOutputSamples); //divide by 2 as we're not yet in stereo
+        // Queue new audio (if any).
+        if (hasIncomingAudio)
+        {
+            // Need to be able to hold whatever is left over + incoming audio.
+            var totalSize = availableInBuffer + Math.Max(longestMainLength, longestSecondaryLength);
+            if (mixBuffer == null || mixBuffer.Length < totalSize)
+            {
+                Array.Resize(ref mixBuffer, totalSize);
+            }
 
-        //now clip post all mixing
-        mixBuffer = AudioManipulationHelper.ClipArray(mixBuffer, count / 2);
+            var targetSpan = mixBuffer.AsSpan(availableInBuffer);
+            targetSpan.Clear();
+            var primarySamples = 0;
+            if (mainAudio.Count > 0)
+            {
+                //targetSpan.Slice(0, longestMainLength).Clear();
+                pipeline.ProcessClientTransmissions(mixBuffer, availableInBuffer, mainAudio, out primarySamples);
+            }
 
-        //figure out number of samples to return
-        outputSamples = Math.Max(outputSamples, effectOutputSamples);
+            
 
-        buffer = SeparateAudio(mixBuffer, outputSamples, 0, buffer, offset, radioId);
+            //handle guard
+            if (secondaryAudio.Count > 0)
+            {
+                var secondarySamples = 0;
+                var secondaryMixBuffer = new float[longestSecondaryLength];
+                pipeline.ProcessClientTransmissions(secondaryMixBuffer, 0, secondaryAudio, out secondarySamples);
 
-        //we're now stereo - double the samples
-        outputSamples = outputSamples * 2;
+                // Mix with primary.
+                AudioManipulationHelper.MixArraysNoClipping(secondaryMixBuffer.AsSpan(0, secondarySamples), targetSpan);
+            }
 
-        return EnsureFullBuffer(buffer, outputSamples, offset, count);
+            //now clip all mixing
+            AudioManipulationHelper.ClipArray(targetSpan.Slice(0, Math.Max(longestMainLength, longestSecondaryLength)));
+            availableInBuffer += Math.Max(longestMainLength, longestSecondaryLength);
+
+            // Drain newly queued audio.
+            toRead = Math.Min(monoCount - monoOffset, availableInBuffer);
+            if (toRead > 0)
+            {
+                Array.Copy(mixBuffer, 0, monoBuffer, monoOffset, toRead);
+                availableInBuffer -= toRead;
+                // Shift elements so that the data available is always at the beginning.
+                Array.Copy(mixBuffer, toRead, mixBuffer, 0, availableInBuffer);
+
+                monoOffset += toRead;
+            }
+        }
+
+        // Did we consume everything? Make sure we don't keep a buffer too big.
+        if (mixBuffer != null && availableInBuffer == 0)
+        {
+            if (mixBuffer.Length > Constants.OUTPUT_SEGMENT_FRAMES)
+            {
+                Array.Resize(ref mixBuffer, Constants.OUTPUT_SEGMENT_FRAMES);
+            }
+        }
+
+
+        if (monoOffset > 0)
+        {
+             // We have available data, make it stereo and copy to target.
+            SeparateAudio(monoBuffer, 0, monoOffset, buffer, offset, radioId);
+        }
+       
+
+
+        return monoOffset * 2; // double because of mono -> stereo.
     }
 
     /// <summary>
@@ -194,45 +273,16 @@ public class RadioMixingProvider : ISampleProvider
         }
     }
 
-    private float[] HandleStartEndTones(float[] mixBuffer, int count, bool transmisson,
-        Modulation modulation, bool encryption, out int outputSamples)
+    private int HandleStartEndTones(float[] buffer, int offset, int count)
     {
-        //enqueue
-        if (transmisson && !hasPlayedTransmissionStart)
-        {
-            hasPlayedTransmissionStart = true;
-            hasPlayedTransmissionEnd = false;
-
-            PlaySoundEffectStartReceive(encryption, modulation);
-        }
-        else if (!transmisson && !hasPlayedTransmissionEnd && IsEndOfTransmission)
-        {
-            hasPlayedTransmissionStart = false;
-            hasPlayedTransmissionEnd = true;
-
-            //TODO not sure about simultaneous
-            //We used to have this logic https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/cd8fcbf7e2b2fafcf30875fc958276e3083e0ebb/DCS-SR-Client/Network/UDPVoiceHandler.cs#L135
-            //if (!radioReceivingState.IsSimultaneous)
-            PlaySoundEffectEndReceive(modulation);
-        }
-
         //read
-        if (effectsBuffer.Count > 0)
+        var outputSamples = Math.Min(effectsBuffer.Count, count);
+        if (outputSamples > 0)
         {
-            var tempBuffer = new float[count];
-
-            effectsBuffer.Read(tempBuffer, 0, count);
-
-            for (var i = 0; i < count; i++) mixBuffer[i] += tempBuffer[i] * lastVolume;
-            /// should we clip here?
-            outputSamples = count;
-        }
-        else
-        {
-            outputSamples = 0;
+            effectsBuffer.Read(buffer, offset, outputSamples);
         }
 
-        return mixBuffer;
+        return outputSamples;
     }
 
     private void PlaySoundEffectEndReceive(Modulation modulation)
@@ -348,65 +398,75 @@ public class RadioMixingProvider : ISampleProvider
     }
 
 
-    public float[] SeparateAudio(float[] srcFloat, int srcCount, int srcOffset, float[] dstFloat, int dstOffset,
+    public void SeparateAudio(float[] srcFloat, int srcOffset, int srcCount, float[] dstFloat, int dstOffset,
         int radioId)
     {
-        var settingType = ProfileSettingsKeys.Radio1Channel;
-
-        if (radioId == 0)
-            settingType = ProfileSettingsKeys.IntercomChannel;
-        else if (radioId == 1)
-            settingType = ProfileSettingsKeys.Radio1Channel;
-        else if (radioId == 2)
-            settingType = ProfileSettingsKeys.Radio2Channel;
-        else if (radioId == 3)
-            settingType = ProfileSettingsKeys.Radio3Channel;
-        else if (radioId == 4)
-            settingType = ProfileSettingsKeys.Radio4Channel;
-        else if (radioId == 5)
-            settingType = ProfileSettingsKeys.Radio5Channel;
-        else if (radioId == 6)
-            settingType = ProfileSettingsKeys.Radio6Channel;
-        else if (radioId == 7)
-            settingType = ProfileSettingsKeys.Radio7Channel;
-        else if (radioId == 8)
-            settingType = ProfileSettingsKeys.Radio8Channel;
-        else if (radioId == 9)
-            settingType = ProfileSettingsKeys.Radio9Channel;
-        else if (radioId == 10)
-            settingType = ProfileSettingsKeys.Radio10Channel;
-        else
-            return CreateBalancedMix(srcFloat, srcCount, srcOffset, dstFloat, dstOffset, 0);
-
-        float balance = 0;
-        try
+        ProfileSettingsKeys? settingType = null;
+        switch (radioId)
         {
-            balance = profileSettings.GetClientSettingFloat(settingType);
-        }
-        catch (Exception)
+            case 0:
+                settingType = ProfileSettingsKeys.IntercomChannel;
+                break;
+            case 1:
+                settingType = ProfileSettingsKeys.Radio1Channel;
+                break;
+            case 2:
+                settingType = ProfileSettingsKeys.Radio2Channel;
+                break;
+            case 3:
+                settingType = ProfileSettingsKeys.Radio3Channel;
+                break;
+            case 4:
+                settingType = ProfileSettingsKeys.Radio4Channel;
+                break;
+            case 5:
+                settingType = ProfileSettingsKeys.Radio5Channel;
+                break;
+            case 6:
+                settingType = ProfileSettingsKeys.Radio6Channel;
+                break;
+            case 7:
+                settingType = ProfileSettingsKeys.Radio7Channel;
+                break;
+            case 8:
+                settingType = ProfileSettingsKeys.Radio8Channel;
+                break;
+            case 9:
+                settingType = ProfileSettingsKeys.Radio9Channel;
+                break;
+            case 10:
+                settingType = ProfileSettingsKeys.Radio10Channel;
+                break;
+        };
+
+        float balance = 0f;
+        if (settingType.HasValue)
         {
-            //ignore
+            try
+            {
+                balance = profileSettings.GetClientSettingFloat(settingType.Value);
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
         }
 
-        return CreateBalancedMix(srcFloat, srcCount, srcOffset, dstFloat, dstOffset, balance);
+        CreateBalancedMix(srcFloat, srcOffset, srcCount, dstFloat, dstOffset, balance);
     }
 
-    public static float[] CreateBalancedMix(float[] srcFloat, int srcCount, int srcOffset, float[] dstFloat,
+    public static void CreateBalancedMix(float[] srcFloat, int srcOffset, int srcCount, float[] dstFloat,
         int dstOffset, float balance)
     {
         var left = (1.0f - balance) / 2.0f;
         var right = 1.0f - left;
 
         //temp set of mono floats
-        var monoBufferPosition = 0;
-        for (var i = 0; i < srcCount * 2; i += 2)
+        for (var i = 0; i < srcCount; ++i)
         {
-            dstFloat[i + dstOffset] = srcFloat[monoBufferPosition + srcOffset] * left;
-            dstFloat[i + dstOffset + 1] = srcFloat[monoBufferPosition + srcOffset] * right;
-            monoBufferPosition++;
+            dstFloat[dstOffset + 2 * i] = srcFloat[srcOffset + i] * left;
+            dstFloat[dstOffset + 2 * i + 1] = srcFloat[srcOffset + i] * right;
         }
-
-        return dstFloat;
     }
 
     private int EnsureFullBuffer(float[] buffer, int samplesCount, int offset, int count)
