@@ -129,7 +129,11 @@ public class RadioMixingProvider : ISampleProvider
             lastReceivedAt = DateTime.Now.Ticks;
             _audioRecordingManager.AppendClientAudio(mainAudio, secondaryAudio, radioId);
         }
-        
+        else if (!IsEndOfTransmission)
+        {
+            // #TODO: Generate a dejiterred transmission silence, to go through the radio pipeline?
+        }
+
         var monoBuffer = new float[monoCount];
 
         // #FIXME: Should copy into mixBuffer, and use that throughout as our primary mixdown here.
