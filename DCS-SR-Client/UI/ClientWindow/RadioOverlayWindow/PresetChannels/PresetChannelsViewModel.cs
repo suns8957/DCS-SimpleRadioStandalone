@@ -145,11 +145,11 @@ public class PresetChannelsViewModel : INotifyPropertyChanged, IHandle<ProfileCh
                 //frequency is calculated off the channel for mids
                 var midsChannel = (int)channel.Frequency;
 
-                if (midsChannel is > 0 and < 126)
+                if (midsChannel is > 0 and < 127)
                 {
                     presetChannelServerList.Add( new PresetChannel()
                     {
-                        Value = (double) midsChannel * FilePresetChannelsStore.MHz + FilePresetChannelsStore.MidsOffsetMHz,
+                        Value = (double) midsChannel * (FilePresetChannelsStore.MHz/10) + FilePresetChannelsStore.MidsOffsetMHz,
                         Text = channel.Name,
                         MidsChannel = midsChannel
                     });
@@ -215,13 +215,13 @@ public class PresetChannelsViewModel : INotifyPropertyChanged, IHandle<ProfileCh
         {
             if (PresetChannels.Count == 0)
             {
-                for (var chn = 1; chn < 126; chn++)
+                for (var chn = 1; chn < 127; chn++)
                     PresetChannels.Add(new PresetChannel
                     {
                         MidsChannel = chn,
                         Channel = chn,
                         Text = "MIDS " + chn,
-                        Value = (double) (chn * FilePresetChannelsStore.MHz + FilePresetChannelsStore.MidsOffsetMHz)
+                        Value = (double) (chn * (FilePresetChannelsStore.MHz/10) + FilePresetChannelsStore.MidsOffsetMHz)
                     });
             }
         }
