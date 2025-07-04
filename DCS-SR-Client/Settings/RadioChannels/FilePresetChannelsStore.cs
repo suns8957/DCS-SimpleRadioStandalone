@@ -136,11 +136,11 @@ public partial class FilePresetChannelsStore : IPresetChannelsStore
                             midsChannel = int.Parse(trimmed, CultureInfo.InvariantCulture);
                         }
 
-                        if (midsChannel > 0 && midsChannel < 126)
+                        if (midsChannel > 0 && midsChannel < 127)
                             channels.Add(new PresetChannel
                             {
                                 Text = name,
-                                Value = midsChannel * MHz + MidsOffsetMHz,
+                                Value = midsChannel * MHz / 10 + MidsOffsetMHz,
                                 MidsChannel = midsChannel
                             });
                     }
