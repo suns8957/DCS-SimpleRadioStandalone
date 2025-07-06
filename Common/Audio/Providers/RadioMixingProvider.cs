@@ -29,7 +29,6 @@ public class RadioMixingProvider : ISampleProvider
     private readonly List<ClientAudioProvider> sources;
 
     private Modulation lastModulation = Modulation.DISABLED;
-    private long lastReceivedAt;
     private bool IsReceiving { get; set; } = false;
     private float lastVolume = 1;
 
@@ -58,8 +57,6 @@ public class RadioMixingProvider : ISampleProvider
     ///     Returns the mixer inputs (read-only - use AddMixerInput to add an input
     /// </summary>
     public IEnumerable<ClientAudioProvider> MixerInputs => sources;
-
-    public bool IsEndOfTransmission => TimeSpan.FromTicks(DateTime.Now.Ticks - lastReceivedAt).TotalMilliseconds > 350;
 
     /// <summary>
     ///     The output WaveFormat of this sample provider
@@ -136,12 +133,7 @@ public class RadioMixingProvider : ISampleProvider
             //at this point
             if (hasIncomingAudio)
             {
-                lastReceivedAt = DateTime.Now.Ticks;
                 _audioRecordingManager.AppendClientAudio(mainAudio, secondaryAudio, radioId);
-            }
-            else if (!IsEndOfTransmission)
-            {
-                // #TODO: Generate a dejiterred transmission silence, to go through the radio pipeline?
             }
 
             // #FIXME: Should copy into mixBuffer, and use that throughout as our primary mixdown here.
@@ -250,7 +242,7 @@ public class RadioMixingProvider : ISampleProvider
                 PlaySoundEffectStartReceive(encryption, lastModulation);
                 IsReceiving = true;
             }
-            else if (IsEndOfTransmission)
+            else
             {
                 IsReceiving = false;
                 // end.
