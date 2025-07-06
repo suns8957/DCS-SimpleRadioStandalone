@@ -34,7 +34,7 @@ public abstract class AudioProvider
         //400 ms since last update
         var now = DateTime.Now.Ticks;
 
-        return TimeSpan.FromTicks(now - LastUpdate) > TimeSpan.FromMilliseconds(400);
+        return TimeSpan.FromTicks(now - LastUpdate) > JitterBufferProviderInterface.JITTER_MS;
     }
 
     public abstract JitterBufferAudio AddClientAudioSamples(ClientAudio audio);

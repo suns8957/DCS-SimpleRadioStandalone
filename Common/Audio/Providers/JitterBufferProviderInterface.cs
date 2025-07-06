@@ -10,9 +10,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
 public class JitterBufferProviderInterface
 {
+
     public static readonly int MAXIMUM_BUFFER_SIZE_MS = 2500;
+    public static readonly TimeSpan JITTER_MS = TimeSpan.FromMilliseconds(400);
 
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    
 
     private readonly LinkedList<JitterBufferAudio> _bufferedAudio = new();
     private readonly CircularFloatBuffer _circularBuffer;
@@ -22,6 +25,7 @@ public class JitterBufferProviderInterface
     private readonly float[] _silence = new float[Constants.OUTPUT_SEGMENT_FRAMES];
 
     private ulong _lastRead; // gives current index - unsigned as it'll loops eventually
+    private long _lastPacketTicks = 0;
 
     //  private const int INITIAL_DELAY_MS = 200;
     //   private long _delayedUntil = -1; //holds audio for a period of time
@@ -44,7 +48,8 @@ public class JitterBufferProviderInterface
     public DeJitteredTransmission Read(int count)
     {
         //  int now = Environment.TickCount;
-
+        var now = DateTime.Now.Ticks;
+        var timeSinceLastDequeue = TimeSpan.FromTicks(now - _lastPacketTicks);
         returnBuffer = BufferHelpers.Ensure(returnBuffer, count);
 
         //other implementation of waiting
@@ -70,61 +75,73 @@ public class JitterBufferProviderInterface
 
                 if (read < count)
                 {
-                    //now read in from the jitterbuffer
-                    if (_bufferedAudio.Count == 0)
-                        //goes to a mixer so we just return what we've read which could be 0!
-                        //Mixer Handles this OK
-                        break;
-                    //
-                    // zero the end of the buffer
-                    //      Array.Clear(buffer, offset + read, count - read);
-                    //     read = count;
-                    //  Console.WriteLine("Buffer Empty");
-                    var audio = _bufferedAudio.First.Value;
-                    //no Pop?
-                    _bufferedAudio.RemoveFirst();
+                    if (_bufferedAudio.Count > 0)
+                    {
+                        //
+                        // zero the end of the buffer
+                        //      Array.Clear(buffer, offset + read, count - read);
+                        //     read = count;
+                        //  Console.WriteLine("Buffer Empty");
+                        var audio = _bufferedAudio.First.Value;
+                        //no Pop?
+                        _bufferedAudio.RemoveFirst();
 
-                    lastTransmission = new DeJitteredTransmission
-                    {
-                        Modulation = audio.Modulation,
-                        Frequency = audio.Frequency,
-                        Decryptable = audio.Decryptable,
-                        IsSecondary = audio.IsSecondary,
-                        ReceivedRadio = audio.ReceivedRadio,
-                        Volume = audio.Volume,
-                        NoAudioEffects = audio.NoAudioEffects,
-                        Guid = audio.Guid,
-                        OriginalClientGuid = audio.OriginalClientGuid,
-                        Encryption = audio.Encryption
-                    };
-
-                    if (_lastRead == 0)
-                    {
-                        _lastRead = audio.PacketNumber;
-                    }
-                    else
-                    {
-                        //TODO deal with looping packet number
-                        if (_lastRead + 1 < audio.PacketNumber)
+                        lastTransmission = new DeJitteredTransmission
                         {
-                            //fill with missing silence - will only add max of 5x Packet length but it could be a bunch of missing?
-                            var missing = audio.PacketNumber - (_lastRead + 1);
+                            Modulation = audio.Modulation,
+                            Frequency = audio.Frequency,
+                            Decryptable = audio.Decryptable,
+                            IsSecondary = audio.IsSecondary,
+                            ReceivedRadio = audio.ReceivedRadio,
+                            Volume = audio.Volume,
+                            NoAudioEffects = audio.NoAudioEffects,
+                            Guid = audio.Guid,
+                            OriginalClientGuid = audio.OriginalClientGuid,
+                            Encryption = audio.Encryption
+                        };
 
-                            // packet number is always discontinuous at the start of a transmission if you didnt receive a transmission for a while i.e different radio channel
-                            // if the gap is more than 4 assume its just a new transmission
-
-                            if (missing <= 4)
+                        if (_lastRead > 0)
+                        {
+                            //TODO deal with looping packet number
+                            if (_lastRead + 1 < audio.PacketNumber)
                             {
-                                var fill = Math.Min(missing, 4);
+                                //fill with missing silence - will only add max of 5x Packet length but it could be a bunch of missing?
+                                var missing = audio.PacketNumber - (_lastRead + 1);
 
-                                for (var i = 0; i < (int)fill; i++) _circularBuffer.Write(_silence, 0, _silence.Length);
+                                // packet number is always discontinuous at the start of a transmission if you didnt receive a transmission for a while i.e different radio channel
+                                // if the gap is more than 4 assume its just a new transmission
+
+                                if (missing <= 4)
+                                {
+                                    var fill = Math.Min(missing, 4);
+
+                                    for (var i = 0; i < (int)fill; i++) _circularBuffer.Write(_silence, 0, _silence.Length);
+                                }
                             }
                         }
 
                         _lastRead = audio.PacketNumber;
+                        _circularBuffer.Write(audio.Audio, 0, audio.Audio.Length);
+                        _lastPacketTicks = now;
                     }
+                    else if (timeSinceLastDequeue < JITTER_MS)
+                    {
+                        // Starvation.
+                        // When that happens, allow for 400ms over,
+                        // giving some buffer for new packets to arrive.
+                        // Latency can be high, given the packets have to go first to the server
+                        // then to the clients.
+                        // If two clients have about 80ms ping to the server, there's already a 160ms
+                        // transmission delay between the two.
+                        _circularBuffer.Write(_silence, 0, Math.Min(count - read, _silence.Length));
 
-                    _circularBuffer.Write(audio.Audio, 0, audio.Audio.Length);
+                    }
+                    else
+                    {
+                        // Full starvation, early out.
+                        break;
+                    }
+                    
                 }
             } while (read < count);
 
