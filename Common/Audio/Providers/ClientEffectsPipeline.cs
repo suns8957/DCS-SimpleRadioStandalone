@@ -190,7 +190,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        public float[] ProcessClientTransmissions(float[] tempBuffer, List<DeJitteredTransmission> transmissions, out int clientTransmissionLength)
+        public void ProcessClientTransmissions(float[] tempBuffer, int offset, List<DeJitteredTransmission> transmissions, out int clientTransmissionLength)
         {
             RefreshSettings();
             DeJitteredTransmission lastTransmission = transmissions[0];
@@ -209,42 +209,36 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 int index = _random.Next(transmissions.Count);
                 var transmission = transmissions[index];
 
-                clientTransmissionLength = transmission.PCMMonoAudio.Length;
-                Array.Copy(transmission.PCMMonoAudio, tempBuffer, clientTransmissionLength);
-                tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, transmission);
+                clientTransmissionLength = transmission.PCMAudioLength;
+                ProcessClientAudioSamples(transmission.PCMMonoAudio, 0, transmission.PCMAudioLength, transmission);
+                for (int i = 0; i < transmission.PCMAudioLength; i++)
+                {
+                    tempBuffer[offset + i] += transmission.PCMMonoAudio[i];
+                }
             }
             else
             {
                 // Everything else should mix (either datalink/satcom type radios, or AM).
 
                 // #TODO: Could trade memory for time and process in parallel, then merge in the destination buffer.
-                float[] transmissionBuffer = new float[lastTransmission.PCMAudioLength];
                 foreach (var transmission in transmissions)
                 {
-                    if (transmissionBuffer.Length < transmission.PCMAudioLength)
-                    {
-                        transmissionBuffer = new float[transmission.PCMAudioLength];
-                    }
-                    Array.Copy(transmission.PCMMonoAudio, transmissionBuffer, transmission.PCMAudioLength);
-
                     if (!transmission.NoAudioEffects)
                     {
-                        transmissionBuffer = ProcessClientAudioSamples(transmissionBuffer, transmission.PCMAudioLength, 0, transmission);
+                        ProcessClientAudioSamples(transmission.PCMMonoAudio, 0, transmission.PCMAudioLength, transmission);
                     }
 
                     for (int i = 0; i < transmission.PCMAudioLength; i++)
                     {
-                        tempBuffer[i] += transmissionBuffer[i];
+                        tempBuffer[offset + i] += transmission.PCMMonoAudio[i];
                     }
 
                     clientTransmissionLength = Math.Max(clientTransmissionLength, transmission.PCMAudioLength);
                 }
             }
-
-            return tempBuffer;
         }
 
-        public float[] ProcessClientAudioSamples(float[] buffer, int count, int offset, DeJitteredTransmission transmission)
+        public void ProcessClientAudioSamples(float[] buffer, int offset, int count, DeJitteredTransmission transmission)
         {
             var transmissionDetails = new TransmissionInfo
             {
@@ -296,7 +290,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
 
             transmissionProvider.Read(buffer, offset, count);
-            return buffer;
         }
 
         private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, TransmissionInfo details)

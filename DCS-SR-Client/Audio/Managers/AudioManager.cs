@@ -390,7 +390,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                 //process audio
                                 _clientEffectsPipeline.ProcessClientAudioSamples(
                                     jitterBufferAudio.Audio,
-                                    jitterBufferAudio.Audio.Length, 0, deJittered);
+                                    0, jitterBufferAudio.Audio.Length, deJittered);
 
                                 if (_micWaveOut != null)
                                 {
