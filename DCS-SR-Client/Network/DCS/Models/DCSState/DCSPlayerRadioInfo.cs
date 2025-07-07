@@ -143,7 +143,7 @@ public class DCSPlayerRadioInfo
         return true;
     }
 
-    public override int GetHashCode() => (control, name, unit, unitId, inAircraft, iff, ambient, radios).GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(control, name, unit, unitId, inAircraft, iff, ambient, radios);
 
 
     /*
