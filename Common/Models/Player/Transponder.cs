@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
@@ -61,6 +62,8 @@ public class Transponder
 
         return true;
     }
+
+    public override int GetHashCode() => HashCode.Combine(mode1, mode2, mode3, mode4, status);
 
     public Transponder Copy()
     {
