@@ -1,4 +1,6 @@
-﻿namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
+﻿using System;
+
+namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 
 public class Ambient
 {
@@ -19,6 +21,9 @@ public class Ambient
 
         return true;
     }
+
+    // https://stackoverflow.com/a/61730200
+    public override int GetHashCode() => HashCode.Combine(vol, abType);
 
     public Ambient Copy()
     {

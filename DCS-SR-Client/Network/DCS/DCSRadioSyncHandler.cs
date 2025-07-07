@@ -3,6 +3,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
@@ -17,7 +19,6 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
-using Newtonsoft.Json;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -111,7 +112,7 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                         bytes, 0, bytes.Length).Trim();
 
                     var message =
-                        JsonConvert.DeserializeObject<DCSPlayerRadioInfo>(str);
+                        JsonSerializer.Deserialize<DCSPlayerRadioInfo>(str, new JsonSerializerOptions() { IncludeFields = true });
 
                     Logger.Debug($"Recevied Message from DCS {str}");
 
@@ -168,7 +169,7 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
 
         if (update
             || _clientStateSingleton.LastSent < 1
-            || diff.TotalSeconds > 60)
+            || diff.TotalSeconds > RADIO_UPDATE_PING_INTERVAL)
         {
             Logger.Debug("Sending Radio Info To Server - Update");
             _clientStateSingleton.LastSent = DateTime.Now.Ticks;
@@ -223,10 +224,15 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                 TunedClients = tunedClients
             };
 
-            var message = JsonConvert.SerializeObject(combinedState, new JsonSerializerSettings
+            var message = JsonSerializer.Serialize(combinedState, new JsonSerializerOptions()
             {
+
                 //   NullValueHandling = NullValueHandling.Ignore,
-                ContractResolver = new JsonDCSPropertiesResolver()
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+                {
+                    Modifiers = { JsonDCSPropertiesResolver.StripDCSIgnored },
+                },
+                IncludeFields = true,
             }) + "\n";
 
             var byteData =
@@ -620,7 +626,11 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                 try
                 {
                     radioJson = File.ReadAllText(customAwacsRadiosFile);
-                    awacsRadios = JsonConvert.DeserializeObject<DCSRadio[]>(radioJson);
+                    awacsRadios = JsonSerializer.Deserialize<DCSRadio[]>(radioJson, new JsonSerializerOptions()
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        IncludeFields = true,
+                    });
 
                     foreach (var radio in awacsRadios)
                         if (radio.modulation == Modulation.MIDS)
@@ -645,7 +655,11 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
             if (awacsRadios == null)
             {
                 radioJson = File.ReadAllText(awacsRadiosFile);
-                awacsRadios = JsonConvert.DeserializeObject<DCSRadio[]>(radioJson);
+                awacsRadios = JsonSerializer.Deserialize<DCSRadio[]>(radioJson, new JsonSerializerOptions()
+                {
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true,
+                });
 
                 foreach (var radio in awacsRadios)
                     if (radio.modulation == Modulation.MIDS)

@@ -78,6 +78,8 @@ public partial class RadioBase
         return true;
     }
 
+    public override int GetHashCode() => HashCode.Combine(freq, modulation, enc, encKey, retransmit, secFreq, Name);
+
     //comparing doubles is risky - check that we're close enough to hear (within 100hz)
 
     public static bool FreqCloseEnough(double freq1, double freq2)

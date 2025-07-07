@@ -132,10 +132,7 @@ public struct ShortGuid
     ///     Returns the HashCode for underlying Guid.
     /// </summary>
     /// <returns></returns>
-    public override int GetHashCode()
-    {
-        return _guid.GetHashCode();
-    }
+    public override int GetHashCode() => _guid.GetHashCode();
 
     #endregion
 

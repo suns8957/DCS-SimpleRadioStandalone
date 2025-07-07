@@ -198,12 +198,12 @@ public class ProfileSettingsStore
 
                 _configuration.SaveToFile(Path + GetProfileCfgFileName(profile), Encoding.UTF8);
             }
-            catch (FileNotFoundException ex)
+            catch (FileNotFoundException)
             {
                 Logger.Info(
                     $"Did not find input config file at path {profile}, initialising with default config");
             }
-            catch (ParserException ex)
+            catch (ParserException)
             {
                 Logger.Info(
                     "Error with input config - creating a new default ");
@@ -501,7 +501,7 @@ public class ProfileSettingsStore
                 var configuration = GetCurrentProfile();
                 configuration.SaveToFile(Path + GetProfileCfgFileName(CurrentProfileName));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Logger.Error("Unable to save settings!");
             }

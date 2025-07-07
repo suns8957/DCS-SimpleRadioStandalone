@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
-using Newtonsoft.Json;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 
@@ -142,6 +142,8 @@ public class DCSPlayerRadioInfo
 
         return true;
     }
+
+    public override int GetHashCode() => HashCode.Combine(control, name, unit, unitId, inAircraft, iff, ambient, radios);
 
 
     /*

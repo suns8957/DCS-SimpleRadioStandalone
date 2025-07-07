@@ -38,10 +38,7 @@ public class TransponderBase
         return Equals((TransponderBase)obj);
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Mode1, Mode3, Mode4, (int)Status);
-    }
+    public override int GetHashCode() => HashCode.Combine(Mode1, Mode3, Mode4, Status);
 
     public TransponderBase DeepClone()
     {
