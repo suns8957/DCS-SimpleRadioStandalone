@@ -1,6 +1,7 @@
 ﻿using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Helpers;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
+using System;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 
@@ -121,7 +122,7 @@ public class DCSRadio
         return true;
     }
 
-    public override int GetHashCode() => (name, freq, modulation, enc, encKey, retransmit, secFreq).GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(name, freq, modulation, enc, encKey, retransmit, secFreq);
 
     public DCSRadio DeepClone()
     {
