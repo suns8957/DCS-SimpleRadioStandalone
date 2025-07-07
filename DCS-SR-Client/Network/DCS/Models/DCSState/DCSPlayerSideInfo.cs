@@ -1,4 +1,5 @@
 ﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
+using System;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Network.DCS.Models.DCSState;
 
@@ -19,6 +20,8 @@ public class DCSPlayerSideInfo
                side == info.side &&
                seat == info.seat;
     }
+
+    public override int GetHashCode() => HashCode.Combine(name, side, seat);
 
     public void Reset()
     {
