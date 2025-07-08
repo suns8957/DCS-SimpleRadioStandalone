@@ -921,9 +921,9 @@ function SR.exportRadioAH64D(_data)
         if _eufdDevice["Transponder_MC"] == "NORM" then -- IFF NORM
             _iffSettings.status = (_iffIdentBtn > 0) and 2 or 1 -- IDENT and Power
 
-            _iffSettings.mode3 = _eufdDevice["Transponder_MODE_3A"] and string.format("%04d", _eufdDevice["Transponder_MODE_3A"]) or -1
+            _iffSettings.mode3 = tonumber(_eufdDevice["Transponder_MODE_3A"]) or -1
 
-            _iffSettings.mode4 = _eufdDevice["XPNDR_MODE_4"] and true or false
+            _iffSettings.mode4 = _eufdDevice["XPNDR_MODE_4"] ~= nil
         else -- Transponder_MC == "STBY" or there's no power
             _iffSettings.status = 0
         end
@@ -933,17 +933,17 @@ function SR.exportRadioAH64D(_data)
             _iffSettings.status = 1 -- XPNDR btn would actually turn on the XPNDR if it were in STBY (in real life)
         end
 
-        _data.radios[3].enc = _eufdDevice["Cipher_UHF"] and 1 or 0
-        _data.radios[3].encKey = _eufdDevice["Cipher_UHF"] and string.format("%01d", string.match(_eufdDevice["Cipher_UHF"], "%d+")) or 1
+        _data.radios[3].enc = _eufdDevice["Cipher_UHF"] ~= nil
+        _data.radios[3].encKey = tonumber(string.match(_eufdDevice["Cipher_UHF"] or "C1", "^C(%d+)"))
 
-        _data.radios[4].enc = _eufdDevice["Cipher_FM1"] and 1 or 0
-        _data.radios[4].encKey = _eufdDevice["Cipher_FM1"] and string.format("%01d", string.match(_eufdDevice["Cipher_FM1"], "%d+")) or 1
+        _data.radios[4].enc = _eufdDevice["Cipher_FM1"] ~= nil
+        _data.radios[4].encKey = tonumber(string.match(_eufdDevice["Cipher_FM1"] or "C1", "^C(%d+)"))
 
-        _data.radios[5].enc = _eufdDevice["Cipher_FM2"] and 1 or 0
-        _data.radios[5].encKey = _eufdDevice["Cipher_FM2"] and string.format("%01d", string.match(_eufdDevice["Cipher_FM2"], "%d+")) or 1
+        _data.radios[5].enc = _eufdDevice["Cipher_FM2"] ~= nil
+        _data.radios[5].encKey = tonumber(string.match(_eufdDevice["Cipher_FM2"] or "C1", "^C(%d+)"))
 
-        _data.radios[6].enc = _eufdDevice["Cipher_HF"] and 1 or 0
-        _data.radios[6].encKey = _eufdDevice["Cipher_HF"] and string.format("%01d", string.match(_eufdDevice["Cipher_HF"], "%d+"))
+        _data.radios[6].enc = _eufdDevice["Cipher_HF"] ~= nil
+        _data.radios[6].encKey =  tonumber(string.match(_eufdDevice["Cipher_HF"] or "C1", "^C(%d+)"))
     end
 
     if (_mpdLeft or _mpdRight) then
@@ -2188,19 +2188,19 @@ function SR.exportRadioF15ESE(_data)
     end
 
     if _iffDevice:isModeActive(3) then 
-        _data.iff.mode3 = string.format("%04d",_iffDevice:getModeCode(3))
+        _data.iff.mode3 = tonumber(_iffDevice:getModeCode(3))
     else
         _data.iff.mode3 = -1
     end
 
     if _iffDevice:isModeActive(2) then 
-        _data.iff.mode2 = string.format("%04d",_iffDevice:getModeCode(2))
+        _data.iff.mode2 = tonumber(_iffDevice:getModeCode(2))
     else
         _data.iff.mode2 = -1
     end
 
     if _iffDevice:isModeActive(1) then 
-        _data.iff.mode1 = string.format("%02d",_iffDevice:getModeCode(1))
+        _data.iff.mode1 = tonumber(_iffDevice:getModeCode(1))
     else
         _data.iff.mode1 = -1
     end
@@ -3023,7 +3023,7 @@ function SR.exportRadioOH58D(_data)
                 end
             end
 
-            _data.radios[_radioTranslate].enc = tonumber(get_param_handle('Cipher_vis' .. i):get()) == 1 and 1 or 0
+            _data.radios[_radioTranslate].enc = tonumber(get_param_handle('Cipher_vis' .. i):get()) == 1
             _data.radios[_radioTranslate].encKey = _channelToEncKey()
 
             if _radioChannel ~= 'M' and _radioChannel ~= 'C' then
@@ -6232,19 +6232,19 @@ function SR.exportRadioM2000C(_data)
     end
 
     if _iffDevice:isModeActive(3) then 
-        _data.iff.mode3 = string.format("%04d",_iffDevice:getModeCode(3))
+        _data.iff.mode3 = tonumber(_iffDevice:getModeCode(3))
     else
         _data.iff.mode3 = -1
     end
 
     if _iffDevice:isModeActive(2) then 
-        _data.iff.mode2 = string.format("%04d",_iffDevice:getModeCode(2))
+        _data.iff.mode2 = tonumber(_iffDevice:getModeCode(2))
     else
         _data.iff.mode2 = -1
     end
 
     if _iffDevice:isModeActive(1) then 
-        _data.iff.mode1 = string.format("%02d",_iffDevice:getModeCode(1))
+        _data.iff.mode1 = tonumber(_iffDevice:getModeCode(1))
     else
         _data.iff.mode1 = -1
     end
@@ -6321,19 +6321,19 @@ function SR.exportRadioF1CE(_data)
     end
 
     if _iffDevice:isModeActive(3) then 
-        _data.iff.mode3 = string.format("%04d",_iffDevice:getModeCode(3))
+        _data.iff.mode3 = tonumber(_iffDevice:getModeCode(3))
     else
         _data.iff.mode3 = -1
     end
 
     if _iffDevice:isModeActive(2) then 
-        _data.iff.mode2 = string.format("%04d",_iffDevice:getModeCode(2))
+        _data.iff.mode2 = tonumber(_iffDevice:getModeCode(2))
     else
         _data.iff.mode2 = -1
     end
 
     if _iffDevice:isModeActive(1) then 
-        _data.iff.mode1 = string.format("%02d",_iffDevice:getModeCode(1))
+        _data.iff.mode1 = tonumber(_iffDevice:getModeCode(1))
     else
         _data.iff.mode1 = -1
     end
@@ -6415,7 +6415,7 @@ function SR.exportRadioF1BE(_data)
     local mode1On =  SR.getButtonPosition(750)
 
     local _lookupTable = {[0.000]= "0", [0.125] = "1", [0.250] = "2", [0.375] = "3", [0.500] = "4", [0.625] = "5", [0.750] = "6", [0.875] = "7", [1.000] = "0"}
-    _data.iff.mode1 = SR.getNonStandardSpinner(732,_lookupTable, 0.125,3) .. SR.getNonStandardSpinner(733,{[0.000]= "0", [0.125] = "1", [0.250] = "2", [0.375] = "3", [0.500] = "0", [0.625] = "1", [0.750] = "2", [0.875] = "3", [1.000] = "0"},0.125,3)
+    _data.iff.mode1 = tonumber(SR.getNonStandardSpinner(732,_lookupTable, 0.125,3) .. SR.getNonStandardSpinner(733,{[0.000]= "0", [0.125] = "1", [0.250] = "2", [0.375] = "3", [0.500] = "0", [0.625] = "1", [0.750] = "2", [0.875] = "3", [1.000] = "0"},0.125,3))
 
     if mode1On ~= 0 then
         _data.iff.mode1 = -1
@@ -6423,7 +6423,7 @@ function SR.exportRadioF1BE(_data)
 
     local mode3On =  SR.getButtonPosition(752)
 
-    _data.iff.mode3 = SR.getNonStandardSpinner(734,_lookupTable, 0.125,3) .. SR.getNonStandardSpinner(735,_lookupTable,0.125,3).. SR.getNonStandardSpinner(736,_lookupTable,0.125,3).. SR.getNonStandardSpinner(737,_lookupTable,0.125,3)
+    _data.iff.mode3 = tonumber(SR.getNonStandardSpinner(734,_lookupTable, 0.125,3) .. SR.getNonStandardSpinner(735,_lookupTable,0.125,3).. SR.getNonStandardSpinner(736,_lookupTable,0.125,3).. SR.getNonStandardSpinner(737,_lookupTable,0.125,3))
 
     if mode3On ~= 0 then
         _data.iff.mode3 = -1
