@@ -934,16 +934,16 @@ function SR.exportRadioAH64D(_data)
         end
 
         _data.radios[3].enc = _eufdDevice["Cipher_UHF"] ~= nil
-        _data.radios[3].encKey = tonumber(_eufdDevice["Cipher_UHF"]) or 1
+        _data.radios[3].encKey = tonumber(string.match(_eufdDevice["Cipher_UHF"] or "C1", "^C(%d+)"))
 
         _data.radios[4].enc = _eufdDevice["Cipher_FM1"] ~= nil
-        _data.radios[4].encKey =  tonumber(_eufdDevice["Cipher_FM1"]) or 1
+        _data.radios[4].encKey = tonumber(string.match(_eufdDevice["Cipher_FM1"] or "C1", "^C(%d+)"))
 
         _data.radios[5].enc = _eufdDevice["Cipher_FM2"] ~= nil
-        _data.radios[5].encKey = tonumber(_eufdDevice["Cipher_FM2"]) or 1
+        _data.radios[5].encKey = tonumber(string.match(_eufdDevice["Cipher_FM2"] or "C1", "^C(%d+)"))
 
         _data.radios[6].enc = _eufdDevice["Cipher_HF"] ~= nil
-        _data.radios[6].encKey =  tonumber(_eufdDevice["Cipher_HF"]) or 1
+        _data.radios[6].encKey =  tonumber(string.match(_eufdDevice["Cipher_HF"] or "C1", "^C(%d+)"))
     end
 
     if (_mpdLeft or _mpdRight) then
