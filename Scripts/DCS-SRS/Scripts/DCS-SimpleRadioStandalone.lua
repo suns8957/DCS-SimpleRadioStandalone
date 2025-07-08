@@ -3023,7 +3023,7 @@ function SR.exportRadioOH58D(_data)
                 end
             end
 
-            _data.radios[_radioTranslate].enc = tonumber(get_param_handle('Cipher_vis' .. i):get()) == 1 and 1 or 0
+            _data.radios[_radioTranslate].enc = tonumber(get_param_handle('Cipher_vis' .. i):get()) == 1
             _data.radios[_radioTranslate].encKey = _channelToEncKey()
 
             if _radioChannel ~= 'M' and _radioChannel ~= 'C' then
