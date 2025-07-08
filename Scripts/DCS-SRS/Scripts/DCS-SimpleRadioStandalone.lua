@@ -933,16 +933,16 @@ function SR.exportRadioAH64D(_data)
             _iffSettings.status = 1 -- XPNDR btn would actually turn on the XPNDR if it were in STBY (in real life)
         end
 
-        _data.radios[3].enc = _eufdDevice["Cipher_UHF"] and 1 or 0
+        _data.radios[3].enc = _eufdDevice["Cipher_UHF"] ~= nil
         _data.radios[3].encKey = tonumber(_eufdDevice["Cipher_UHF"]) or 1
 
-        _data.radios[4].enc = _eufdDevice["Cipher_FM1"] and 1 or 0
+        _data.radios[4].enc = _eufdDevice["Cipher_FM1"] ~= nil
         _data.radios[4].encKey =  tonumber(_eufdDevice["Cipher_FM1"]) or 1
 
-        _data.radios[5].enc = _eufdDevice["Cipher_FM2"] and 1 or 0
+        _data.radios[5].enc = _eufdDevice["Cipher_FM2"] ~= nil
         _data.radios[5].encKey = tonumber(_eufdDevice["Cipher_FM2"]) or 1
 
-        _data.radios[6].enc = _eufdDevice["Cipher_HF"] and 1 or 0
+        _data.radios[6].enc = _eufdDevice["Cipher_HF"] ~= nil
         _data.radios[6].encKey =  tonumber(_eufdDevice["Cipher_HF"]) or 1
     end
 
