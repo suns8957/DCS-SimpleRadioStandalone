@@ -34,9 +34,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        private float _dryGainLinear = (float)Decibels.DecibelsToLinear(0f);
-        private float _wetGainLinear = (float)Decibels.DecibelsToLinear(1f);
-
         public WaveFormat WaveFormat => source.WaveFormat;
         public SaturationProvider(ISampleProvider source)
         {
@@ -48,20 +45,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var samplesRead = source.Read(buffer, offset, count);
             for (int i = 0; i < count; ++i)
             {
-                var dry = buffer[offset + i];
-                var wet = 0f;
-                var absDry = Math.Abs(dry);
-                if (absDry > _thresholdLinear)
+                var sample = buffer[offset + i];
+                var absSample = Math.Abs(sample);
+                if (absSample < _thresholdLinear)
                 {
-                    // dry clips at threshold.
-                    dry = (float)Math.CopySign(_thresholdLinear, dry);
-
-
-                    // overdrive part.
-                    wet = (float)Math.CopySign(absDry - _thresholdLinear, dry) * _wetGainLinear;
+                    buffer[offset + i] = sample * _gainLinear;
                 }
-
-                buffer[offset + i] = _gainLinear * _dryGainLinear * dry + wet / _gainLinear;
             }
 
             return samplesRead;
