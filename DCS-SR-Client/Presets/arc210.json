@@ -24,17 +24,17 @@
         ]
       },
       {
+        "$type": "saturation",
+        "gain": 9,
+        "threshold": -23
+      },
+      {
         "$type": "compressor",
         "attack": 0.01,
         "makeUp": 6,
         "release": 0.2,
         "threshold": -33,
         "ratio": 1.18
-      },
-      {
-        "$type": "saturation",
-        "gain": 9,
-        "threshold": -23
       },
       {
         "$type": "filters",
