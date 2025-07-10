@@ -37,8 +37,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private bool radioEffects;
         private bool radioBackgroundNoiseEffect;
         private bool radioEncryptionEffect;
+        private bool perRadioModelEffect;
 
         private float NoiseGainOffsetDB { get; set; } = 0f;
+        private float HFNoiseGainOffsetDB { get; set; } = 0f;
 
         private bool irlRadioRXInterference = false;
 
@@ -52,19 +54,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             public short Encryption { get; internal set; }
         }
 
-        private string PresetsFolder
+        private string ModelsFolder
         {
             get
             {
-                return Path.Combine(Directory.GetCurrentDirectory(), "Presets");
+                return Path.Combine(Directory.GetCurrentDirectory(), "RadioModels");
             }
         }
 
-        private string PresetsCustomFolder
+        private string ModelsCustomFolder
         {
             get
             {
-                return Path.Combine(Directory.GetCurrentDirectory(), "PresetsCustom");
+                return Path.Combine(Directory.GetCurrentDirectory(), "RadioModelsCustom");
             }
         }
 
@@ -80,7 +82,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             LoadRadioModels();
         }
 
-        private class RadioPreset
+        private class RadioModel
         {
             public DeferredSourceProvider TxSource { get; } = new DeferredSourceProvider();
             public DeferredSourceProvider RxSource { get; } = new DeferredSourceProvider();
@@ -92,7 +94,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             public float NoiseGain { get; set; }
 
-            public RadioPreset(Models.Dto.RadioPreset dtoPreset)
+            public RadioModel(Models.Dto.RadioModel dtoPreset)
             {
                 RxEffectProvider = dtoPreset.RxEffect.ToSampleProvider(RxSource);
                 TxEffectProvider = dtoPreset.TxEffect.ToSampleProvider(TxSource);
@@ -106,14 +108,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        private IReadOnlyDictionary<string, RadioPreset> Presets;
+        private IReadOnlyDictionary<string, RadioModel> RadioModels;
 
-        private static readonly RadioPreset Arc210 = new RadioPreset(DefaultRadioPresets.Arc210);
-        private static readonly RadioPreset Intercom = new RadioPreset(DefaultRadioPresets.Intercom);
+        private static readonly RadioModel Arc210 = new RadioModel(DefaultRadioModels.Arc210);
+        private static readonly RadioModel Intercom = new RadioModel(DefaultRadioModels.Intercom);
         private void LoadRadioModels()
         {
-            var presetsFolders = new List<string> { PresetsFolder, PresetsCustomFolder };
-            var loadedPresets = new Dictionary<string, RadioPreset>();
+            var modelsFolders = new List<string> { ModelsFolder, ModelsCustomFolder };
+            var loadedModels = new Dictionary<string, RadioModel>();
 
             var deserializerOptions = new JsonSerializerOptions
             {
@@ -123,42 +125,35 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             };
 
 
-            foreach (var presetsFolder in presetsFolders)
+            foreach (var modelsFolder in modelsFolders)
             {
                 try
                 {
-                    var presets = Directory.EnumerateFiles(presetsFolder, "*.json");
-                    foreach (var presetFile in presets)
+                    var models = Directory.EnumerateFiles(modelsFolder, "*.json");
+                    foreach (var modelFile in models)
                     {
-                        var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant();
-                        using (var jsonFile = File.OpenRead(presetFile))
+                        var modelName = Path.GetFileNameWithoutExtension(modelFile).ToLowerInvariant();
+                        using (var jsonFile = File.OpenRead(modelFile))
                         {
                             try
                             {
-                                var loadedPreset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, deserializerOptions);
-
-                                var preset = new RadioPreset(loadedPreset);
-                                if (preset != null)
-                                {
-                                    loadedPresets[presetName] = preset;
-                                }
+                                var loadedModel = JsonSerializer.Deserialize<Models.Dto.RadioModel>(jsonFile, deserializerOptions);
+                                loadedModels[modelName] = new RadioModel(loadedModel);
                             }
                             catch (Exception ex)
                             {
-                                Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
+                                Logger.Error($"Unable to parse radio preset file {modelFile}", ex);
                             }
-
-                            
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"Unable to parse radio preset files {presetsFolder}", ex);
+                    Logger.Error($"Unable to parse radio preset files {modelsFolder}", ex);
                 }
             }
                 
-            Presets = loadedPresets.ToFrozenDictionary();
+            RadioModels = loadedModels.ToFrozenDictionary();
         }
 
         private void RefreshSettings()
@@ -183,10 +178,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect);
                 radioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
+                perRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
 
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
 
                 NoiseGainOffsetDB = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.NoiseGainDB);
+                HFNoiseGainOffsetDB = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseGainDB);
             }
         }
 
@@ -283,8 +280,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                             }
                         }
                     }
-                    
-                    var preset = model != null? Presets.GetValueOrDefault(model, Arc210) : Arc210;
+
+                    var preset = perRadioModelEffect && model != null ? RadioModels.GetValueOrDefault(model, Arc210) : Arc210;
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
@@ -294,7 +291,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, TransmissionInfo details)
         {
-            return BuildMicPipeline(voiceProvider, Presets.GetValueOrDefault("intercom", Intercom), details);
+            return BuildMicPipeline(voiceProvider, RadioModels.GetValueOrDefault("intercom", Intercom), details);
         }
 
         private VolumeCachedEffectProvider GetToneProvider(Modulation modulation)
@@ -312,7 +309,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return null;
         }
 
-        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
+        private ISampleProvider BuildMicPipeline(ISampleProvider voiceProvider, RadioModel radioModel, TransmissionInfo details)
         {
             radioModel.TxSource.Source = voiceProvider;
             var encryptionEffects = radioEncryptionEffect && (details.Modulation == Modulation.MIDS || details.Encryption > 0);
@@ -329,7 +326,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             voiceProvider = radioModel.RxEffectProvider;
             return voiceProvider;
         }
-        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioPreset radioModel, TransmissionInfo details)
+        private ISampleProvider AddRadioEffect(ISampleProvider voiceProvider, RadioModel radioModel, TransmissionInfo details)
         {
 
             if (radioEffectsEnabled && clippingEnabled)
@@ -341,6 +338,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 // Frequency at which we switch between HF noise (very grainy/rain sounding) vs white noise.
                 var hfNoiseFrequencyCutoff = 25e6;
+                var isHFNoise = details.Frequency <= hfNoiseFrequencyCutoff;
                 var backgroundEffectsProvider = new MixingSampleProvider(voiceProvider.WaveFormat);
                 // Noise, initial power depends on frequency band.
                 // HF very susceptible (higher base), V/UHF not as much.
@@ -353,11 +351,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 var noiseGainDB = -Math.Log(details.Frequency/1e6) * 10 / 2;
 
                 // Apply user defined noise attenuation/gain
-                noiseGainDB += NoiseGainOffsetDB;
+                noiseGainDB += isHFNoise? HFNoiseGainOffsetDB : NoiseGainOffsetDB;
                 // Apply radio model noise attenuation/gain.
                 noiseGainDB += radioModel.NoiseGain;
 
-                var noiseGeneratorGainDB = details.Frequency > hfNoiseFrequencyCutoff ? noiseGainDB : 0f;
+                var noiseGeneratorGainDB = !isHFNoise ? noiseGainDB : 0f;
 
                 // #TODO: noise type should be part of the radio preset really.
                 // Tube/HF noise (red/pink) vs transistor (white/AGWN)
@@ -385,10 +383,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 if (details.Frequency <= hfNoiseFrequencyCutoff)
                 {
-                    RadioPreset hfNoise = null;
-                    if (Presets.TryGetValue("hfnoise", out hfNoise))
+                    RadioModel hfNoise = null;
+                    if (RadioModels.TryGetValue("hfnoise", out hfNoise))
                     {
-                        noiseProvider = BuildMicPipeline(noiseProvider, Presets["hfnoise"],
+                        noiseProvider = BuildMicPipeline(noiseProvider, RadioModels["hfnoise"],
                         new TransmissionInfo
                         {
                             Frequency = details.Frequency,

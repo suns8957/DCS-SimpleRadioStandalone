@@ -1208,10 +1208,16 @@ https://github.com/ciribob/DCS-SimpleRadioStandalone/releases/latest</value>
   <data name="DisableExpansionRadios" xml:space="preserve">
     <value>Disable Expansion Radios</value>
   </data>
+  <data name="NoiseGainDB" xml:space="preserve">
+    <value />
+  </data>
+  <data name="HFNoiseGainDB" xml:space="preserve">
+    <value />
+  </data>
   <data name="ClientWindowTitile" xml:space="preserve">
     <value>已连接的客户端</value>
   </data>
-  <data name="NoiseGainDB" xml:space="preserve">
+  <data name="PerRadioModelEffects" xml:space="preserve">
     <value />
   </data>
 </root>

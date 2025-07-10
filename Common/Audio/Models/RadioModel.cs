@@ -108,7 +108,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             }
         };
 
-        internal class RadioPreset
+        internal class RadioModel
         {
             public required int Version { get; set; }
             public required float NoiseGain { get; set; }
@@ -118,10 +118,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         };
     }
-    internal class DefaultRadioPresets
+    internal class DefaultRadioModels
     {
         // ARC-210 as default radio FX.
-        public static readonly Dto.RadioPreset Arc210 = new()
+        public static readonly Dto.RadioModel Arc210 = new()
         {
             Version = 1,
             TxEffect = new ChainEffect()
@@ -194,7 +194,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             NoiseGain = -33,
         };
 
-        public static readonly Dto.RadioPreset Intercom = new()
+        public static readonly Dto.RadioModel Intercom = new()
         {
             Version = 1,
             TxEffect = new ChainEffect()
