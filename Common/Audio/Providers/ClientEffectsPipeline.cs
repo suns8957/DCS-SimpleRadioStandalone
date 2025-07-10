@@ -37,6 +37,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private bool radioEffects;
         private bool radioBackgroundNoiseEffect;
         private bool radioEncryptionEffect;
+        private bool perRadioModelEffect;
 
         private float NoiseGainOffsetDB { get; set; } = 0f;
         private float HFNoiseGainOffsetDB { get; set; } = 0f;
@@ -177,6 +178,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect);
                 radioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
+                perRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
 
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
 
@@ -278,8 +280,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                             }
                         }
                     }
-                    
-                    var preset = RadioModels.GetValueOrDefault(model, Arc210);
+
+                    var preset = perRadioModelEffect ? RadioModels.GetValueOrDefault(model, Arc210) : Arc210;
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }

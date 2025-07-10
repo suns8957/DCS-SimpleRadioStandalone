@@ -1225,4 +1225,7 @@ Requires Tx or Rx Effects On</value>
   <data name="HFNoiseGainDB" xml:space="preserve">
     <value>HF Noise Gain (dB)</value>
   </data>
+  <data name="PerRadioModelEffects" xml:space="preserve">
+    <value>Enable Per Radio Model Effects</value>
+  </data>
 </root>
