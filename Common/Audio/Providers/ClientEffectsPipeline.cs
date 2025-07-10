@@ -39,6 +39,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private bool radioEncryptionEffect;
 
         private float NoiseGainOffsetDB { get; set; } = 0f;
+        private float HFNoiseGainOffsetDB { get; set; } = 0f;
 
         private bool irlRadioRXInterference = false;
 
@@ -180,6 +181,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
 
                 NoiseGainOffsetDB = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.NoiseGainDB);
+                HFNoiseGainOffsetDB = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseGainDB);
             }
         }
 
@@ -334,6 +336,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 // Frequency at which we switch between HF noise (very grainy/rain sounding) vs white noise.
                 var hfNoiseFrequencyCutoff = 25e6;
+                var isHFNoise = details.Frequency <= hfNoiseFrequencyCutoff;
                 var backgroundEffectsProvider = new MixingSampleProvider(voiceProvider.WaveFormat);
                 // Noise, initial power depends on frequency band.
                 // HF very susceptible (higher base), V/UHF not as much.
@@ -346,11 +349,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 var noiseGainDB = -Math.Log(details.Frequency/1e6) * 10 / 2;
 
                 // Apply user defined noise attenuation/gain
-                noiseGainDB += NoiseGainOffsetDB;
+                noiseGainDB += isHFNoise? HFNoiseGainOffsetDB : NoiseGainOffsetDB;
                 // Apply radio model noise attenuation/gain.
                 noiseGainDB += radioModel.NoiseGain;
 
-                var noiseGeneratorGainDB = details.Frequency > hfNoiseFrequencyCutoff ? noiseGainDB : 0f;
+                var noiseGeneratorGainDB = !isHFNoise ? noiseGainDB : 0f;
 
                 // #TODO: noise type should be part of the radio preset really.
                 // Tube/HF noise (red/pink) vs transistor (white/AGWN)

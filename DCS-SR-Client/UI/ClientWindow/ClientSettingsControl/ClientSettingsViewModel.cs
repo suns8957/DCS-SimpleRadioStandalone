@@ -850,6 +850,16 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         }
     }
 
+    public float HFNoiseGainDB
+    {
+        get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseGainDB);
+        set
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseGainDB, value);
+            NotifyPropertyChanged();
+        }
+    }
+
 
     /**
          * Radio Audio Balance
@@ -1099,6 +1109,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         NotifyPropertyChanged(nameof(HQEffectVolume));
         NotifyPropertyChanged(nameof(BackgroundRadioNoiseToggle));
         NotifyPropertyChanged(nameof(NoiseGainDB));
+        NotifyPropertyChanged(nameof(HFNoiseGainDB));
 
         NotifyPropertyChanged(nameof(AmbientEffectToggle));
         NotifyPropertyChanged(nameof(AmbientEffectIntercomToggle));

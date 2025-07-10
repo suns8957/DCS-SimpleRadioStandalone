@@ -57,6 +57,7 @@ public enum ProfileSettingsKeys
     NATOToneVolume,
     HQToneVolume,
     NoiseGainDB,
+    HFNoiseGainDB,
 
     PTTStartDelay,
 
@@ -125,6 +126,7 @@ public class ProfileSettingsStore
         { ProfileSettingsKeys.HQToneVolume.ToString(), "0.3" },
 
         { ProfileSettingsKeys.NoiseGainDB.ToString(), "0" },
+        { ProfileSettingsKeys.HFNoiseGainDB.ToString(), "0" },
 
         { ProfileSettingsKeys.AMCollisionVolume.ToString(), "1.0" },
 

@@ -1104,6 +1104,18 @@
                                 IsEnabled="{Binding BackgroundRadioNoiseToggle}"
                                 GainDBValue="{Binding NoiseGainDB,Mode=TwoWay}" />
 
+                            <Label Grid.Row="14"
+                               Grid.Column="0"
+                               HorizontalContentAlignment="Center"
+                               VerticalContentAlignment="Center"
+                               Content="{x:Static p:Resources.HFNoiseGainDB}" />
+
+                        <clientSettingsControl:GainDBControl
+                            Grid.Row="14"
+                            Grid.Column="1"
+                            IsEnabled="{Binding BackgroundRadioNoiseToggle}"
+                            GainDBValue="{Binding HFNoiseGainDB,Mode=TwoWay}" />
+
                             <Label Grid.Row="17"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
