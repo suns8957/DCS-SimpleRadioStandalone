@@ -840,12 +840,32 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         }
     }
 
+    public bool PerRadioModelEffects
+    {
+        get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
+        set
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects, value);
+            NotifyPropertyChanged();
+        }
+    }
+
     public float NoiseGainDB
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.NoiseGainDB);
         set
         {
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.NoiseGainDB, value);
+            NotifyPropertyChanged();
+        }
+    }
+
+    public float HFNoiseGainDB
+    {
+        get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseGainDB);
+        set
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseGainDB, value);
             NotifyPropertyChanged();
         }
     }
@@ -1099,6 +1119,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         NotifyPropertyChanged(nameof(HQEffectVolume));
         NotifyPropertyChanged(nameof(BackgroundRadioNoiseToggle));
         NotifyPropertyChanged(nameof(NoiseGainDB));
+        NotifyPropertyChanged(nameof(HFNoiseGainDB));
 
         NotifyPropertyChanged(nameof(AmbientEffectToggle));
         NotifyPropertyChanged(nameof(AmbientEffectIntercomToggle));

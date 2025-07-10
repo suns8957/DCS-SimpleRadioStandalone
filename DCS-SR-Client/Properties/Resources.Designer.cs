@@ -1002,6 +1002,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to HF Noise Gain (dB).
+        /// </summary>
+        public static string HFNoiseGainDB {
+            get {
+                return ResourceManager.GetString("HFNoiseGainDB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable HAVEQUICK Effect.
         /// </summary>
         public static string HQEffect {
@@ -2037,6 +2046,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         public static string OverlayTransponder {
             get {
                 return ResourceManager.GetString("OverlayTransponder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable Per Radio Model Effects.
+        /// </summary>
+        public static string PerRadioModelEffects {
+            get {
+                return ResourceManager.GetString("PerRadioModelEffects", resourceCulture);
             }
         }
         
