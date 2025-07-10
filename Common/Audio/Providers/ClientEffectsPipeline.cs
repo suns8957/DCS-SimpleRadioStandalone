@@ -52,19 +52,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             public short Encryption { get; internal set; }
         }
 
-        private string PresetsFolder
+        private string ModelsFolder
         {
             get
             {
-                return Path.Combine(Directory.GetCurrentDirectory(), "Presets");
+                return Path.Combine(Directory.GetCurrentDirectory(), "RadioModels");
             }
         }
 
-        private string PresetsCustomFolder
+        private string ModelsCustomFolder
         {
             get
             {
-                return Path.Combine(Directory.GetCurrentDirectory(), "PresetsCustom");
+                return Path.Combine(Directory.GetCurrentDirectory(), "RadioModelsCustom");
             }
         }
 
@@ -106,14 +106,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        private IReadOnlyDictionary<string, RadioPreset> Presets;
+        private IReadOnlyDictionary<string, RadioPreset> RadioModels;
 
         private static readonly RadioPreset Arc210 = new RadioPreset(DefaultRadioPresets.Arc210);
         private static readonly RadioPreset Intercom = new RadioPreset(DefaultRadioPresets.Intercom);
         private void LoadRadioModels()
         {
-            var presetsFolders = new List<string> { PresetsFolder, PresetsCustomFolder };
-            var loadedPresets = new Dictionary<string, RadioPreset>();
+            var modelsFolders = new List<string> { ModelsFolder, ModelsCustomFolder };
+            var loadedModels = new Dictionary<string, RadioPreset>();
 
             var deserializerOptions = new JsonSerializerOptions
             {
@@ -123,42 +123,35 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             };
 
 
-            foreach (var presetsFolder in presetsFolders)
+            foreach (var modelsFolder in modelsFolders)
             {
                 try
                 {
-                    var presets = Directory.EnumerateFiles(presetsFolder, "*.json");
-                    foreach (var presetFile in presets)
+                    var models = Directory.EnumerateFiles(modelsFolder, "*.json");
+                    foreach (var modelFile in models)
                     {
-                        var presetName = Path.GetFileNameWithoutExtension(presetFile).ToLowerInvariant();
-                        using (var jsonFile = File.OpenRead(presetFile))
+                        var modelName = Path.GetFileNameWithoutExtension(modelFile).ToLowerInvariant();
+                        using (var jsonFile = File.OpenRead(modelFile))
                         {
                             try
                             {
-                                var loadedPreset = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, deserializerOptions);
-
-                                var preset = new RadioPreset(loadedPreset);
-                                if (preset != null)
-                                {
-                                    loadedPresets[presetName] = preset;
-                                }
+                                var loadedModel = JsonSerializer.Deserialize<Models.Dto.RadioPreset>(jsonFile, deserializerOptions);
+                                loadedModels[modelName] = new RadioPreset(loadedModel);
                             }
                             catch (Exception ex)
                             {
-                                Logger.Error($"Unable to parse radio preset file {presetFile}", ex);
+                                Logger.Error($"Unable to parse radio preset file {modelFile}", ex);
                             }
-
-                            
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"Unable to parse radio preset files {presetsFolder}", ex);
+                    Logger.Error($"Unable to parse radio preset files {modelsFolder}", ex);
                 }
             }
                 
-            Presets = loadedPresets.ToFrozenDictionary();
+            RadioModels = loadedModels.ToFrozenDictionary();
         }
 
         private void RefreshSettings()
@@ -284,7 +277,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         }
                     }
                     
-                    var preset = Presets.GetValueOrDefault(model, Arc210);
+                    var preset = RadioModels.GetValueOrDefault(model, Arc210);
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
@@ -294,7 +287,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private ISampleProvider AddRadioEffectIntercom(ISampleProvider voiceProvider, TransmissionInfo details)
         {
-            return BuildMicPipeline(voiceProvider, Presets.GetValueOrDefault("intercom", Intercom), details);
+            return BuildMicPipeline(voiceProvider, RadioModels.GetValueOrDefault("intercom", Intercom), details);
         }
 
         private VolumeCachedEffectProvider GetToneProvider(Modulation modulation)
@@ -386,9 +379,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 if (details.Frequency <= hfNoiseFrequencyCutoff)
                 {
                     RadioPreset hfNoise = null;
-                    if (Presets.TryGetValue("hfnoise", out hfNoise))
+                    if (RadioModels.TryGetValue("hfnoise", out hfNoise))
                     {
-                        noiseProvider = BuildMicPipeline(noiseProvider, Presets["hfnoise"],
+                        noiseProvider = BuildMicPipeline(noiseProvider, RadioModels["hfnoise"],
                         new TransmissionInfo
                         {
                             Frequency = details.Frequency,
