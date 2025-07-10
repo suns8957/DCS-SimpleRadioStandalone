@@ -281,7 +281,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         }
                     }
 
-                    var preset = perRadioModelEffect ? RadioModels.GetValueOrDefault(model, Arc210) : Arc210;
+                    var preset = perRadioModelEffect && model != null ? RadioModels.GetValueOrDefault(model, Arc210) : Arc210;
                     transmissionProvider = AddRadioEffect(transmissionProvider, preset, transmissionDetails);
                 }
             }
