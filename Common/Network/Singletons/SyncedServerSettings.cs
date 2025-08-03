@@ -124,6 +124,25 @@ public class SyncedServerSettings
                     ServerPresetChannels = new Dictionary<string, List<ServerPresetChannel>>();
                 }
             }
+            //TODO to come back to this as this means we have to share the DCS models with the server
+            // else if (kvp.Key.Equals(ServerSettingsKeys.SERVER_RADIO_PRESETS.ToString()))
+            // {
+            //     try
+            //     {
+            //         ServerPresetChannels =
+            //             JsonSerializer.Deserialize<Dictionary<string, List<ServerPresetChannel>>>(kvp.Value, new JsonSerializerOptions()
+            //             {
+            //                 AllowTrailingCommas = true,
+            //                 PropertyNameCaseInsensitive = true,
+            //                 ReadCommentHandling = JsonCommentHandling.Skip,
+            //                 IncludeFields = true,
+            //             });
+            //     }
+            //     catch (Exception)
+            //     {
+            //         ServerPresetChannels = new Dictionary<string, List<ServerPresetChannel>>();
+            //     }
+            // }
         }
 
         //cache will be refilled 

@@ -46,6 +46,8 @@
                     <RowDefinition />
                     <RowDefinition />
                     <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
 
                 <Button Grid.Row="0"
@@ -516,6 +518,22 @@
                         Height="20"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"/>
+                
+                <!-- <Label Content="{x:Static p:Resources.ServerRadioPresetEnabled}" -->
+                <!--        Grid.Row="25" -->
+                <!--        Grid.Column="0"  -->
+                <!--        Grid.ColumnSpan="2" -->
+                <!--        HorizontalAlignment="Left" -->
+                <!--        VerticalAlignment="Center"/> -->
+                <!-- -->
+                <!-- <Button x:Name="ServerRadioPresetEnabledToggle" -->
+                <!--         Content="{Binding ServerRadioPresetEnabledText}" -->
+                <!--         Grid.Row="25" -->
+                <!--         Grid.Column="2" -->
+                <!--         Width="75" -->
+                <!--         Height="20" -->
+                <!--         VerticalAlignment="Center" -->
+                <!--         HorizontalAlignment="Center"/> -->
             </Grid>
         </StackPanel>
     </ScrollViewer>

@@ -464,6 +464,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Server Radio Preset.
+        /// </summary>
+        public static string ServerRadioPresetEnabled {
+            get {
+                return ResourceManager.GetString("ServerRadioPresetEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SR Client List.
         /// </summary>
         public static string TitleClientList {
