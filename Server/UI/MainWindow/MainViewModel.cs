@@ -226,8 +226,8 @@ public sealed class MainViewModel : Screen, IHandle<ServerStateMessage>
         public string ServerPresetsEnabledText
             => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SERVER_PRESETS_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
         
-        public string ServerRadioPresetEnabledText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SERVER_RADIO_PRESET_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
+        public string ServerEAMRadioPresetEnabledText
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SERVER_EAM_RADIO_PRESET_ENABLED).BoolValue ? $"{Properties.Resources.BtnOn}" : $"{Properties.Resources.BtnOff}";
         
     public string ListeningPort
         => ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.SERVER_PORT).StringValue;
@@ -477,11 +477,11 @@ public sealed class MainViewModel : Screen, IHandle<ServerStateMessage>
             _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
         
-        public void ServerRadioPresetEnabledToggle()
+        public void ServerEAMRadioPresetEnabledToggle()
         {
-            var newSetting = ServerRadioPresetEnabledText != $"{Properties.Resources.BtnOn}";
-            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SERVER_RADIO_PRESET_ENABLED, newSetting);
-            NotifyOfPropertyChange(() => ServerRadioPresetEnabledText);
+            var newSetting = ServerEAMRadioPresetEnabledText != $"{Properties.Resources.BtnOn}";
+            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SERVER_EAM_RADIO_PRESET_ENABLED, newSetting);
+            NotifyOfPropertyChange(() => ServerEAMRadioPresetEnabledText);
 
             _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }

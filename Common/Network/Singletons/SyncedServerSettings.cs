@@ -30,6 +30,8 @@ public class SyncedServerSettings
     public List<double> GlobalFrequencies { get; set; } = new();
 
     private Dictionary<string, List<ServerPresetChannel>> ServerPresetChannels { get; set; } = new();
+    
+    public List<DCSRadioCustom> CustomEAMRadios { get; private set; } = new();
 
     public string ServerVersion { get; set; }
 
@@ -124,25 +126,28 @@ public class SyncedServerSettings
                     ServerPresetChannels = new Dictionary<string, List<ServerPresetChannel>>();
                 }
             }
-            //TODO to come back to this as this means we have to share the DCS models with the server
-            // else if (kvp.Key.Equals(ServerSettingsKeys.SERVER_RADIO_PRESETS.ToString()))
-            // {
-            //     try
-            //     {
-            //         ServerPresetChannels =
-            //             JsonSerializer.Deserialize<Dictionary<string, List<ServerPresetChannel>>>(kvp.Value, new JsonSerializerOptions()
-            //             {
-            //                 AllowTrailingCommas = true,
-            //                 PropertyNameCaseInsensitive = true,
-            //                 ReadCommentHandling = JsonCommentHandling.Skip,
-            //                 IncludeFields = true,
-            //             });
-            //     }
-            //     catch (Exception)
-            //     {
-            //         ServerPresetChannels = new Dictionary<string, List<ServerPresetChannel>>();
-            //     }
-            // }
+            else if (kvp.Key.Equals(ServerSettingsKeys.SERVER_EAM_RADIO_PRESET.ToString()))
+            {
+                try
+                {
+                    CustomEAMRadios = JsonSerializer.Deserialize<List<DCSRadioCustom>>(kvp.Value,
+                        new JsonSerializerOptions()
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            IncludeFields = true,
+                        });
+
+                    if (CustomEAMRadios.Count != 11 || (CustomEAMRadios[0].modulation != Modulation.DISABLED && CustomEAMRadios[0].modulation != Modulation.INTERCOM))
+                    {
+                        //invalid config
+                        CustomEAMRadios = new List<DCSRadioCustom>();
+                    }
+                }
+                catch (Exception)
+                {
+                    CustomEAMRadios = new List<DCSRadioCustom>();
+                }
+            }
         }
 
         //cache will be refilled 

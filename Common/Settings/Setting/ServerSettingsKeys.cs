@@ -41,8 +41,8 @@ public enum ServerSettingsKeys
     HTTP_SERVER_ENABLED = 32,
     HTTP_SERVER_PORT = 33,
     HTTP_SERVER_API_KEY = 34,
-    SERVER_RADIO_PRESET_ENABLED = 35,
-    SERVER_RADIO_PRESET = 36,
+    SERVER_EAM_RADIO_PRESET_ENABLED = 35,
+    SERVER_EAM_RADIO_PRESET = 36,
 }
 
 public class DefaultServerSettings
@@ -83,6 +83,6 @@ public class DefaultServerSettings
         { ServerSettingsKeys.HTTP_SERVER_ENABLED.ToString(), "false" },
         { ServerSettingsKeys.HTTP_SERVER_PORT.ToString(), "8080" },
         { ServerSettingsKeys.HTTP_SERVER_API_KEY.ToString(), ShortGuid.NewGuid() },
-        { ServerSettingsKeys.SERVER_RADIO_PRESET_ENABLED.ToString(), "false" },
+        { ServerSettingsKeys.SERVER_EAM_RADIO_PRESET_ENABLED.ToString(), "false" },
     };
 }

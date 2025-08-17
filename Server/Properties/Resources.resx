@@ -222,8 +222,8 @@
   <data name="ServerPresetsEnabled" xml:space="preserve">
     <value>Server Channel Presets</value>
   </data>
-  <data name="ServerRadioPresetEnabled" xml:space="preserve">
-    <value>Server Radio Preset</value>
+  <data name="ServerEAMRadioPresetEnabled" xml:space="preserve">
+    <value>Server Custom EAM Radio Preset</value>
   </data>
   <data name="LabelTunedCount" xml:space="preserve">
     <value>Show Tuned/Client Count</value>
