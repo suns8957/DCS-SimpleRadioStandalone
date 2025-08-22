@@ -127,6 +127,10 @@ public class ExternalAudioClient : IHandle<TCPClientStatusMessage>
         var audioGenerator = new AudioGenerator(opts);
         var opusBytes = audioGenerator.GetOpusBytes();
         var count = 0;
+       
+        //Wait until voip is ready and we're not cancelled
+        while(!udpVoiceHandler.Ready && !finished.IsCancellationRequested) 
+            Thread.Sleep(100);
 
         var tokenSource = new CancellationTokenSource();
 
