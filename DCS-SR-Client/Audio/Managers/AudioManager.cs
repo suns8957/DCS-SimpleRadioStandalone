@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Caliburn.Micro;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Core;

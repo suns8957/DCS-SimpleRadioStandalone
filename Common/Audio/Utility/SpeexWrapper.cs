@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Wave;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
+namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 
 //From https://github.com/mischa/HelloVR/blob/1796d2607f1f583d2669f005839e494511b2b83b/Assets/Plugins/Dissonance/Core/Audio/Capture/SpeexDspNative.cs
 internal static class SpeexDspNative
@@ -432,6 +432,8 @@ public class Preprocessor
     : IDisposable
 {
     private readonly SpeexDspNative.Preprocessor _preprocessor;
+
+    public int FrameSize => _preprocessor.FrameSize;
 
 
     public Preprocessor(int frameSize, int sampleRate)
