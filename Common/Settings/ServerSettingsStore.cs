@@ -15,7 +15,6 @@ public class ServerSettingsStore
 {
     public static readonly string CFG_BACKUP_FILE_NAME = "server.cfg.bak";
 
-    private static ServerSettingsStore instance;
     private static readonly object _lock = new();
 
     //Can be overridden by a command line flag - hence being static
@@ -67,18 +66,7 @@ public class ServerSettingsStore
         }
     }
 
-    public static ServerSettingsStore Instance
-    {
-        get
-        {
-            lock (_lock)
-            {
-                if (instance == null) instance = new ServerSettingsStore();
-            }
-
-            return instance;
-        }
-    }
+    public static ServerSettingsStore Instance { get; } = new();
 
     public List<string> GetAllSettings()
     {
