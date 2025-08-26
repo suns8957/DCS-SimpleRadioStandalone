@@ -1039,7 +1039,7 @@
                                    Content="{x:Static p:Resources.RadioSoundEffects}" />
 
                             <clientSettingsControl:SettingsToggleControl
-                                Grid.Row="7"
+                                Grid.Row="8"
                                 Grid.Column="1"
                                 ToggleValue="{Binding RadioSoundEffects, Mode=TwoWay}" />
 

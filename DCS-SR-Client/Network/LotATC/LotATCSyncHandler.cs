@@ -71,9 +71,10 @@ public class LotATCSyncHandler
                     var groupEp = new IPEndPoint(IPAddress.Any, 0);
                     var bytes = _lotATCPositionListener.Receive(ref groupEp);
 
-                    var lotAtcPositionWrapper =
-                        JsonSerializer.Deserialize<LotATCMessageWrapper>(Encoding.UTF8.GetString(
-                            bytes, 0, bytes.Length));
+                    var lotAtcPositionWrapper = JsonSerializer.Deserialize<LotATCMessageWrapper>(
+                        Encoding.UTF8.GetString(bytes, 0, bytes.Length),
+                            new JsonSerializerOptions() { IncludeFields = true }
+                        );
 
                     if (lotAtcPositionWrapper != null)
                     {
