@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Wave;
-using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility.Speex;
 using System.Buffers;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
@@ -14,8 +12,6 @@ public class ClientAudioProvider : AudioProvider
 {
     private readonly Random _random = new();
     private static readonly int MaxSamples = Constants.OUTPUT_SAMPLE_RATE * 120 / 1000; // 120ms is the max opus frame size.
-
-    private Preprocessor speex = new Preprocessor(Constants.OUTPUT_SAMPLE_RATE * 20 / 1000, Constants.OUTPUT_SAMPLE_RATE);
 
     //progress per radio
     private readonly Dictionary<string, int>[] ambientEffectProgress;
@@ -49,12 +45,6 @@ public class ClientAudioProvider : AudioProvider
         ambientEffectProgress = new Dictionary<string, int>[radios];
 
         for (var i = 0; i < radios; i++) ambientEffectProgress[i] = new Dictionary<string, int>();
-
-        // Default target is 8000, give it a bit more range.
-        speex.AutomaticGainControl = true;
-        speex.AutomaticGainControlTarget = 15000;
-        speex.AutomaticGainControlLevelMax = 30;
-        speex.AutomaticGainControlDecrement = -40;
     }
 
     public JitterBufferProviderInterface[] JitterBufferProviderInterface { get; }
@@ -68,33 +58,11 @@ public class ClientAudioProvider : AudioProvider
 
         var newTransmission = LikelyNewTransmission();
 
-        var shortPool = ArrayPool<short>.Shared;
-
-        var pcmAudioShort = shortPool.Rent(MaxSamples);
+        var floatPool = ArrayPool<float>.Shared;
+        var pcmAudioFloat = floatPool.Rent(MaxSamples);
 
         // Target buffer contains at least one frame.
-        //var decodedLength = _decoder.DecodeFloat(audio.EncodedAudio, PcmAudioFloat, newTransmission);
-        var decodedLength = _decoder.DecodeShort(audio.EncodedAudio, pcmAudioShort, MaxSamples, newTransmission);
-
-        if (newTransmission)
-        {
-            speex.Reset();
-        }
-
-        for (var i = 0; i < decodedLength; i += speex.FrameSize)
-        {
-            speex.Process(new ArraySegment<short>(pcmAudioShort, i, Math.Min(decodedLength, speex.FrameSize)));
-        }
-
-        var floatPool = ArrayPool<float>.Shared;
-        var pcmAudioFloat = floatPool.Rent(decodedLength);
-
-        for (var i = 0; i < decodedLength; ++i)
-        {
-            pcmAudioFloat[i] = pcmAudioShort[i] / (short.MaxValue + 1f);
-        }
-
-        shortPool.Return(pcmAudioShort);
+        var decodedLength = _decoder.DecodeFloat(audio.EncodedAudio, new Memory<float>(pcmAudioFloat, 0, MaxSamples), newTransmission);
 
         if (decodedLength <= 0)
         {

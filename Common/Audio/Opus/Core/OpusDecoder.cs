@@ -180,7 +180,7 @@ public class OpusDecoder : IDisposable
     /// <param name="dataLength">Length of data to decode or skipped data if <paramref name="inputOpusData" /> is <c>null</c>.</param>
     /// <param name="decodedLength">Set to the length of the decoded sample data.</param>
     /// <returns>PCM audio samples.</returns>
-    public int DecodeFloat(byte[] inputOpusData, float[] decoded, bool reset = false)
+    public int DecodeFloat(byte[] inputOpusData, Memory<float> decoded, bool reset = false)
     {
         if (disposed)
             throw new ObjectDisposedException("OpusDecoder");
@@ -195,19 +195,19 @@ public class OpusDecoder : IDisposable
         }
 
         var length = 0;
-        unsafe
+        using (var pinned = decoded.Pin())
         {
-            fixed (byte* input = inputOpusData)
+            unsafe
             {
-                fixed (float* pcmOut = decoded)
+                fixed (byte* input = inputOpusData)
                 {
                     var payloadLength = input != null ? inputOpusData.Length : 0;
-                    length = API.opus_decode_float(_decoder, input, payloadLength, pcmOut, decoded.Length / OutputChannels,
+                    length = API.opus_decode_float(_decoder, input, payloadLength, (float*)pinned.Pointer, decoded.Length / OutputChannels,
                             ForwardErrorCorrection ? 1 : 0);
-                
                 }
             }
         }
+        
 
         if (length < 0)
             throw new Exception("Decoding failed - " + (Errors)length);
