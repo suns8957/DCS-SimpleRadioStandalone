@@ -168,6 +168,7 @@ public class RadioMixingProvider : ISampleProvider
                 {
                     var secondarySamples = 0;
                     var secondaryMixBuffer = floatPool.Rent(longestSecondaryLength);
+                    Array.Clear(secondaryMixBuffer, 0, longestTransmissionLength);
                     pipeline.ProcessClientTransmissions(secondaryMixBuffer, 0, secondaryAudio, out secondarySamples);
 
                     // Mix with primary.
