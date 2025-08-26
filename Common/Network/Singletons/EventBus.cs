@@ -7,10 +7,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 
 public class EventBus
 {
-    private static EventBus _instance;
-
-    private static readonly object _lock = new();
-
     //Caliburn.Micro
     private readonly IEventAggregator _eventAggregator;
 
@@ -19,20 +15,7 @@ public class EventBus
         _eventAggregator = new EventAggregator();
     }
 
-    public static EventBus Instance
-    {
-        get
-        {
-            if (_instance == null)
-                lock (_lock)
-                {
-                    if (_instance == null)
-                        _instance = new EventBus();
-                }
-
-            return _instance;
-        }
-    }
+    public static EventBus Instance { get; } = new();
 
     public void Unsubcribe(object obj)
     {
