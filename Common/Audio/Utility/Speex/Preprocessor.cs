@@ -105,7 +105,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility.Speex
             set => CTL(DspNative.Ctl.SPEEX_PREPROCESS_SET_AGC_TARGET, ref value);
         }
 
-        public int AutomaticGainControlLevelMax
+        public int AutomaticGainControlMaxGain
         {
             get => CTL_Int(DspNative.Ctl.SPEEX_PREPROCESS_GET_AGC_MAX_GAIN);
             set => CTL(DspNative.Ctl.SPEEX_PREPROCESS_SET_AGC_MAX_GAIN, ref value);

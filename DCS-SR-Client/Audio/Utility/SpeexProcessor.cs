@@ -43,7 +43,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility
                 var agc = settingsStore.GetClientSettingBool(GlobalSettingsKeys.AGC);
                 var agcTarget = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCTarget).IntValue;
                 var agcDecrement = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCDecrement).IntValue;
-                var agcLevelMax = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCLevelMax).IntValue;
+                var agcMaxGain = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCLevelMax).IntValue;
 
                 var denoise = settingsStore.GetClientSettingBool(GlobalSettingsKeys.Denoise);
                 var denoiseAttenuation = settingsStore.GetClientSetting(GlobalSettingsKeys.DenoiseAttenuation).IntValue;
@@ -54,7 +54,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility
                 if (agc != speex.AutomaticGainControl) speex.AutomaticGainControl = agc;
                 if (agcTarget != speex.AutomaticGainControlTarget) speex.AutomaticGainControlTarget = agcTarget;
                 if (agcDecrement != speex.AutomaticGainControlDecrement) speex.AutomaticGainControlDecrement = agcDecrement;
-                if (agcLevelMax != speex.AutomaticGainControlLevelMax) speex.AutomaticGainControlLevelMax = agcLevelMax;
+                if (agcMaxGain != speex.AutomaticGainControlMaxGain) speex.AutomaticGainControlMaxGain = agcMaxGain;
 
                 if (denoise != speex.Denoise) speex.Denoise = denoise;
                 if (denoiseAttenuation != speex.DenoiseAttenuation) speex.DenoiseAttenuation = denoiseAttenuation;
