@@ -1,6 +1,8 @@
 ﻿using NAudio.Utils;
 using NAudio.Wave;
 using System;
+using System.Numerics;
+using System.Runtime.Intrinsics;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 {
@@ -43,7 +45,23 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         public int Read(float[] buffer, int offset, int count)
         {
             var samplesRead = source.Read(buffer, offset, count);
-            for (int i = 0; i < count; ++i)
+
+            var vectorSize = Vector<float>.Count;
+            var remainder = count % vectorSize;
+            var v_threshold = new Vector<float>(_thresholdLinear);
+            var v_gain = new Vector<float>(_gainLinear);
+
+            for (var i = 0; i < count - remainder; i += vectorSize)
+            {
+                var v_samples = Vector.LoadUnsafe(ref buffer[0], (nuint)(offset + i));
+                var v_passing = Vector.LessThan<float>(Vector.Abs(v_samples), v_threshold);
+                var v_samplesGain = v_samples * v_gain;
+
+                Vector.ConditionalSelect(v_passing, v_samplesGain, v_samples).CopyTo(buffer, offset + i);
+            }
+
+            // at most 3.
+            for (var i = count - remainder; i < count; ++i)
             {
                 var sample = buffer[offset + i];
                 var absSample = Math.Abs(sample);
