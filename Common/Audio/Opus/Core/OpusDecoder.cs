@@ -141,7 +141,7 @@ public class OpusDecoder : IDisposable
     /// <param name="inputOpusData">Opus encoded data to decode, <c>null</c> for dropped packet.</param>
     /// <param name="decoded">Output buffer.</param>
     /// <returns>Number of decoded samples.</returns>
-    public int DecodeShort(byte[] inputOpusData, short[] decoded, bool reset = false)
+    public int DecodeShort(byte[] inputOpusData, short[] decoded, int samples, bool reset = false)
     {
         if (disposed)
             throw new ObjectDisposedException("OpusDecoder");
@@ -161,7 +161,7 @@ public class OpusDecoder : IDisposable
             fixed (short* pcmOut = decoded)
             {
                 var payloadLength = inputOpusData != null ? inputOpusData.Length : 0;
-                length = API.opus_decode(_decoder, inputOpusData, payloadLength, new IntPtr(pcmOut), decoded.Length / OutputChannels,
+                length = API.opus_decode(_decoder, inputOpusData, payloadLength, new IntPtr(pcmOut), samples / OutputChannels,
                         ForwardErrorCorrection ? 1 : 0);
 
             }

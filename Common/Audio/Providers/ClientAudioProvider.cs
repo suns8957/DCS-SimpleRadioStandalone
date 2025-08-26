@@ -74,7 +74,7 @@ public class ClientAudioProvider : AudioProvider
 
         // Target buffer contains at least one frame.
         //var decodedLength = _decoder.DecodeFloat(audio.EncodedAudio, PcmAudioFloat, newTransmission);
-        var decodedLength = _decoder.DecodeShort(audio.EncodedAudio, pcmAudioShort, newTransmission);
+        var decodedLength = _decoder.DecodeShort(audio.EncodedAudio, pcmAudioShort, MaxSamples, newTransmission);
 
         if (newTransmission)
         {
