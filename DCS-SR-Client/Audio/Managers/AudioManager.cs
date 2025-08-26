@@ -144,19 +144,16 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
         if (speakers.AudioClient.MixFormat.Channels == 1)
         {
-            if (_volumeSampleProvider.WaveFormat.Channels == 2)
-                _waveOut.Init(_volumeSampleProvider.ToMono());
             else
                 //already mono
-                _waveOut.Init(_volumeSampleProvider);
+            _waveOut.Init(_volumeSampleProvider.ToMono());
         }
         else
         {
-            if (_volumeSampleProvider.WaveFormat.Channels == 1)
                 _waveOut.Init(_volumeSampleProvider.ToStereo());
             else
                 //already stereo
-                _waveOut.Init(_volumeSampleProvider);
+            _waveOut.Init(_volumeSampleProvider.ToStereo());
         }
 
         _waveOut.Play();

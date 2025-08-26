@@ -121,12 +121,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
     internal class DefaultRadioModels
     {
         // ARC-210 as default radio FX.
-        public static readonly Dto.RadioModel Arc210 = new()
+        public static Dto.RadioModel BuildArc210()
         {
-            Version = 1,
-            TxEffect = new ChainEffect()
+            return new()
             {
-                Effects = new IEffect[]
+                Version = 1,
+                TxEffect = new ChainEffect()
+                {
+                    Effects = new IEffect[]
                 {
                     new FiltersEffect()
                     {
@@ -159,7 +161,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Threshold = -33,
                         Ratio = 1.18f
                     },
-
                     new FiltersEffect()
                     {
                         Filters = new[]
@@ -174,32 +175,36 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                             }
                         }
                     },
-
                     new GainEffect()
                     {
                         Gain = 12,
                     }
-                }
-            },
 
-            RxEffect = new FiltersEffect()
-            {
-                Filters = new[]
+                }
+
+                },
+
+                RxEffect = new FiltersEffect()
+                {
+                    Filters = new Dsp.IFilter[]
                 {
                     Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
                     Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
                 },
-            },
+                },
 
-            NoiseGain = -33,
-        };
+                NoiseGain = -33,
+            };
+        }
 
-        public static readonly Dto.RadioModel Intercom = new()
+        public static Dto.RadioModel BuildIntercom()
         {
-            Version = 1,
-            TxEffect = new ChainEffect()
+            return new()
             {
-                Effects = new IEffect[]
+                Version = 1,
+                TxEffect = new ChainEffect()
+                {
+                    Effects = new IEffect[]
                 {
                     new FiltersEffect()
                     {
@@ -257,20 +262,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Gain = 8,
                     }
                 }
-            },
+                },
 
-            RxEffect = new FiltersEffect()
-            {
-                Filters = new[]
+                RxEffect = new FiltersEffect()
+                {
+                    Filters = new[]
                 {
                     Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
                     Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
                 },
-            },
+                },
 
-            NoiseGain = -60,
-        };
+                NoiseGain = -60,
+            };
+        }
     };
-    
-
 }

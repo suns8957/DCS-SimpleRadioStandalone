@@ -110,8 +110,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private IReadOnlyDictionary<string, RadioModel> RadioModels;
 
-        private static readonly RadioModel Arc210 = new RadioModel(DefaultRadioModels.Arc210);
-        private static readonly RadioModel Intercom = new RadioModel(DefaultRadioModels.Intercom);
+        private readonly RadioModel Arc210 = new RadioModel(DefaultRadioModels.BuildArc210());
+        private readonly RadioModel Intercom = new RadioModel(DefaultRadioModels.BuildIntercom());
         private void LoadRadioModels()
         {
             var modelsFolders = new List<string> { ModelsFolder, ModelsCustomFolder };
