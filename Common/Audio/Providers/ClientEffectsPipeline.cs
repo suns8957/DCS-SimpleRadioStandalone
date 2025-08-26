@@ -232,11 +232,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                         workingAudio = floatPool.Rent(transmission.PCMAudioLength);
                     }
                     Array.Copy(transmission.PCMMonoAudio, workingAudio, transmission.PCMAudioLength);
+
                     if (!transmission.NoAudioEffects)
                     {
                         ProcessClientAudioSamples(workingAudio, 0, transmission.PCMAudioLength, transmission);
                     }
 
+
+                    // Accumulate in destination buffer.
                     var vectorSize = Vector<float>.Count;
                     var remainder = transmission.PCMAudioLength % vectorSize;
 
