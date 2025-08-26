@@ -11,9 +11,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     {
         public WaveFormat WaveFormat => WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
         private Memory<float> Buffer { get; set; }
-        public TransmissionProvider(float[] buffer, int offset)
+        public TransmissionProvider(float[] buffer, int offset, int count)
         {
-           Buffer = new Memory<float>(buffer, offset, buffer.Length - offset);
+           Buffer = new Memory<float>(buffer, offset, count - offset);
         }
 
         public int Read(float[] buffer, int offset, int count)
