@@ -26,11 +26,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             int samplesRead = Source.Read(buffer, offset, count);
 
             var vectorSize = Vector<float>.Count;
-            var remainder = count % vectorSize;
+            var remainder = samplesRead % vectorSize;
             var v_max = new Vector<float>(Max);
             var v_min = new Vector<float>(Min);
 
-            for (var i = 0; i < count - remainder; i += vectorSize)
+            for (var i = 0; i < samplesRead - remainder; i += vectorSize)
             {
                 var samples_v = Vector.LoadUnsafe(ref buffer[0], (nuint)(offset + i));
 
@@ -38,8 +38,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 samples_v.CopyTo(buffer, offset + i);
             }
 
-            // at most 3.
-            for (var i = count - remainder; i < count; ++i)
+            // at most vectorSize - 1.
+            for (var i = samplesRead - remainder; i < samplesRead; ++i)
             {
                 buffer[offset + i] = Math.Max(Math.Min(buffer[offset + i], Max), Min);
             }

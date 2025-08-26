@@ -47,11 +47,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var samplesRead = source.Read(buffer, offset, count);
 
             var vectorSize = Vector<float>.Count;
-            var remainder = count % vectorSize;
+            var remainder = samplesRead % vectorSize;
             var v_threshold = new Vector<float>(_thresholdLinear);
             var v_gain = new Vector<float>(_gainLinear);
 
-            for (var i = 0; i < count - remainder; i += vectorSize)
+            for (var i = 0; i < samplesRead - remainder; i += vectorSize)
             {
                 var v_samples = Vector.LoadUnsafe(ref buffer[0], (nuint)(offset + i));
                 var v_passing = Vector.LessThan<float>(Vector.Abs(v_samples), v_threshold);
@@ -60,8 +60,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 Vector.ConditionalSelect(v_passing, v_samplesGain, v_samples).CopyTo(buffer, offset + i);
             }
 
-            // at most 3.
-            for (var i = count - remainder; i < count; ++i)
+            // at most vectorSize - 1.
+            for (var i = samplesRead - remainder; i < samplesRead; ++i)
             {
                 var sample = buffer[offset + i];
                 var absSample = Math.Abs(sample);
