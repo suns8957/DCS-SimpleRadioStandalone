@@ -18,7 +18,6 @@ public class AudioRecordingManager
     // TODO: should this be something more dynamic or in a more global scope?
     private const int MAX_RADIOS = 11;
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-    private static readonly object _lock = new();
 
     // full queues carry per-radio hydrated audio samples reconstructed from the raw data.
     private readonly List<AudioRecordingStreamHydrated> _clientFullQueues;
