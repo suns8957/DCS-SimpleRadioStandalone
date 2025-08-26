@@ -26,7 +26,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 for (int i = 0; i < count; ++i)
                 {
-                    buffer[offset + i] = filter.Transform(buffer[offset + i]);
+                    // ignore perfect silence.
+                    if (buffer[offset + i] != 0)
+                    {
+                        buffer[offset + i] = filter.Transform(buffer[offset + i]);
+                    }
+                    
                 }
             }
 
