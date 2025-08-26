@@ -6,7 +6,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     internal class CVSDProvider : ISampleProvider
     {
         private ISampleProvider source;
-        private static CVSD cvsd = new CVSD();
+        private CVSD cvsd = new CVSD();
 
         public WaveFormat WaveFormat => source.WaveFormat;
 
