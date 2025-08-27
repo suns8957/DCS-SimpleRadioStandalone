@@ -94,7 +94,7 @@ public class RadioCalculator
         return Math.Sqrt(distance * distance + height * height);
     }
     
-    public const double MHz = 1000000.0;
+    public const double MHz = 1e6;
 
     public static class Link16
     {
