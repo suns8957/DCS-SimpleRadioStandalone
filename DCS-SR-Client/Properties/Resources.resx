@@ -922,7 +922,7 @@ Requires Tx or Rx Effects On</value>
     <value>Recording</value>
   </data>
   <data name="RecordingQuality" xml:space="preserve">
-    <value>Recording Quality</value>
+    <value>Recording Quality (mp3 only)</value>
   </data>
   <data name="RecordingQuality0" xml:space="preserve">
     <value>0 - Highest</value>
@@ -1218,6 +1218,9 @@ Requires Tx or Rx Effects On</value>
   </data>
   <data name="DisableExpansionRadios" xml:space="preserve">
     <value>Disable Expansion Radios</value>
+  </data>
+  <data name="RecordingFormat" xml:space="preserve">
+    <value>Recording Format (requires restart)</value>
   </data>
   <data name="NoiseGainDB" xml:space="preserve">
     <value>Noise Gain (dB)</value>
