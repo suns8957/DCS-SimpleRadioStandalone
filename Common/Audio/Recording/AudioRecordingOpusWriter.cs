@@ -15,7 +15,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
     {
 
         private readonly List<OpusOggWriteStream> _opusFileWriters = new();
-        public AudioRecordingOpusWriter(List<AudioRecordingStream> streams, int sampleRate, int maxSamples)
+        public AudioRecordingOpusWriter(IReadOnlyList<AudioRecordingStream> streams, int sampleRate, int maxSamples)
        : base(streams, sampleRate, maxSamples)
         {
         }

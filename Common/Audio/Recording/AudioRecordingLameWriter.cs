@@ -20,7 +20,7 @@ internal class AudioRecordingLameWriter : AudioRecordingWriterBase
     // audio data, each stream is written to its own file (named per the current date and time
     // and the stream tag). the writer will process the specified maximum number of samples per
     // call to ProcessAudio().
-    public AudioRecordingLameWriter(List<AudioRecordingStream> streams, int sampleRate, int maxSamples)
+    public AudioRecordingLameWriter(IReadOnlyList<AudioRecordingStream> streams, int sampleRate, int maxSamples)
         :base(streams, sampleRate, maxSamples)
     {
         _mp3FilePaths = new List<string>();

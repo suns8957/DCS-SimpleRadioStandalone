@@ -11,7 +11,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
     {
         protected static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private readonly List<AudioRecordingStream> _streams;
+        private readonly IReadOnlyList<AudioRecordingStream> _streams;
         private readonly WaveFormat _waveFormat;
         private readonly int _maxSamples;
         private readonly int _sampleRate;
@@ -21,7 +21,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
         protected int MaxSamples => _maxSamples;
         protected int SampleRate => _sampleRate;
 
-        protected AudioRecordingWriterBase(List<AudioRecordingStream> streams, int sampleRate, int maxSamples)
+        protected AudioRecordingWriterBase(IReadOnlyList<AudioRecordingStream> streams, int sampleRate, int maxSamples)
         {
             _streams = streams;
             _waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 1);
