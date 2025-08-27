@@ -6,7 +6,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 {
     internal class CachedEffectProvider : ISampleProvider
     {
-        public WaveFormat WaveFormat => WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
+        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
 
         public int Read(float[] buffer, int offset, int count)
         {
