@@ -6,6 +6,7 @@ using Concentus.Oggfile;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
@@ -21,25 +22,32 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
 
         public override void Start()
         {
+            var now = DateTime.UtcNow;
+
             // streams are stored in Recordings directory, named "<date>-<time><tag>.mp3"
-            var sanitisedDate = string.Join("-", DateTime.Now.ToShortDateString().Split(Path.GetInvalidFileNameChars()));
-            var sanitisedTime = string.Join("-", DateTime.Now.ToLongTimeString().Split(Path.GetInvalidFileNameChars()));
+            var sanitisedDate = string.Join("-", now.ToLocalTime().ToShortDateString().Split(Path.GetInvalidFileNameChars()));
+            var sanitisedTime = string.Join("-", now.ToLocalTime().ToLongTimeString().Split(Path.GetInvalidFileNameChars()));
             var filePathBase = $"Recordings\\{sanitisedDate}-{sanitisedTime}";
 
-            // #TODO: interpret
-            var lamePreset = (LAMEPreset)Enum.Parse(typeof(LAMEPreset),
-                GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.RecordingQuality).RawValue);
-
+            var encodedBy = "SRS " + UpdaterChecker.VERSION;
+            var trackTotal = Streams.Count.ToString();
+            var dateStr = now.ToString("O", CultureInfo.InvariantCulture);
             for (var i = 0; i < Streams.Count; i++)
             {
                 var encoder = OpusCodecFactory.CreateEncoder(48000, 1);
-                encoder.UseDTX = true; // Discontinued transmissions. Recordings are mostly silence.
 
                 var tag = Streams[i].Tag;
+
                 if (tag == null || tag.Length == 0) tag = "";
 
                 var tags = new OpusTags();
-                tags.Fields[OpusTagName.Artist] = "SRS " + UpdaterChecker.VERSION;
+
+                tags.Fields[OpusTagName.Title] = tag;
+                tags.Fields["encoded_by"] = encodedBy;
+                tags.Fields["encoder"] = encodedBy;
+                tags.Fields["tracknumber"] = (i + 1).ToString();
+                tags.Fields["tracktotal"] = trackTotal;
+                tags.Fields["date"] = dateStr;
                 var path = filePathBase + tag + ".opus";
 
                 var stream = new FileStream(path, FileMode.Create);
