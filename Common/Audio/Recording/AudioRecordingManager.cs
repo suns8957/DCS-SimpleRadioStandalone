@@ -38,7 +38,7 @@ public class AudioRecordingManager
 
     private readonly ClientEffectsPipeline pipeline = new();
 
-    private AudioRecordingLameWriter _audioRecordingWriter;
+    private AudioRecordingWriterBase _audioRecordingWriter;
     private string _clientGuid; //player guid
     private bool _processThreadDone;
 
