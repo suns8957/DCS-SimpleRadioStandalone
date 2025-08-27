@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Caliburn.Micro;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
+using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models;
@@ -28,6 +28,7 @@ using WebRtcVadSharp;
 using WPFCustomMessageBox;
 using Application = Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Application;
 using LogManager = NLog.LogManager;
+using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
 
@@ -82,7 +83,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     private EventDrivenResampler _resampler;
 
     private float _speakerBoost = 1.0f;
-    private Preprocessor _speex;
+    private SpeexProcessor _speex;
 
     private byte[] _tempMicOutputBuffer;
 
@@ -143,19 +144,11 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
         if (speakers.AudioClient.MixFormat.Channels == 1)
         {
-            if (_volumeSampleProvider.WaveFormat.Channels == 2)
-                _waveOut.Init(_volumeSampleProvider.ToMono());
-            else
-                //already mono
-                _waveOut.Init(_volumeSampleProvider);
+            _waveOut.Init(_volumeSampleProvider.ToMono());
         }
         else
         {
-            if (_volumeSampleProvider.WaveFormat.Channels == 1)
-                _waveOut.Init(_volumeSampleProvider.ToStereo());
-            else
-                //already stereo
-                _waveOut.Init(_volumeSampleProvider);
+            _waveOut.Init(_volumeSampleProvider.ToStereo());
         }
 
         _waveOut.Play();
@@ -205,7 +198,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         _encoder.ForwardErrorCorrection = false;
 
         //speex
-        _speex = new Preprocessor(Constants.MIC_SEGMENT_FRAMES, Constants.MIC_SAMPLE_RATE);
+        _speex = new SpeexProcessor(Constants.MIC_SEGMENT_FRAMES, Constants.MIC_SAMPLE_RATE);
     }
 
 
@@ -343,12 +336,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                     //process with Speex
                     _speex.Process(new ArraySegment<short>(_pcmShort));
 
-                    float max = 0;
-                    for (var i = 0; i < _pcmShort.Length; i++)
-                        //determine peak
-                        if (_pcmShort[i] > max)
-                            max = _pcmShort[i];
-
                     //convert to dB
                     MicMax = (float)VolumeConversionHelper.CalculateRMS(_pcmShort);
 
@@ -390,6 +377,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                     Modulation = jitterBufferAudio.Modulation,
                                     Volume = jitterBufferAudio.Volume,
                                     Decryptable = true,
+                                    Encryption = jitterBufferAudio.Encryption,
                                     Frequency = jitterBufferAudio.Frequency,
                                     IsSecondary = jitterBufferAudio.IsSecondary,
                                     NoAudioEffects = jitterBufferAudio.NoAudioEffects,
@@ -402,7 +390,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                                 //process audio
                                 _clientEffectsPipeline.ProcessClientAudioSamples(
                                     jitterBufferAudio.Audio,
-                                    jitterBufferAudio.Audio.Length, 0, deJittered);
+                                    0, jitterBufferAudio.Audio.Length, deJittered);
 
                                 if (_micWaveOut != null)
                                 {

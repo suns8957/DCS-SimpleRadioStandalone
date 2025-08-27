@@ -11,8 +11,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 
 public class SyncedServerSettings
 {
-    private static SyncedServerSettings instance;
-    private static readonly object _lock = new();
     private static readonly Dictionary<string, string> defaults = DefaultServerSettings.Defaults;
 
     private readonly ConcurrentDictionary<string, string> _settings;
@@ -30,24 +28,15 @@ public class SyncedServerSettings
     public List<double> GlobalFrequencies { get; set; } = new();
 
     private Dictionary<string, List<ServerPresetChannel>> ServerPresetChannels { get; set; } = new();
+    
+    public List<DCSRadioCustom> CustomEAMRadios { get; private set; } = new();
 
     public string ServerVersion { get; set; }
 
     // Node Limit of 0 means no retransmission
     public int RetransmitNodeLimit { get; set; }
 
-    public static SyncedServerSettings Instance
-    {
-        get
-        {
-            lock (_lock)
-            {
-                if (instance == null) instance = new SyncedServerSettings();
-            }
-
-            return instance;
-        }
-    }
+    public static SyncedServerSettings Instance { get; } = new();
 
 
     public string GetSetting(ServerSettingsKeys key)
@@ -122,6 +111,28 @@ public class SyncedServerSettings
                 catch (Exception)
                 {
                     ServerPresetChannels = new Dictionary<string, List<ServerPresetChannel>>();
+                }
+            }
+            else if (kvp.Key.Equals(ServerSettingsKeys.SERVER_EAM_RADIO_PRESET.ToString()))
+            {
+                try
+                {
+                    CustomEAMRadios = JsonSerializer.Deserialize<List<DCSRadioCustom>>(kvp.Value,
+                        new JsonSerializerOptions()
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            IncludeFields = true,
+                        });
+
+                    if (CustomEAMRadios.Count != 11 || (CustomEAMRadios[0].modulation != Modulation.DISABLED && CustomEAMRadios[0].modulation != Modulation.INTERCOM))
+                    {
+                        //invalid config
+                        CustomEAMRadios = new List<DCSRadioCustom>();
+                    }
+                }
+                catch (Exception)
+                {
+                    CustomEAMRadios = new List<DCSRadioCustom>();
                 }
             }
         }
