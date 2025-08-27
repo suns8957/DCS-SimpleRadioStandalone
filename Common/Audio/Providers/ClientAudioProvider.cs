@@ -80,6 +80,7 @@ public class ClientAudioProvider : AudioProvider
             decrytable =
                 audio.Decryptable /* || (audio.Encryption == 0) <--- this test has already been performed by all callers and would require another call to check for STRICT_AUDIO_ENCRYPTION */;
 
+        // #TODO: Run as part of FX chain.
         var pcmAudio = pcmAudioFloat.AsSpan(0, decodedLength);
         if (decrytable)
         {
@@ -143,6 +144,7 @@ public class ClientAudioProvider : AudioProvider
         }
     }
 
+    // #TODO: Move to dedicated audio provider.
     private void AddCockpitAmbientAudio(ClientAudio clientAudio, Span<float> pcmAudio)
     {
         //           clientAudio.Ambient.abType = "uh1";
@@ -211,6 +213,7 @@ public class ClientAudioProvider : AudioProvider
         }
     }
 
+    // #TODO: Move to dedicated audio provider.
     private void AdjustVolumeForLoss(ClientAudio clientAudio, Span<float> pcmAudio)
     {
         if (clientAudio.Modulation == (short)Modulation.MIDS || clientAudio.Modulation == (short)Modulation.SATCOM
