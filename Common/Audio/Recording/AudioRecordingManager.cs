@@ -223,6 +223,20 @@ public class AudioRecordingManager
         return mixBuffer;
     }
 
+    private static AudioRecordingWriterBase CreateWriter(IReadOnlyList<AudioRecordingStream> streams, int sampleRate, int maxSamples)
+    {
+        var desired = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.RecordingFormat).StringValue;
+        switch (desired)
+        {
+            case "mp3":
+                return new AudioRecordingLameWriter(streams, sampleRate, maxSamples);
+
+            case "opus":
+            default:
+                return new AudioRecordingOpusWriter(streams, sampleRate, maxSamples);
+        }
+    }
+
     public void Start(string clientGuid)
     {
         _clientGuid = clientGuid;
@@ -276,14 +290,14 @@ public class AudioRecordingManager
             {
                 new AudioRecordingStreamMixer(_radioFullQueues, "-All")
             };
-            _audioRecordingWriter = new AudioRecordingLameWriter(streams, SampleRate, MaxSamples);
+            _audioRecordingWriter = CreateWriter(streams, SampleRate, MaxSamples);
         }
         else
         {
             // write per-radio audio files. create a write with N streams, one for each of the
             // radios.
 
-            _audioRecordingWriter = new AudioRecordingLameWriter(_radioFullQueues, SampleRate, MaxSamples);
+            _audioRecordingWriter = CreateWriter(_radioFullQueues, SampleRate, MaxSamples);
         }
 
         _stop = false;
