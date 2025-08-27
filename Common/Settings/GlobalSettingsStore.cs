@@ -89,6 +89,7 @@ public enum GlobalSettingsKeys
     RecordAudio,
     SingleFileMixdown,
     RecordingQuality,
+    RecordingFormat,
     DisallowedAudioTone,
     VOX,
     VOXMode,
@@ -225,7 +226,6 @@ public class GlobalSettingsStore
 
     private static readonly object _lock = new();
 
-    private static GlobalSettingsStore _instance;
     private readonly Configuration _configuration;
 
     //cache all the settings in their correct types for speed
@@ -322,6 +322,7 @@ public class GlobalSettingsStore
         { GlobalSettingsKeys.RecordAudio.ToString(), "false" },
         { GlobalSettingsKeys.SingleFileMixdown.ToString(), "false" },
         { GlobalSettingsKeys.RecordingQuality.ToString(), "V3" },
+        { GlobalSettingsKeys.RecordingFormat.ToString(), "mp3" },
         { GlobalSettingsKeys.DisallowedAudioTone.ToString(), "false" },
 
         { GlobalSettingsKeys.VOX.ToString(), "false" },
@@ -409,17 +410,7 @@ public class GlobalSettingsStore
 
     public static string Path { get; set; } = "";
 
-    public static GlobalSettingsStore Instance
-    {
-        get
-        {
-            if (_instance == null)
-                _instance = new GlobalSettingsStore();
-
-            //stops cyclic init
-            return _instance;
-        }
-    }
+    public static GlobalSettingsStore Instance { get; } = new();
 
     public static bool IsFileLocked(FileInfo file)
     {
@@ -496,10 +487,10 @@ public class GlobalSettingsStore
         return GetSetting("Client Settings", key.ToString());
     }
 
-    public void SetClientSetting(GlobalSettingsKeys key, string value)
+    public void SetClientSetting(GlobalSettingsKeys key, string value, bool raw = false)
     {
         _settingsCache.TryRemove(key.ToString(), out _);
-        SetSetting("Client Settings", key.ToString(), value);
+        SetSetting("Client Settings", key.ToString(), value, raw);
     }
 
     public void SetClientSetting(GlobalSettingsKeys key, bool value)
@@ -572,7 +563,7 @@ public class GlobalSettingsStore
         return _configuration[section][setting];
     }
 
-    private void SetSetting(string section, string key, object setting)
+    private void SetSetting(string section, string key, object setting, bool raw = false)
     {
         if (setting == null) setting = "";
         if (!_configuration.Contains(section)) _configuration.Add(section);
@@ -586,7 +577,12 @@ public class GlobalSettingsStore
             if (setting is bool)
                 _configuration[section][key].BoolValue = (bool)setting;
             else if (setting.GetType() == typeof(string))
-                _configuration[section][key].StringValue = setting as string;
+            {
+                if (raw)
+                    _configuration[section][key].RawValue = setting as string;
+                else
+                    _configuration[section][key].StringValue = setting as string;
+            }
             else if (setting is string[])
                 _configuration[section][key].StringValueArray = setting as string[];
             else if (setting is int)

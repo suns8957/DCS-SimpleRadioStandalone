@@ -8,11 +8,12 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NLog;
 using System;
+using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Text.Json;
-
 
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
@@ -110,8 +111,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
         private IReadOnlyDictionary<string, RadioModel> RadioModels;
 
-        private static readonly RadioModel Arc210 = new RadioModel(DefaultRadioModels.Arc210);
-        private static readonly RadioModel Intercom = new RadioModel(DefaultRadioModels.Intercom);
+        private readonly RadioModel Arc210 = new RadioModel(DefaultRadioModels.BuildArc210());
+        private readonly RadioModel Intercom = new RadioModel(DefaultRadioModels.BuildIntercom());
         private void LoadRadioModels()
         {
             var modelsFolders = new List<string> { ModelsFolder, ModelsCustomFolder };
@@ -195,7 +196,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             clientTransmissionLength = 0;
 
             // We get one pipeline per radio, so all transmissions should be of the same type (GUARD channels are separate pipelines too).
-
+            var floatPool = ArrayPool<float>.Shared;
             // #FIXME: Should some of these settings (modulation, NoAudioEffects) be on the radio instance instead?
             if (lastTransmission.Modulation == Modulation.FM && !lastTransmission.NoAudioEffects && irlRadioRXInterference)
             {
@@ -206,32 +207,59 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 int index = _random.Next(transmissions.Count);
                 var transmission = transmissions[index];
 
+                var workingAudio = floatPool.Rent(transmission.PCMAudioLength);
+                Array.Copy(transmission.PCMMonoAudio, workingAudio, transmission.PCMAudioLength);
                 clientTransmissionLength = transmission.PCMAudioLength;
-                ProcessClientAudioSamples(transmission.PCMMonoAudio, 0, transmission.PCMAudioLength, transmission);
+                ProcessClientAudioSamples(workingAudio, 0, transmission.PCMAudioLength, transmission);
                 for (int i = 0; i < transmission.PCMAudioLength; i++)
                 {
-                    tempBuffer[offset + i] += transmission.PCMMonoAudio[i];
+                    tempBuffer[offset + i] += workingAudio[i];
                 }
+
+                floatPool.Return(workingAudio);
             }
             else
             {
                 // Everything else should mix (either datalink/satcom type radios, or AM).
 
                 // #TODO: Could trade memory for time and process in parallel, then merge in the destination buffer.
+                var workingAudio = floatPool.Rent(lastTransmission.PCMAudioLength);
                 foreach (var transmission in transmissions)
                 {
+                    if (workingAudio.Length < transmission.PCMAudioLength)
+                    {
+                        floatPool.Return(workingAudio);
+                        workingAudio = floatPool.Rent(transmission.PCMAudioLength);
+                    }
+                    Array.Copy(transmission.PCMMonoAudio, workingAudio, transmission.PCMAudioLength);
+
                     if (!transmission.NoAudioEffects)
                     {
-                        ProcessClientAudioSamples(transmission.PCMMonoAudio, 0, transmission.PCMAudioLength, transmission);
+                        ProcessClientAudioSamples(workingAudio, 0, transmission.PCMAudioLength, transmission);
                     }
 
-                    for (int i = 0; i < transmission.PCMAudioLength; i++)
+
+                    // Accumulate in destination buffer.
+                    var vectorSize = Vector<float>.Count;
+                    var remainder = transmission.PCMAudioLength % vectorSize;
+
+                    for (var i = 0; i < transmission.PCMAudioLength - remainder;  i += vectorSize)
                     {
-                        tempBuffer[offset + i] += transmission.PCMMonoAudio[i];
+                        var v_source = Vector.LoadUnsafe(ref workingAudio[0], (nuint)i);
+                        var v_current = Vector.LoadUnsafe(ref tempBuffer[0], (nuint)(offset + i));
+
+                        (v_current + v_source).CopyTo(tempBuffer, offset + i);
+                    }
+
+                    for (var i = transmission.PCMAudioLength - remainder; i < transmission.PCMAudioLength; ++i)
+                    {
+                        tempBuffer[offset + i] += workingAudio[i];
                     }
 
                     clientTransmissionLength = Math.Max(clientTransmissionLength, transmission.PCMAudioLength);
                 }
+
+                floatPool.Return(workingAudio);
             }
         }
 
@@ -244,7 +272,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 Encryption = transmission.Encryption,
             };
 
-            ISampleProvider transmissionProvider = new TransmissionProvider(buffer, offset);
+            ISampleProvider transmissionProvider = new TransmissionProvider(buffer, offset, count);
             transmissionProvider = new VolumeSampleProvider(transmissionProvider)
             {
                 Volume = transmission.Volume

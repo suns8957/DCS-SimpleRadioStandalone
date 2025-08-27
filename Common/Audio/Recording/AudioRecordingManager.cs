@@ -18,8 +18,6 @@ public class AudioRecordingManager
     // TODO: should this be something more dynamic or in a more global scope?
     private const int MAX_RADIOS = 11;
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-    private static volatile AudioRecordingManager _instance = new();
-    private static readonly object _lock = new();
 
     // full queues carry per-radio hydrated audio samples reconstructed from the raw data.
     private readonly List<AudioRecordingStreamHydrated> _clientFullQueues;
@@ -28,17 +26,17 @@ public class AudioRecordingManager
     private readonly List<CircularFloatBuffer> _clientRawQueues;
 
     private readonly ConnectedClientsSingleton _connectedClientsSingleton = ConnectedClientsSingleton.Instance;
-    private readonly int _maxSamples;
     private readonly List<AudioRecordingStreamHydrated> _playerFullQueues;
     private readonly List<CircularFloatBuffer> _playerRawQueues;
     private readonly List<AudioRecordingStream> _radioFullQueues;
 
     // TODO: drop in favor of AudioManager.OUTPUT_SAMPLE_RATE
-    private readonly int _sampleRate;
+    private int SampleRate { get; } = Constants.OUTPUT_SAMPLE_RATE;
+    private int MaxSamples => SampleRate * MAX_BUFFER_SECONDS;
 
     private readonly ClientEffectsPipeline pipeline = new();
 
-    private AudioRecordingLameWriter _audioRecordingWriter;
+    private AudioRecordingWriterBase _audioRecordingWriter;
     private string _clientGuid; //player guid
     private bool _processThreadDone;
 
@@ -46,9 +44,6 @@ public class AudioRecordingManager
 
     private AudioRecordingManager()
     {
-        _sampleRate = Constants.OUTPUT_SAMPLE_RATE;
-        _maxSamples = _sampleRate * MAX_BUFFER_SECONDS;
-
         _stop = true;
 
         _clientRawQueues = new List<CircularFloatBuffer>();
@@ -58,20 +53,8 @@ public class AudioRecordingManager
         _radioFullQueues = new List<AudioRecordingStream>();
     }
 
-    public static AudioRecordingManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-                lock (_lock)
-                {
-                    if (_instance == null)
-                        _instance = new AudioRecordingManager();
-                }
-
-            return _instance;
-        }
-    }
+    public IReadOnlyList<string> AvailableFormats { get; } = new List<string>() { "mp3", "opus" };
+    public static AudioRecordingManager Instance { get; } = new();
 
     private void ProcessQueues()
     {
@@ -80,8 +63,8 @@ public class AudioRecordingManager
 
         var isRecording = false;
 
-        var clientBuffer = new float[_maxSamples];
-        var playerBuffer = new float[_maxSamples];
+        var clientBuffer = new float[MaxSamples];
+        var playerBuffer = new float[MaxSamples];
 
         _processThreadDone = false;
 
@@ -224,6 +207,20 @@ public class AudioRecordingManager
         return mixBuffer;
     }
 
+    private static AudioRecordingWriterBase CreateWriter(IReadOnlyList<AudioRecordingStream> streams, int sampleRate, int maxSamples)
+    {
+        var desired = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.RecordingFormat).StringValue;
+        switch (desired)
+        {
+            case "mp3":
+                return new AudioRecordingLameWriter(streams, sampleRate, maxSamples);
+
+            case "opus":
+            default:
+                return new AudioRecordingOpusWriter(streams, sampleRate, maxSamples);
+        }
+    }
+
     public void Start(string clientGuid)
     {
         _clientGuid = clientGuid;
@@ -249,11 +246,11 @@ public class AudioRecordingManager
 
         for (var i = 0; i < MAX_RADIOS; i++)
         {
-            _clientRawQueues.Add(new CircularFloatBuffer(_maxSamples));
-            _playerRawQueues.Add(new CircularFloatBuffer(_maxSamples));
+            _clientRawQueues.Add(new CircularFloatBuffer(MaxSamples));
+            _playerRawQueues.Add(new CircularFloatBuffer(MaxSamples));
 
-            _clientFullQueues.Add(new AudioRecordingStreamHydrated(_maxSamples, $"{i}.c"));
-            _playerFullQueues.Add(new AudioRecordingStreamHydrated(_maxSamples, $"{i}.p"));
+            _clientFullQueues.Add(new AudioRecordingStreamHydrated(MaxSamples, $"{i}.c"));
+            _playerFullQueues.Add(new AudioRecordingStreamHydrated(MaxSamples, $"{i}.p"));
 
             var streams = new List<AudioRecordingStream>
             {
@@ -277,14 +274,14 @@ public class AudioRecordingManager
             {
                 new AudioRecordingStreamMixer(_radioFullQueues, "-All")
             };
-            _audioRecordingWriter = new AudioRecordingLameWriter(streams, _sampleRate, _maxSamples);
+            _audioRecordingWriter = CreateWriter(streams, SampleRate, MaxSamples);
         }
         else
         {
             // write per-radio audio files. create a write with N streams, one for each of the
             // radios.
 
-            _audioRecordingWriter = new AudioRecordingLameWriter(_radioFullQueues, _sampleRate, _maxSamples);
+            _audioRecordingWriter = CreateWriter(_radioFullQueues, SampleRate, MaxSamples);
         }
 
         _stop = false;
@@ -347,7 +344,7 @@ public class AudioRecordingManager
                     var toneTransmission = new DeJitteredTransmission
                     {
                         PCMMonoAudio =
-                            AudioManipulationHelper.SineWaveOut(transmission.PCMAudioLength, _sampleRate, 0.25),
+                            AudioManipulationHelper.SineWaveOut(transmission.PCMAudioLength, SampleRate, 0.25),
                         ReceivedRadio = transmission.ReceivedRadio,
                         PCMAudioLength = transmission.PCMAudioLength,
                         Decryptable = transmission.Decryptable,

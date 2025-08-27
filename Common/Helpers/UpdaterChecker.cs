@@ -16,9 +16,6 @@ public class UpdaterChecker
 {
     public delegate void UpdateCallback(UpdateCallbackResult result);
 
-    private static UpdaterChecker _instance;
-    private static readonly object _lock = new();
-
     public static readonly string GITHUB_USERNAME = "ciribob";
 
     public static readonly string GITHUB_REPOSITORY = "DCS-SimpleRadioStandalone";
@@ -28,22 +25,11 @@ public class UpdaterChecker
 
     public static readonly string MINIMUM_PROTOCOL_VERSION = "1.9.0.0";
 
-    public static readonly string VERSION = "2.2.1.0";
+    public static readonly string VERSION = "2.3.0.0";
 
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public static UpdaterChecker Instance
-    {
-        get
-        {
-            lock (_lock)
-            {
-                if (_instance == null) _instance = new UpdaterChecker();
-            }
-
-            return _instance;
-        }
-    }
+    public static UpdaterChecker Instance { get; } = new();
 
     public async void CheckForUpdate(bool checkForBetaUpdates, UpdateCallback updateCallback)
     {

@@ -9,7 +9,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Dsp
         private double b1;
         private double a1;
 
-        private float x_n;
         private float x_n1;
         private float y_n1;
 
