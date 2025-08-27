@@ -104,6 +104,7 @@ public class RadioMixingProvider : ISampleProvider
                     var source = sources[index];
 
                     //ask for count/2 as the source is MONO but the request for this is STEREO
+                    // #TODO: Should run TX effect chain per ClientAudioProvider, then mixdown.
                     var transmission = source.JitterBufferProviderInterface[radioId].Read(monoBufferLength - monoOffset);
 
                     if (transmission.PCMAudioLength > 0)

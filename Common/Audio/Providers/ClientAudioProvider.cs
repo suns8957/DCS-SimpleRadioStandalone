@@ -5,6 +5,8 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Models.Player;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Wave;
 using System.Buffers;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
@@ -78,6 +80,7 @@ public class ClientAudioProvider : AudioProvider
             decrytable =
                 audio.Decryptable /* || (audio.Encryption == 0) <--- this test has already been performed by all callers and would require another call to check for STRICT_AUDIO_ENCRYPTION */;
 
+        // #TODO: Run as part of FX chain.
         var pcmAudio = pcmAudioFloat.AsSpan(0, decodedLength);
         if (decrytable)
         {
@@ -141,6 +144,7 @@ public class ClientAudioProvider : AudioProvider
         }
     }
 
+    // #TODO: Move to dedicated audio provider.
     private void AddCockpitAmbientAudio(ClientAudio clientAudio, Span<float> pcmAudio)
     {
         //           clientAudio.Ambient.abType = "uh1";
@@ -170,9 +174,35 @@ public class ClientAudioProvider : AudioProvider
                 ambientEffectProg[clientAudio.Ambient.abType] = 0;
             }
 
-            for (var i = 0; i < pcmAudio.Length; i++)
+            var vectorSize = Vector<float>.Count;
+            var remainder = pcmAudio.Length % vectorSize;
+            var limit = pcmAudio.Length - remainder;
+
+            var effectVolume = vol * ambientCockpitEffectVolume;
+            var v_effectVolume = new Vector<float>(effectVolume);
+
+
+            ref float pcmAudioPtr = ref MemoryMarshal.GetReference(pcmAudio);
+            ref float effectPtr = ref effect.AudioEffectFloat[0];
+
+            if (progress + vectorSize >= effectLength)
+                progress = 0;
+
+            for (var i = 0; i < limit; i += vectorSize)
             {
-                pcmAudio[i] += effect.AudioEffectFloat[progress] * (vol * ambientCockpitEffectVolume);
+                var v_samples = Vector.LoadUnsafe(ref pcmAudioPtr, (nuint)i);
+                var v_effect = Vector.LoadUnsafe(ref effectPtr, (nuint)progress);
+
+                (v_samples * v_effect * v_effectVolume).StoreUnsafe(ref pcmAudioPtr, (nuint)i);
+
+                progress += vectorSize;
+                if (progress >= effectLength)
+                    progress = 0;
+            }
+
+            for (var i = limit; i < pcmAudio.Length; i++)
+            {
+                pcmAudio[i] += effect.AudioEffectFloat[progress] * effectVolume;
 
                 progress++;
 
@@ -183,24 +213,58 @@ public class ClientAudioProvider : AudioProvider
         }
     }
 
+    // #TODO: Move to dedicated audio provider.
     private void AdjustVolumeForLoss(ClientAudio clientAudio, Span<float> pcmAudio)
     {
         if (clientAudio.Modulation == (short)Modulation.MIDS || clientAudio.Modulation == (short)Modulation.SATCOM
                                                              || clientAudio.Modulation == (short)Modulation.INTERCOM)
             return;
 
-        for (var i = 0; i < pcmAudio.Length; i++)
+
+        var vectorSize = Vector<float>.Count;
+        var remainder = pcmAudio.Length % vectorSize;
+        var limit = pcmAudio.Length - remainder;
+
+
+        // https://btburnett.com/csharp/2024/12/09/using-vectorization-in-csharp-to-boost-performance#lets-do-this
+
+        var v_powerLossFactor = Vector<float>.One; // No loss.
+
+        //add in radio loss
+        //if less than loss reduce volume
+        var applyPowerLoss = clientAudio.RecevingPower > 0.85;
+        if (applyPowerLoss) // less than 20% or lower left
+            v_powerLossFactor -= new Vector<float>((float)clientAudio.RecevingPower); //gives linear signal loss from 15% down to 0%
+
+        var v_lineOfSightLossFactor = Vector<float>.One; // No loss.
+
+        //0 is no loss so if more than 0 reduce volume
+        var applyLineOfSightLoss = clientAudio.LineOfSightLoss > 0;
+        if (applyLineOfSightLoss)
+            v_lineOfSightLossFactor -= new Vector<float>(clientAudio.LineOfSightLoss);
+
+        ref float pcmAudioPtr = ref MemoryMarshal.GetReference(pcmAudio);
+        
+        
+        for (var i = 0; i < limit; i += vectorSize)
+        {
+            var v_samples = Vector.LoadUnsafe(ref pcmAudioPtr, (nuint)i);
+            v_samples *= v_powerLossFactor;
+            v_samples *= v_lineOfSightLossFactor;
+
+            v_samples.StoreUnsafe(ref pcmAudioPtr, (nuint)i);
+        }
+
+        for (var i = remainder; i < pcmAudio.Length; i++)
         {
             var audioFloat = pcmAudio[i];
 
-            //add in radio loss
-            //if less than loss reduce volume
-            if (clientAudio.RecevingPower > 0.85) // less than 20% or lower left
-                //gives linear signal loss from 15% down to 0%
+            
+            if (applyPowerLoss)
+                
                 audioFloat = (float)(audioFloat * (1.0f - clientAudio.RecevingPower));
 
-            //0 is no loss so if more than 0 reduce volume
-            if (clientAudio.LineOfSightLoss > 0) audioFloat = audioFloat * (1.0f - clientAudio.LineOfSightLoss);
+            if (applyLineOfSightLoss) audioFloat = audioFloat * (1.0f - clientAudio.LineOfSightLoss);
 
             pcmAudio[i] = audioFloat;
         }

@@ -5,7 +5,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 {
     internal class DeferredSourceProvider : ISampleProvider
     {
-        public WaveFormat WaveFormat => WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
+        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
 
         private ISampleProvider _source;
         public ISampleProvider Source
