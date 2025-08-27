@@ -25,12 +25,6 @@ internal class AudioRecordingLameWriter : AudioRecordingWriterBase
     {
         _mp3FilePaths = new List<string>();
         _mp3FileWriters = new List<LameMP3FileWriter>();
-
-        if (!Directory.Exists("Recordings"))
-        {
-            _logger.Info("Recordings directory missing, creating directory");
-            Directory.CreateDirectory("Recordings");
-        }
     }
 
     // attempt to write up to the max samples from each stream to their output files. this will

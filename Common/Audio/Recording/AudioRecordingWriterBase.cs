@@ -3,6 +3,7 @@ using NLog;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
 {
@@ -26,6 +27,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Recording
             _waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, 1);
             _sampleRate = sampleRate;
             _maxSamples = maxSamples;
+
+            if (!Directory.Exists("Recordings"))
+            {
+                _logger.Info("Recordings directory missing, creating directory");
+                Directory.CreateDirectory("Recordings");
+            }
         }
 
         public void ProcessAudio()
