@@ -217,7 +217,14 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
         if (device == null) device = WasapiCapture.GetDefaultCaptureDevice();
 
-        device.AudioEndpointVolume.Mute = false;
+        try
+        {
+            device.AudioEndpointVolume.Mute = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex, "Failed to forcibly unmute: " + ex.Message);
+        }
 
         _wasapiCapture = new WasapiCapture(device, true);
         _wasapiCapture.ShareMode = AudioClientShareMode.Shared;
