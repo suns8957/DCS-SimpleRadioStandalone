@@ -172,9 +172,35 @@ public class ClientAudioProvider : AudioProvider
                 ambientEffectProg[clientAudio.Ambient.abType] = 0;
             }
 
-            for (var i = 0; i < pcmAudio.Length; i++)
+            var vectorSize = Vector<float>.Count;
+            var remainder = pcmAudio.Length % vectorSize;
+            var limit = pcmAudio.Length - remainder;
+
+            var effectVolume = vol * ambientCockpitEffectVolume;
+            var v_effectVolume = new Vector<float>(effectVolume);
+
+
+            ref float pcmAudioPtr = ref MemoryMarshal.GetReference(pcmAudio);
+            ref float effectPtr = ref effect.AudioEffectFloat[0];
+
+            if (progress + vectorSize >= effectLength)
+                progress = 0;
+
+            for (var i = 0; i < limit; i += vectorSize)
             {
-                pcmAudio[i] += effect.AudioEffectFloat[progress] * (vol * ambientCockpitEffectVolume);
+                var v_samples = Vector.LoadUnsafe(ref pcmAudioPtr, (nuint)i);
+                var v_effect = Vector.LoadUnsafe(ref effectPtr, (nuint)progress);
+
+                (v_samples * v_effect * v_effectVolume).StoreUnsafe(ref pcmAudioPtr, (nuint)i);
+
+                progress += vectorSize;
+                if (progress >= effectLength)
+                    progress = 0;
+            }
+
+            for (var i = limit; i < pcmAudio.Length; i++)
+            {
+                pcmAudio[i] += effect.AudioEffectFloat[progress] * effectVolume;
 
                 progress++;
 
