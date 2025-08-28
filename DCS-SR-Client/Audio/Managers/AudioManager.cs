@@ -29,6 +29,8 @@ using WPFCustomMessageBox;
 using Application = Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Opus.Application;
 using LogManager = NLog.LogManager;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
+using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
 
@@ -39,8 +41,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     private readonly AudioOutputSingleton _audioOutputSingleton = AudioOutputSingleton.Instance;
 
     private readonly AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
-
-    private readonly ClientEffectsPipeline _clientEffectsPipeline;
 
     private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio = new();
 
@@ -102,8 +102,6 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     public AudioManager(bool windowsN)
     {
         this.windowsN = windowsN;
-
-        _clientEffectsPipeline = new ClientEffectsPipeline();
         _guid = ClientStateSingleton.Instance.ShortGUID;
     }
 
@@ -315,6 +313,8 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
             //fill sound buffer
             for (var i = 0; i < resampledPCM16Bit.Length; i++) _micInputQueue.Enqueue(resampledPCM16Bit[i]);
 
+            var recordAudio = GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RecordAudio);
+            var floatPool = ArrayPool<float>.Shared;
             //read out the queue
             while (_micInputQueue.Count >= Constants.MIC_SEGMENT_FRAMES)
             {
@@ -357,60 +357,41 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                         var clientAudio = _udpClientAudioProcessor.Send(encoded, len, voice);
 
                         // _beforeWaveFile.Write(pcmBytes, 0, pcmBytes.Length);
-
-                        if (clientAudio != null && (_micWaveOutBuffer != null
-                                                    || GlobalSettingsStore.Instance.GetClientSettingBool(
-                                                        GlobalSettingsKeys.RecordAudio)))
+                        
+                        if (clientAudio != null)
                         {
-
                             //todo see if we can fix the resample / opus decode
                             //send audio so play over local too
                             //as its passthrough it comes out as PCM 16
-                            var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
+                            _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
+                            
+                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, _pcmBytes.Length, floatPool);
 
-                            // //process bytes and add effects
-                            if (jitterBufferAudio != null)
+                            if (segment.HasValue)
                             {
-                                var deJittered = new DeJitteredTransmission
-                                {
-                                    PCMAudioLength = jitterBufferAudio.Audio.Length,
-                                    Modulation = jitterBufferAudio.Modulation,
-                                    Volume = jitterBufferAudio.Volume,
-                                    Decryptable = true,
-                                    Encryption = jitterBufferAudio.Encryption,
-                                    Frequency = jitterBufferAudio.Frequency,
-                                    IsSecondary = jitterBufferAudio.IsSecondary,
-                                    NoAudioEffects = jitterBufferAudio.NoAudioEffects,
-                                    ReceivedRadio = jitterBufferAudio.ReceivedRadio,
-                                    PCMMonoAudio = jitterBufferAudio.Audio,
-                                    Guid = _guid,
-                                    OriginalClientGuid = _guid
-                                };
-
-                                //process audio
-                                _clientEffectsPipeline.ProcessClientAudioSamples(
-                                    jitterBufferAudio.Audio,
-                                    0, jitterBufferAudio.Audio.Length, deJittered);
-
-                                if (_micWaveOut != null)
+                                // passthrough, run without transforms.
+                                if (_micWaveOutBuffer != null && _micWaveOut != null)
                                 {
                                     //now its a processed Mono audio
                                     _tempMicOutputBuffer =
-                                        BufferHelpers.Ensure(_tempMicOutputBuffer, jitterBufferAudio.Audio.Length * 4);
-                                    Buffer.BlockCopy(jitterBufferAudio.Audio, 0, _tempMicOutputBuffer, 0, jitterBufferAudio.Audio.Length * 4);
+                                        BufferHelpers.Ensure(_tempMicOutputBuffer, segment.Value.AudioSpan.Length * 4);
+                                    MemoryMarshal.AsBytes(segment.Value.AudioSpan).CopyTo(_tempMicOutputBuffer);
 
                                     //_beforeWaveFile?.WriteSamples(jitterBufferAudio.Audio,0,jitterBufferAudio.Audio.Length);
                                     //_beforeWaveFile?.Write(pcm32, 0, pcm32.Length);
                                     //_beforeWaveFile?.Flush();
 
-                                    _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, jitterBufferAudio.Audio.Length * 4);
+                                    _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, segment.Value.AudioSpan.Length * 4);
                                 }
 
-                                //TODO cache this to avoid the constant lookup
-                                if (GlobalSettingsStore.Instance.GetClientSettingBool(
-                                        GlobalSettingsKeys.RecordAudio))
-                                    _audioRecordingManager.AppendPlayerAudio(jitterBufferAudio.Audio,
-                                        jitterBufferAudio.ReceivedRadio);
+                                if (recordAudio)
+                                {
+                                    var segmentAudio = floatPool.Rent(segment.Value.AudioSpan.Length);
+                                    segment.Value.AudioSpan.CopyTo(segmentAudio);
+                                    _audioRecordingManager.AppendPlayerAudio(segmentAudio, segment.Value.AudioSpan.Length, clientAudio.ReceivedRadio);
+                                    floatPool.Return(segmentAudio);
+                                }
+                                segment.Value.Return(floatPool);  
                             }
                         }
                     }
@@ -488,14 +469,15 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
     private void InitMixers()
     {
+        var stereoWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2);
         _finalMixdown =
-            new SRSMixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
+            new SRSMixingSampleProvider(stereoWaveFormat);
         _finalMixdown.ReadFully = true;
 
         _radioMixingProvider = new List<RadioMixingProvider>();
         for (var i = 0; i < _clientStateSingleton.DcsPlayerRadioInfo.radios.Length; i++)
         {
-            var mix = new RadioMixingProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2), i);
+            var mix = new RadioMixingProvider(stereoWaveFormat, i, _clientStateSingleton.DcsPlayerRadioInfo.radios[i].model);
             _radioMixingProvider.Add(mix);
             _finalMixdown.AddMixerInput(mix);
         }
