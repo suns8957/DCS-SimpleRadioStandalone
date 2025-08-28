@@ -29,18 +29,15 @@ public class ClientAudioProvider : AudioProvider
     private double lastLoaded;
 
     //   private readonly WaveFileWriter waveWriter;
-    public ClientAudioProvider(bool passThrough = false) : base(passThrough)
+    public ClientAudioProvider()
     {
         var radios = Constants.MAX_RADIOS;
-        if (!passThrough)
-        {
-            JitterBufferProviderInterface =
+        JitterBufferProviderInterface =
                 new JitterBufferProviderInterface[radios];
 
-            for (var i = 0; i < radios; i++)
-                JitterBufferProviderInterface[i] =
-                    new JitterBufferProviderInterface(new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
-        }
+        for (var i = 0; i < radios; i++)
+            JitterBufferProviderInterface[i] =
+                new JitterBufferProviderInterface(new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
         //    waveWriter = new NAudio.Wave.WaveFileWriter($@"C:\\temp\\output{RandomFloat()}.wav", new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
 
 
@@ -121,10 +118,6 @@ public class ClientAudioProvider : AudioProvider
         };
 
         floatPool.Return(pcmAudioFloat);
-        if (passThrough)
-            //return MONO PCM 16 as bytes
-            // NOT MONO PCM 32
-            return jitter;
 
         JitterBufferProviderInterface[audio.ReceivedRadio].AddSamples(jitter);
 

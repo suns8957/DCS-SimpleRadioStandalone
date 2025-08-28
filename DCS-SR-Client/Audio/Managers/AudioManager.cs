@@ -204,7 +204,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
 
     public void InitMicInput()
     {
-        _passThroughAudioProvider = new ClientAudioProvider(true);
+        _passThroughAudioProvider = new ClientAudioProvider();
         
         var device = (MMDevice)_audioInputSingleton.SelectedAudioInput.Value;
 
