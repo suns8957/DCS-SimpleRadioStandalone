@@ -89,7 +89,7 @@ public class RadioMixingProvider : ISampleProvider
         // Are we starved? Rehydrate.
         if (monoOffset < monoBufferLength)
         {
-            List<TransmissionSegment> segments = new List<TransmissionSegment>(sources.Count);
+            List<TransmissionSegment> segments = new(sources.Count);
 
             // Update sources by queueing incoming audio.
             var ky58Tone = false;
@@ -108,11 +108,11 @@ public class RadioMixingProvider : ISampleProvider
                     // Read from the source, which should dejitter + transform the audio.
                     // Then have this radio run its mixer.
                     var segment = source.Read(radioId, desired, floatPool);
-                    if (segment.HasValue)
+                    if (segment != null)
                     {
-                        segments.Add(segment.Value);
-                        longestSegmentLength = Math.Max(longestSegmentLength, segment.Value.AudioSpan.Length);
-                        if (segment.Value.Decryptable && segment.Value.HasEncryption)
+                        segments.Add(segment);
+                        longestSegmentLength = Math.Max(longestSegmentLength, segment.AudioSpan.Length);
+                        if (segment.Decryptable && segment.HasEncryption)
                         {
                             ky58Tone = true;
                         }
@@ -161,7 +161,7 @@ public class RadioMixingProvider : ISampleProvider
             // Return everything to the pool
             foreach (var segment in segments)
             {
-                segment.Return(floatPool);
+                segment.Dispose();
             }
         }
 

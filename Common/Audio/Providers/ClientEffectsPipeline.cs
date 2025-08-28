@@ -6,6 +6,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
 using NAudio.Wave;
 using NLog;
 using System;
+using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
@@ -137,18 +138,21 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             return voiceProvider;
         }
 
-        public void ProcessSegments(float[] mixBuffer, int offset, int count, IReadOnlyList<TransmissionSegment> segments, string modelName = null)
+        public int ProcessSegments(float[] mixBuffer, int offset, int count, IReadOnlyList<TransmissionSegment> segments, string modelName = null)
         {
             RefreshSettings();
-
-            // FM Capture effect: sort out the segments and try to see if we latched
-            TransmissionSegment? capturedFMSegment = null;
-            var mixSpan = mixBuffer.AsSpan(offset, count);
+            var floatPool = ArrayPool<float>.Shared;
+            var workingBuffer = floatPool.Rent(count);
+            var workingSpan = workingBuffer.AsSpan(0, count);
+            workingSpan.Clear();
+            
+            TransmissionSegment capturedFMSegment = null;
             foreach (var segment in segments)
             {
                 if (irlRadioRXInterference && !segment.NoAudioEffects && segment.Modulation == Modulation.FM)
                 {
-                    if (!capturedFMSegment.HasValue || capturedFMSegment.Value.ReceivingPower < segment.ReceivingPower)
+                    // FM Capture effect: sort out the segments and try to see if we latched
+                    if (capturedFMSegment == null || capturedFMSegment.ReceivingPower < segment.ReceivingPower)
                     {
                         capturedFMSegment = segment;
                     }
@@ -157,24 +161,19 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     // Everything, just mix.
                     // Accumulate in destination buffer.
-                    Mix(mixSpan, segment.AudioSpan);
+                    Mix(workingSpan, segment.AudioSpan);
                 }
             }
 
-
-            if (capturedFMSegment.HasValue)
+            if (capturedFMSegment != null)
             {
                 // Use the last one (highest power).
-                Mix(mixSpan, capturedFMSegment.Value.AudioSpan);
+                Mix(workingSpan, capturedFMSegment.AudioSpan);
             }
 
+            ISampleProvider provider = new TransmissionProvider(workingBuffer, 0, count);
             if (radioEffectsEnabled)
             {
-                ISampleProvider provider = new NoopProvider()
-                {
-                    WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1)
-                };
-
                 var model = perRadioModelEffect && modelName != null? RadioModels.GetValueOrDefault(modelName, Intercom) : Intercom;
                 provider = BuildRXPipeline(provider, model);
 
@@ -182,9 +181,13 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     provider = new ClippingProvider(provider, -1f, 1f);
                 }
-
-                provider.Read(mixBuffer, offset, count);
             }
+
+            var samplesRead = provider.Read(mixBuffer, offset, count);
+
+            floatPool.Return(workingBuffer);
+
+            return samplesRead;
         }
 
         internal void Mix(Span<float> target, ReadOnlySpan<float> source)

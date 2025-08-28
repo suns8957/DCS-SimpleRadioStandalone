@@ -367,31 +367,32 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                             
                             var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, _pcmBytes.Length, floatPool);
 
-                            if (segment.HasValue)
+                            if (segment != null)
                             {
+                                var audioSpan = segment.AudioSpan;
                                 // passthrough, run without transforms.
                                 if (_micWaveOutBuffer != null && _micWaveOut != null)
                                 {
                                     //now its a processed Mono audio
                                     _tempMicOutputBuffer =
-                                        BufferHelpers.Ensure(_tempMicOutputBuffer, segment.Value.AudioSpan.Length * 4);
-                                    MemoryMarshal.AsBytes(segment.Value.AudioSpan).CopyTo(_tempMicOutputBuffer);
+                                        BufferHelpers.Ensure(_tempMicOutputBuffer, audioSpan.Length * 4);
+                                    MemoryMarshal.AsBytes(audioSpan).CopyTo(_tempMicOutputBuffer);
 
                                     //_beforeWaveFile?.WriteSamples(jitterBufferAudio.Audio,0,jitterBufferAudio.Audio.Length);
                                     //_beforeWaveFile?.Write(pcm32, 0, pcm32.Length);
                                     //_beforeWaveFile?.Flush();
 
-                                    _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, segment.Value.AudioSpan.Length * 4);
+                                    _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, segment.AudioSpan.Length * 4);
                                 }
 
                                 if (recordAudio)
                                 {
-                                    var segmentAudio = floatPool.Rent(segment.Value.AudioSpan.Length);
-                                    segment.Value.AudioSpan.CopyTo(segmentAudio);
-                                    _audioRecordingManager.AppendPlayerAudio(segmentAudio, segment.Value.AudioSpan.Length, clientAudio.ReceivedRadio);
+                                    var segmentAudio = floatPool.Rent(segment.AudioSpan.Length);
+                                    segment.AudioSpan.CopyTo(segmentAudio);
+                                    _audioRecordingManager.AppendPlayerAudio(segmentAudio, audioSpan.Length, clientAudio.ReceivedRadio);
                                     floatPool.Return(segmentAudio);
                                 }
-                                segment.Value.Return(floatPool);  
+                                segment.Dispose();
                             }
                         }
                     }
@@ -477,7 +478,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         _radioMixingProvider = new List<RadioMixingProvider>();
         for (var i = 0; i < _clientStateSingleton.DcsPlayerRadioInfo.radios.Length; i++)
         {
-            var mix = new RadioMixingProvider(stereoWaveFormat, i, _clientStateSingleton.DcsPlayerRadioInfo.radios[i].model);
+            var mix = new RadioMixingProvider(stereoWaveFormat, i);
             _radioMixingProvider.Add(mix);
             _finalMixdown.AddMixerInput(mix);
         }

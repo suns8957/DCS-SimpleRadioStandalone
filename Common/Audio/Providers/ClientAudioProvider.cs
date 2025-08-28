@@ -269,27 +269,27 @@ public class ClientAudioProvider : AudioProvider
         return f;
     }
 
-    public TransmissionSegment? Read(int radioId, int desired, ArrayPool<float> floatPool)
+    public TransmissionSegment Read(int radioId, int desired, ArrayPool<float> floatPool)
     {
         var transmission = JitterBufferProviderInterface[radioId].Read(desired);
         if (transmission.PCMAudioLength == 0)
             return null;
 
-        var transformedAudio = floatPool.Rent(transmission.PCMAudioLength);
-        transmission.PCMMonoAudio.AsSpan(0, transmission.PCMAudioLength).CopyTo(transformedAudio);
-        var transformedSpan = transformedAudio.AsSpan(0, transmission.PCMAudioLength);
+        var segment = new TransmissionSegment(transmission);
+
+        var segmentAudio = segment.AudioSpan;
         if (transmission.Decryptable)
         {
             //adjust for LOS + Distance + Volume
-            AdjustVolumeForLoss(transmission.Modulation, transmission.ReceivingPower, transmission.LineOfSightLoss, transformedSpan);
-            AddCockpitAmbientAudio(transmission.ReceivedRadio, transmission.Modulation, transmission.Ambient, transformedSpan);
+            AdjustVolumeForLoss(transmission.Modulation, transmission.ReceivingPower, transmission.LineOfSightLoss, segmentAudio);
+            AddCockpitAmbientAudio(transmission.ReceivedRadio, transmission.Modulation, transmission.Ambient, segmentAudio);
         }
         else
         {
-            AddEncryptionFailureEffect(transformedSpan);
+            AddEncryptionFailureEffect(segmentAudio);
         }
 
-        pipeline.Process(transmission, transformedSpan);
-        return new TransmissionSegment(transmission, transformedAudio, transformedSpan.Length);
+        pipeline.Process(transmission, segmentAudio);
+        return segment;
     }
 }

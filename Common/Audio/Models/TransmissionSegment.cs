@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 {
-    public struct TransmissionSegment
+    // https://stackoverflow.com/questions/538060/proper-use-of-the-idisposable-interface#538238
+    public class TransmissionSegment : IDisposable
     {
         // Non-owning - belongs to a pool!
         private float[] Audio { get; set; }
@@ -24,10 +25,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
         public double ReceivingPower { get; private set; }
         public bool NoAudioEffects { get; private set; }
 
-        public TransmissionSegment(DeJitteredTransmission transmission, float[] audio, int audioLength)
+        private static readonly ArrayPool<float> Pool = ArrayPool<float>.Shared;
+
+        public TransmissionSegment(DeJitteredTransmission transmission)
         {
-            Audio = audio;
-            AudioLength = audioLength;
+            Audio = Pool.Rent(transmission.PCMAudioLength);
+            AudioLength = transmission.PCMAudioLength;
+
+            transmission.PCMMonoAudio.AsSpan(0, transmission.PCMAudioLength).CopyTo(AudioSpan);
+            
             HasEncryption = transmission.Encryption > 0;
             Decryptable = transmission.Decryptable;
             OriginalClientGuid = transmission.OriginalClientGuid;
@@ -38,11 +44,25 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             NoAudioEffects = transmission.NoAudioEffects;
         }
 
-        public void Return(ArrayPool<float> floatPool)
+        private void Dispose(bool disposing)
         {
-            floatPool.Return(Audio);
-            Audio = null;
-            AudioLength = 0;
+            if (disposing)
+            {
+                Pool.Return(Audio);
+                Audio = null;
+                AudioLength = 0;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~TransmissionSegment()
+        {
+            Dispose(false);
         }
     }
 }
