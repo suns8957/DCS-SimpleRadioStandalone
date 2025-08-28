@@ -100,7 +100,7 @@ public class ClientAudioProvider : AudioProvider
             Encryption = audio.Encryption,
             ReceivingPower = audio.RecevingPower,
             LineOfSightLoss = audio.LineOfSightLoss,
-            Ambient = audio.Ambient,
+            Ambient = audio.Ambient.Copy(),
         };
 
         floatPool.Return(pcmAudioFloat);
