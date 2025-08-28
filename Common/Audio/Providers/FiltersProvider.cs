@@ -24,7 +24,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var samplesRead = Source.Read(buffer, offset, count);
             foreach (var filter in Filters)
             {
-                for (int i = 0; i < count; ++i)
+                for (int i = 0; i < samplesRead; ++i)
                 {
                     // ignore perfect silence.
                     if (buffer[offset + i] != 0)
