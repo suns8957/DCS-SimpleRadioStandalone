@@ -114,7 +114,10 @@ public class ClientAudioProvider : AudioProvider
             NoAudioEffects = audio.NoAudioEffects,
             Guid = audio.ClientGuid,
             OriginalClientGuid = audio.OriginalClientGuid,
-            Encryption = audio.Encryption
+            Encryption = audio.Encryption,
+            ReceivingPower = audio.RecevingPower,
+            LineOfSightLoss = audio.LineOfSightLoss,
+            Ambient = audio.Ambient,
         };
 
         floatPool.Return(pcmAudioFloat);

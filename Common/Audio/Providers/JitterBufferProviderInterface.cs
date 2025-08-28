@@ -97,7 +97,10 @@ public class JitterBufferProviderInterface
                             NoAudioEffects = audio.NoAudioEffects,
                             Guid = audio.Guid,
                             OriginalClientGuid = audio.OriginalClientGuid,
-                            Encryption = audio.Encryption
+                            Encryption = audio.Encryption,
+                            ReceivingPower = audio.ReceivingPower,
+                            LineOfSightLoss = audio.LineOfSightLoss,
+                            Ambient = audio.Ambient,
                         };
 
                         if (_lastRead > 0)
