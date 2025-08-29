@@ -290,6 +290,8 @@ public class ClientAudioProvider : AudioProvider
         }
 
         pipeline.Process(transmission, segmentAudio);
+
+        JitterBufferProviderInterface[radioId].Dispose(ref transmission);
         return segment;
     }
 }
