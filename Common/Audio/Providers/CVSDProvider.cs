@@ -18,7 +18,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         public int Read(float[] buffer, int offset, int count)
         {
             var samplesRead = source.Read(buffer, offset, count);
-            for (int i = 0; i < count; ++i)
+            for (int i = 0; i < samplesRead; ++i)
             {
                 buffer[offset + i] = cvsd.Transform(buffer[offset + i]);
             }
