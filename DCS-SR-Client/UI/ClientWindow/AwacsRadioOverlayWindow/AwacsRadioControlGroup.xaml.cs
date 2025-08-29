@@ -405,16 +405,16 @@ public partial class RadioControlGroup : UserControl
                 switch (currentRadio.modulation)
                 {
                     case Modulation.AM:
-                        RadioMetaData.Text = "AM";
+                        RadioMetaData.Text = Properties.Resources.OverlayAM;
                         break;
                     case Modulation.FM:
-                        RadioMetaData.Text = "FM";
+                        RadioMetaData.Text = Properties.Resources.OverlayFM;
                         break;
                     case Modulation.SINCGARS:
-                        RadioMetaData.Text = "SG";
+                        RadioMetaData.Text = Properties.Resources.OverlaySG;
                         break;
                     case Modulation.HAVEQUICK:
-                        RadioMetaData.Text = "HQ";
+                        RadioMetaData.Text = Properties.Resources.OverlayHQ;
                         break;
                     default:
                         RadioMetaData.Text += "";
