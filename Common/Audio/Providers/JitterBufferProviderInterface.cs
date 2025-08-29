@@ -193,10 +193,16 @@ internal class JitterBufferProviderInterface
                            Constants
                                .OUTPUT_AUDIO_LENGTH_MS; // this isnt quite true as there can be padding audio but good enough
 
-                if (time > MAXIMUM_BUFFER_SIZE_MS)
+                var timeOverBudget = time - MAXIMUM_BUFFER_SIZE_MS;
+                if (timeOverBudget > 0)
                 {
-                    _bufferedAudio.Clear();
-                    Logger.Warn($"Cleared Audio buffer - length was {time} ms");
+                    Logger.Warn($"Skipping Audio buffer - length was {time} ms, {timeOverBudget} ms will be skipped.");
+                    // Compute how many packet we can ditch.
+                    var toSkip = timeOverBudget / Constants.OUTPUT_AUDIO_LENGTH_MS;
+                    for (; toSkip > 0 && _bufferedAudio.Count > 0; --toSkip)
+                        _bufferedAudio.RemoveFirst();
+
+                    _lastRead = 0;
                 }
 
                 for (var it = _bufferedAudio.First; it != null;)
