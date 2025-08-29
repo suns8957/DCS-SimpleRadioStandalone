@@ -31,7 +31,6 @@ public class RadioMixingProvider : ISampleProvider
 
     private Modulation lastModulation = Modulation.DISABLED;
     private bool IsReceiving { get; set; } = false;
-    private float lastVolume = 1;
 
     private float[] mixBuffer;
     private int availableInBuffer = 0;
@@ -75,9 +74,10 @@ public class RadioMixingProvider : ISampleProvider
     {
         var floatPool = ArrayPool<float>.Shared;
         // Accumulate in local mono buffer before switching to stereo.
-        var monoBuffer = floatPool.Rent(count / 2);
-        
+        //ask for count/2 as the source is MONO but the request for this is STEREO
         var monoBufferLength = count / 2; // Array pool can give us an array that is larger.
+        var monoBuffer = floatPool.Rent(monoBufferLength);
+       
         Array.Clear(monoBuffer, 0, monoBufferLength);
 
         // Read effects.
@@ -89,56 +89,46 @@ public class RadioMixingProvider : ISampleProvider
         // Are we starved? Rehydrate.
         if (monoOffset < monoBufferLength)
         {
-            List<DeJitteredTransmission> mainAudio = new();
-            List<DeJitteredTransmission> secondaryAudio = new();
+            List<TransmissionSegment> segments = new(sources.Count);
 
             // Update sources by queueing incoming audio.
             var ky58Tone = false;
-            var longestMainLength = 0;
-            var longestSecondaryLength = 0;
+            var longestSegmentLength = 0;
             lock (sources)
             {
                 var index = sources.Count - 1;
+                var desired = monoBufferLength - monoOffset;
+                var scratchBuffer = floatPool.Rent(desired);
+                var scratchSpan = scratchBuffer.AsSpan(0, desired);
                 while (index >= 0)
                 {
                     var source = sources[index];
-
-                    //ask for count/2 as the source is MONO but the request for this is STEREO
-                    var transmission = source.JitterBufferProviderInterface[radioId].Read(monoBufferLength - monoOffset);
-
-                    if (transmission.PCMAudioLength > 0)
+                    
+                    // #TODO: Should run TX effect chain per ClientAudioProvider, then mixdown.
+                    // Read from the source, which should dejitter + transform the audio.
+                    // Then have this radio run its mixer.
+                    var segment = source.Read(radioId, desired, floatPool);
+                    if (segment != null)
                     {
-                        if (!transmission.IsSecondary)
+                        segments.Add(segment);
+                        longestSegmentLength = Math.Max(longestSegmentLength, segment.AudioSpan.Length);
+                        if (segment.Decryptable && segment.HasEncryption)
                         {
-                            mainAudio.Add(transmission);
-                            longestMainLength = Math.Max(longestMainLength, transmission.PCMAudioLength);
-
+                            ky58Tone = true;
                         }
-                        else
-                        {
-                            secondaryAudio.Add(transmission);
-                            longestSecondaryLength = Math.Max(longestSecondaryLength, transmission.PCMAudioLength);
-                        }
-
-
-                        if (transmission.Decryptable && transmission.Encryption > 0) ky58Tone = true;
-
-                        lastModulation = transmission.Modulation;
-                        lastVolume = transmission.Volume;
-
-
                     }
 
                     index--;
                 }
             }
 
-            var hasIncomingAudio = mainAudio.Count > 0 || secondaryAudio.Count > 0;
+            var hasIncomingAudio = segments.Count > 0;
+
             //copy to the recording service - as we have everything we need to know about the audio
             //at this point
             if (hasIncomingAudio)
             {
-                _audioRecordingManager.AppendClientAudio(mainAudio, secondaryAudio, radioId);
+                _audioRecordingManager.AppendClientAudio(radioId, segments);
             }
 
             // #FIXME: Should copy into mixBuffer, and use that throughout as our primary mixdown here.
@@ -148,33 +138,17 @@ public class RadioMixingProvider : ISampleProvider
             if (hasIncomingAudio)
             {
                 // Need to be able to hold whatever is left over + incoming audio.
-                var longestTransmissionLength = Math.Max(longestMainLength, longestSecondaryLength);
-                var totalSize = availableInBuffer + longestTransmissionLength;
+                var totalSize = availableInBuffer + longestSegmentLength;
                 if (mixBuffer == null || mixBuffer.Length < totalSize)
                 {
                     Array.Resize(ref mixBuffer, totalSize);
                 }
 
-                var targetSpan = mixBuffer.AsSpan(availableInBuffer, longestTransmissionLength);
+                var targetSpan = mixBuffer.AsSpan(availableInBuffer, longestSegmentLength);
                 targetSpan.Clear();
-                var primarySamples = 0;
-                if (mainAudio.Count > 0)
-                {
-                    pipeline.ProcessClientTransmissions(mixBuffer, availableInBuffer, mainAudio, out primarySamples);
-                }
 
-                //handle guard
-                if (secondaryAudio.Count > 0)
-                {
-                    var secondarySamples = 0;
-                    var secondaryMixBuffer = floatPool.Rent(longestSecondaryLength);
-                    Array.Clear(secondaryMixBuffer, 0, longestTransmissionLength);
-                    pipeline.ProcessClientTransmissions(secondaryMixBuffer, 0, secondaryAudio, out secondarySamples);
-
-                    // Mix with primary.
-                    AudioManipulationHelper.MixArraysNoClipping(secondaryMixBuffer.AsSpan(0, secondarySamples), targetSpan);
-                    floatPool.Return(secondaryMixBuffer);
-                }
+                // #TODO: pass receiving radio model name.
+                pipeline.ProcessSegments(mixBuffer, availableInBuffer, longestSegmentLength, segments, null);
 
                 //now clip all mixing
                 AudioManipulationHelper.ClipArray(targetSpan);
@@ -182,6 +156,12 @@ public class RadioMixingProvider : ISampleProvider
 
                 // Drain newly queued audio.
                 monoOffset += ReadMixBuffer(monoBuffer, monoOffset, monoBufferLength - monoOffset);
+            }
+
+            // Return everything to the pool
+            foreach (var segment in segments)
+            {
+                segment.Dispose();
             }
         }
 
@@ -347,7 +327,6 @@ public class RadioMixingProvider : ISampleProvider
     public void PlaySoundEffectStartTransmit(bool encrypted, float volume, Modulation modulation)
     {
         lastModulation = modulation;
-        lastVolume = volume;
 
         if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start)) return;
 
@@ -379,7 +358,6 @@ public class RadioMixingProvider : ISampleProvider
     public void PlaySoundEffectEndTransmit(float volume, Modulation modulation)
     {
         lastModulation = modulation;
-        lastVolume = volume;
 
         if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End)) return;
 

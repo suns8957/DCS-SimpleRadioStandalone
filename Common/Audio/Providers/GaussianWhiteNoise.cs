@@ -9,7 +9,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 {
     internal class GaussianWhiteNoise : ISampleProvider
     {
-        public WaveFormat WaveFormat => WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
+        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1);
         private Random random = new Random();
 
         // Generate normal distribution via Box-Mueller.
