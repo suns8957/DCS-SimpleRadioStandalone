@@ -37,7 +37,7 @@ public class AudioRecordingManager
     private int SampleRate { get; } = Constants.OUTPUT_SAMPLE_RATE;
     private int MaxSamples => SampleRate * MAX_BUFFER_SECONDS;
 
-    private AudioRecordingLameWriter _audioRecordingWriter;
+    private AudioRecordingWriterBase _audioRecordingWriter;
     private string _clientGuid; //player guid
     private bool _processThreadDone;
 
