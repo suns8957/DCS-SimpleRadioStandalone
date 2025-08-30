@@ -67,6 +67,7 @@ public class ClientAudioProvider : AudioProvider
         if (decodedLength <= 0)
         {
             Logger.Info("Failed to decode audio from Packet for client");
+            floatPool.Return(pcmAudioFloat);
             return;
         }
 
