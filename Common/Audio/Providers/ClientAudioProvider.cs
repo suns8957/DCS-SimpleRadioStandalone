@@ -13,7 +13,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 public class ClientAudioProvider : AudioProvider
 {
     private readonly Random _random = new();
-    private static readonly int MaxSamples = Constants.OUTPUT_SAMPLE_RATE * 120 / 1000; // 120ms is the max opus frame size.
+    public static readonly int MaxSamples = Constants.OUTPUT_SAMPLE_RATE * 120 / 1000; // 120ms is the max opus frame size.
 
     //progress per radio
     private readonly Dictionary<string, int>[] ambientEffectProgress;

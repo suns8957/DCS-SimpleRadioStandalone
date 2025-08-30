@@ -367,7 +367,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                             //as its passthrough it comes out as PCM 16
                             _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
                             
-                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, _pcmBytes.Length);
+                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, ClientAudioProvider.MaxSamples);
 
                             if (segment != null)
                             {
