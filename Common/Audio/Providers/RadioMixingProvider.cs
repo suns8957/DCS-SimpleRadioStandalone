@@ -449,21 +449,4 @@ public class RadioMixingProvider : ISampleProvider
             dstFloat[dstOffset + 2 * i + 1] = srcFloat[srcOffset + i] * right;
         }
     }
-
-    private int EnsureFullBuffer(float[] buffer, int samplesCount, int offset, int count)
-    {
-        // ensure we return a full buffer of STEREO
-        if (samplesCount < count)
-        {
-            var outputIndex = offset + samplesCount;
-            while (outputIndex < offset + count) buffer[outputIndex++] = 0;
-
-            samplesCount = count;
-        }
-
-        //Should be impossible - ensures audio doesnt crash if its not
-        if (samplesCount > count) samplesCount = count;
-
-        return samplesCount;
-    }
 }
