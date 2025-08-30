@@ -49,7 +49,7 @@ public class ClientAudioProvider : AudioProvider
 
     private JitterBufferProviderInterface[] JitterBufferProviderInterface { get; }
 
-    public override void AddClientAudioSamples(ClientAudio audio)
+    public override int AddClientAudioSamples(ClientAudio audio)
     {
         ReLoadSettings();
         //sort out volume
@@ -68,7 +68,7 @@ public class ClientAudioProvider : AudioProvider
         {
             Logger.Info("Failed to decode audio from Packet for client");
             floatPool.Return(pcmAudioFloat);
-            return;
+            return 0;
         }
 
         //convert the byte buffer to a wave buffer
@@ -107,6 +107,7 @@ public class ClientAudioProvider : AudioProvider
         floatPool.Return(pcmAudioFloat);
 
         JitterBufferProviderInterface[audio.ReceivedRadio].AddSamples(jitter);
+        return decodedLength;
     }
 
     //high throughput - cache these settings for 3 seconds
