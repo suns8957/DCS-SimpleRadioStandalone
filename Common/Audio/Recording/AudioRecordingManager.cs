@@ -275,28 +275,30 @@ public class AudioRecordingManager
         {
             if (_connectedClientsSingleton.TryGetValue(segment.OriginalClientGuid, out var client))
             {
-                if (mixLength < segment.AudioSpan.Length)
+                var segmentSpan = segment.AudioSpan;
+                if (mixLength < segmentSpan.Length)
                 {
-                    var resizedBuffer = floatPool.Rent(segment.AudioSpan.Length);
+                    var resizedBuffer = floatPool.Rent(segmentSpan.Length);
                     if (mixBuffer != null)
                     {
                         mixBuffer.AsSpan(0, mixLength).CopyTo(resizedBuffer);
                         floatPool.Return(mixBuffer);
                     }
                     mixBuffer = resizedBuffer;
+                    mixLength = segmentSpan.Length;
                 }
 
                 if (client.AllowRecord
                     || segment.OriginalClientGuid == _clientGuid) // Assume that client intends to record their outgoing transmissions
                 {
-                    var segmentAudio = floatPool.Rent(segment.AudioSpan.Length);
-                    segment.AudioSpan.CopyTo(segmentAudio);
-                    AudioManipulationHelper.MixArraysClipped(mixBuffer, mixLength, segmentAudio, segment.AudioSpan.Length, out _);
+                    var segmentAudio = floatPool.Rent(segmentSpan.Length);
+                    segmentSpan.CopyTo(segmentAudio);
+                    AudioManipulationHelper.MixArraysClipped(mixBuffer, mixLength, segmentAudio, segmentSpan.Length, out _);
                     floatPool.Return(segmentAudio);
                 }
                 else if (disallowedTone)
                 {
-                    var audioTone = AudioManipulationHelper.SineWaveOut(segment.AudioSpan.Length, _sampleRate, 0.25);
+                    var audioTone = AudioManipulationHelper.SineWaveOut(segmentSpan.Length, _sampleRate, 0.25);
                     AudioManipulationHelper.MixArraysClipped(mixBuffer, mixLength, audioTone, audioTone.Length, out _);
                 }
             }
