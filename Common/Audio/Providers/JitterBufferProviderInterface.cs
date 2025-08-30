@@ -127,7 +127,8 @@ internal class JitterBufferProviderInterface
                         }
 
                         _lastRead = audio.PacketNumber;
-                        _circularBuffer.Write(audio.Audio, 0, audio.Audio.Length);
+                        _circularBuffer.Write(audio.Audio, 0, audio.AudioLength);
+                        audio.Dispose();
                         _lastPacketTicks = now;
                     }
                     else if (timeSinceLastDequeue < JITTER_MS)
@@ -200,7 +201,11 @@ internal class JitterBufferProviderInterface
                     // Compute how many packet we can ditch.
                     var toSkip = timeOverBudget / Constants.OUTPUT_AUDIO_LENGTH_MS;
                     for (; toSkip > 0 && _bufferedAudio.Count > 0; --toSkip)
+                    {
+                        _bufferedAudio.First.Value.Dispose();
                         _bufferedAudio.RemoveFirst();
+                    }
+                        
 
                     _lastRead = 0;
                 }
