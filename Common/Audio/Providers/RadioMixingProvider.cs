@@ -98,8 +98,6 @@ public class RadioMixingProvider : ISampleProvider
             {
                 var index = sources.Count - 1;
                 var desired = monoBufferLength - monoOffset;
-                var scratchBuffer = floatPool.Rent(desired);
-                var scratchSpan = scratchBuffer.AsSpan(0, desired);
                 while (index >= 0)
                 {
                     var source = sources[index];
@@ -107,7 +105,7 @@ public class RadioMixingProvider : ISampleProvider
                     // #TODO: Should run TX effect chain per ClientAudioProvider, then mixdown.
                     // Read from the source, which should dejitter + transform the audio.
                     // Then have this radio run its mixer.
-                    var segment = source.Read(radioId, desired, floatPool);
+                    var segment = source.Read(radioId, desired);
                     if (segment != null)
                     {
                         segments.Add(segment);

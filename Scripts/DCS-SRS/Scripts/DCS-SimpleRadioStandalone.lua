@@ -2516,7 +2516,7 @@ function SR.exportRadioUH1H(_data)
 end
 
 local _ch47 = {}
-_ch47.radio1 = {enc=0}
+_ch47.radio1 = {enc=false}
 _ch47.radio2 = {guard=0,enc=false}
 _ch47.radio3 = {guard=0,enc=false}
 
@@ -2525,9 +2525,9 @@ function SR.exportRadioCH47F(_data)
 
     -- RESET
     if _lastUnitId ~= _data.unitId then
-        _ch47.radio1 = {enc=0}
-        _ch47.radio2 = {guard=0,enc=0}
-        _ch47.radio3 = {guard=0,enc=0}
+        _ch47.radio1 = {enc=false}
+        _ch47.radio2 = {guard=0,enc=false}
+        _ch47.radio3 = {guard=0,enc=false}
     end
 
     _data.radios[1].name = "Intercom"
