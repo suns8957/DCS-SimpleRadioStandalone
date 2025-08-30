@@ -98,8 +98,6 @@ public class RadioMixingProvider : ISampleProvider
             {
                 var index = sources.Count - 1;
                 var desired = monoBufferLength - monoOffset;
-                var scratchBuffer = floatPool.Rent(desired);
-                var scratchSpan = scratchBuffer.AsSpan(0, desired);
                 while (index >= 0)
                 {
                     var source = sources[index];
