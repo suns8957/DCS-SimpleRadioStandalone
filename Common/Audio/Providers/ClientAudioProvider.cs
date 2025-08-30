@@ -269,7 +269,7 @@ public class ClientAudioProvider : AudioProvider
         return f;
     }
 
-    public TransmissionSegment Read(int radioId, int desired, ArrayPool<float> floatPool)
+    public TransmissionSegment Read(int radioId, int desired)
     {
         var transmission = JitterBufferProviderInterface[radioId].Read(desired);
         if (transmission.PCMAudioLength == 0)

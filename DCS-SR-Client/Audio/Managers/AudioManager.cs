@@ -278,9 +278,11 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
         //Start UDP handler
         _udpVoiceHandler =
             new UDPVoiceHandler(guid, endPoint);
-        _udpVoiceHandler.Connect();
+        
 
         _udpClientAudioProcessor = new UDPClientAudioProcessor(_udpVoiceHandler, this, guid);
+
+        _udpVoiceHandler.Connect();
         _udpClientAudioProcessor.Start();
 
         EventBus.Instance.SubscribeOnBackgroundThread(this);
@@ -365,7 +367,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                             //as its passthrough it comes out as PCM 16
                             _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
                             
-                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, _pcmBytes.Length, floatPool);
+                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, _pcmBytes.Length);
 
                             if (segment != null)
                             {
