@@ -37,14 +37,11 @@ public class AudioRecordingManager
     // TODO: drop in favor of AudioManager.OUTPUT_SAMPLE_RATE
     private readonly int _sampleRate;
 
-    private readonly ClientEffectsPipeline pipeline = new();
-
     private AudioRecordingLameWriter _audioRecordingWriter;
     private string _clientGuid; //player guid
     private bool _processThreadDone;
 
     private bool _stop;
-
     private AudioRecordingManager()
     {
         _sampleRate = Constants.OUTPUT_SAMPLE_RATE;
@@ -284,6 +281,9 @@ public class AudioRecordingManager
                         mixBuffer.AsSpan(0, mixLength).CopyTo(resizedBuffer);
                         floatPool.Return(mixBuffer);
                     }
+
+                    // Make sure the newly allocated area is clear.
+                    resizedBuffer.AsSpan(mixLength, segmentSpan.Length - mixLength).Clear();
                     mixBuffer = resizedBuffer;
                     mixLength = segmentSpan.Length;
                 }
@@ -291,15 +291,12 @@ public class AudioRecordingManager
                 if (client.AllowRecord
                     || segment.OriginalClientGuid == _clientGuid) // Assume that client intends to record their outgoing transmissions
                 {
-                    var segmentAudio = floatPool.Rent(segmentSpan.Length);
-                    segmentSpan.CopyTo(segmentAudio);
-                    AudioManipulationHelper.MixArraysClipped(mixBuffer, mixLength, segmentAudio, segmentSpan.Length, out _);
-                    floatPool.Return(segmentAudio);
+                    AudioManipulationHelper.MixArraysClipped(mixBuffer.AsSpan(0, segmentSpan.Length), segmentSpan);
                 }
                 else if (disallowedTone)
                 {
                     var audioTone = AudioManipulationHelper.SineWaveOut(segmentSpan.Length, _sampleRate, 0.25);
-                    AudioManipulationHelper.MixArraysClipped(mixBuffer, mixLength, audioTone, audioTone.Length, out _);
+                    AudioManipulationHelper.MixArraysClipped(mixBuffer.AsSpan(0, segmentSpan.Length), audioTone.AsSpan(0, audioTone.Length));
                 }
             }
         }
