@@ -49,7 +49,7 @@ public class ClientAudioProvider : AudioProvider
 
     private JitterBufferProviderInterface[] JitterBufferProviderInterface { get; }
 
-    public override void AddClientAudioSamples(ClientAudio audio)
+    public override int AddClientAudioSamples(ClientAudio audio)
     {
         ReLoadSettings();
         //sort out volume
@@ -58,7 +58,7 @@ public class ClientAudioProvider : AudioProvider
 
         var newTransmission = LikelyNewTransmission();
 
-        var floatPool = ArrayPool<float>.Shared;
+        var floatPool = JitterBufferAudio.Pool;
         var pcmAudioFloat = floatPool.Rent(MaxSamples);
 
         // Target buffer contains at least one frame.
@@ -67,16 +67,14 @@ public class ClientAudioProvider : AudioProvider
         if (decodedLength <= 0)
         {
             Logger.Info("Failed to decode audio from Packet for client");
-            return;
+            floatPool.Return(pcmAudioFloat);
+            return 0;
         }
 
         //convert the byte buffer to a wave buffer
         //   var waveBuffer = new WaveBuffer(tmp);
 
         // waveWriter.WriteSamples(tmp,0,tmp.Length);
-        
-        // #TODO: Run as part of FX chain.
-        var pcmAudio = pcmAudioFloat.AsSpan(0, decodedLength);
         var
             decrytable =
                 audio.Decryptable /* || (audio.Encryption == 0) <--- this test has already been performed by all callers and would require another call to check for STRICT_AUDIO_ENCRYPTION */;
@@ -86,7 +84,8 @@ public class ClientAudioProvider : AudioProvider
         //return and skip jitter buffer if its passthrough as its local mic
         var jitter = new JitterBufferAudio
         {
-            Audio = pcmAudio.ToArray(),
+            Audio = pcmAudioFloat,
+            AudioLength = decodedLength,
             PacketNumber = audio.PacketNumber,
             Decryptable = decrytable,
             Modulation = (Modulation)audio.Modulation,
@@ -103,9 +102,8 @@ public class ClientAudioProvider : AudioProvider
             Ambient = audio.Ambient.Copy(),
         };
 
-        floatPool.Return(pcmAudioFloat);
-
         JitterBufferProviderInterface[audio.ReceivedRadio].AddSamples(jitter);
+        return decodedLength;
     }
 
     //high throughput - cache these settings for 3 seconds

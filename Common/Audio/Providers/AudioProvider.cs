@@ -31,7 +31,7 @@ public abstract class AudioProvider
         return TimeSpan.FromTicks(now - LastUpdate) > JitterBufferProviderInterface.JITTER_MS;
     }
 
-    public abstract void AddClientAudioSamples(ClientAudio audio);
+    public abstract int AddClientAudioSamples(ClientAudio audio);
 
 
     //destructor to clear up opus

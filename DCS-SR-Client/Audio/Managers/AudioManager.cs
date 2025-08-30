@@ -365,9 +365,9 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
                             //todo see if we can fix the resample / opus decode
                             //send audio so play over local too
                             //as its passthrough it comes out as PCM 16
-                            _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
+                            var samplesAdded = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
                             
-                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, ClientAudioProvider.MaxSamples);
+                            var segment = _passThroughAudioProvider?.Read(clientAudio.ReceivedRadio, samplesAdded.GetValueOrDefault(0));
 
                             if (segment != null)
                             {
