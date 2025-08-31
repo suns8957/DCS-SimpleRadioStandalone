@@ -394,11 +394,13 @@ function SR.exporter()
             _update = aircraftExporter(_update)
         end
 
-        -- Disable camera position if you're not in a vehicle now
-        --local _latLng,_point = SR.exportCameraLocation()
-        --
-        --_update.latLng = _latLng
-        --SR.lastKnownPos = _point
+        -- Use vehicle position if we have one so when you join a vehicle you get LOS etc
+        if _data ~= nil then
+            local _latLng,_point = SR.exportPlayerLocation(_data)
+
+            _update.latLng = _latLng
+            SR.lastKnownPos = _point
+        end
 
         _lastUnitId = ""
         _lastUnitType = ""
