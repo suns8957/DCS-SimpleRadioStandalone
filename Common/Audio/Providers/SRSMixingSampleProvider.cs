@@ -95,6 +95,20 @@ public class SRSMixingSampleProvider : ISampleProvider
         }
         floatPool.Return(sourceBuffer);
 
+        // Stability: Ensure we have reasonable values.
+        // #TODO: Vectorize?
+        for (var i = 0; i < outputSamples; ++i)
+        {
+            if (float.IsFinite(buffer[offset + i]))
+            {
+                buffer[i] = Math.Clamp(buffer[offset + i], -1f, 1f);
+            }
+            else
+            {
+                buffer[offset + i] = 0;
+            }
+        }
+
         // optionally ensure we return a full buffer
         if (ReadFully && outputSamples < count)
         {
