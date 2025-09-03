@@ -28,14 +28,24 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         public int Read(float[] buffer, int offset, int count)
         {
             // Generate values in pairs.
-            for (var i = 0; i < count; i += 2)
+            var odd = (count % 2);
+            var pairableCount = count - odd; // Will be count if even, count - 1 if odd.
+            for (var i = 0; i < pairableCount; i += 2)
             {
                 var (z0, z1) = NextRandoms();
                 buffer[offset + i] = (float)z0;
                 buffer[offset + i + 1] = (float)z1;
             }
 
-            if (count % 2 != 0)
+            // Cases:
+            // count = 0 (empty), odd = 0. pairableCount = 0, no extra.
+            // count = 1, odd = 1, pairableCount = 0, one odd element to process.
+            // count = 2, odd = 0, pairableCount = 2, no odd element to process.
+            // ...
+            // count = 587, odd = 1, pairableCount = 586, one odd element.
+            // count = 588, odd = 0, no odd element.
+
+            if (odd != 0)
             {
                 // Process odd entry.
                 buffer[offset + count - 1] = (float)NextRandoms().Item1;
