@@ -225,6 +225,7 @@ public class GlobalSettingsStore
 
     private static readonly object _lock = new();
 
+    private static GlobalSettingsStore _instance;
     private readonly Configuration _configuration;
 
     //cache all the settings in their correct types for speed
@@ -408,7 +409,17 @@ public class GlobalSettingsStore
 
     public static string Path { get; set; } = "";
 
-    public static GlobalSettingsStore Instance { get; } = new();
+    public static GlobalSettingsStore Instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = new GlobalSettingsStore();
+
+            //stops cyclic init
+            return _instance;
+        }
+    }
 
     public static bool IsFileLocked(FileInfo file)
     {
