@@ -323,7 +323,7 @@ public class AudioRecordingManager
                 }
                 else if (disallowedTone)
                 {
-                    var audioTone = AudioManipulationHelper.SineWaveOut(segmentSpan.Length, _sampleRate, 0.25);
+                    var audioTone = AudioManipulationHelper.SineWaveOut(segmentSpan.Length, SampleRate, 0.25);
                     AudioManipulationHelper.MixArraysClipped(mixBuffer.AsSpan(0, segmentSpan.Length), audioTone.AsSpan(0, audioTone.Length));
                 }
             }
