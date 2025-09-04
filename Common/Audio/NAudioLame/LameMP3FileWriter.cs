@@ -385,7 +385,7 @@ public class LameMP3FileWriter : Stream
     /// <summary>Dummy Length.  Always 0.</summary>
     public override long Length => 0;
 
-    public void Write(ReadOnlySpan<byte> bytes)
+    public override void Write(ReadOnlySpan<byte> bytes)
     {
         while (!bytes.IsEmpty)
         {
