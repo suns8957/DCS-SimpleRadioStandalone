@@ -30,6 +30,7 @@ public partial class App : Application
 
     public App()
     {
+        System.Windows.Forms.Application.EnableVisualStyles();
         //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
         SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
         AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;

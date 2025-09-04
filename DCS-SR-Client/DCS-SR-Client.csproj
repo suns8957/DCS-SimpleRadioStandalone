@@ -503,7 +503,6 @@
         <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
         <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
         <PackageReference Include="WebRtcVadSharp" Version="1.3.2" />
-        <PackageReference Include="WPFCustomMessageBox.Fork" Version="1.0.9" />
     </ItemGroup>
     <ItemGroup>
         <Compile Remove="Audio\BufferedSampleProvider.cs" />
