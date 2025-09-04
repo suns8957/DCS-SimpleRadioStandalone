@@ -2448,6 +2448,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Recording Format (requires restart).
+        /// </summary>
+        public static string RecordingFormat {
+            get {
+                return ResourceManager.GetString("RecordingFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recording.
         /// </summary>
         public static string RecordingHeader {
@@ -2457,7 +2466,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recording Quality.
+        ///   Looks up a localized string similar to Recording Quality (mp3 only).
         /// </summary>
         public static string RecordingQuality {
             get {
