@@ -309,9 +309,6 @@
   <data name="FavRmSelected" xml:space="preserve">
     <value>Remove Selected</value>
   </data>
-  <data name="FMEffectVolume" xml:space="preserve">
-    <value>FM Effect Volume</value>
-  </data>
   <data name="AmbientEffectToggle" xml:space="preserve">
     <value>Enable Ambient Cockpit Effects</value>
   </data>
@@ -434,9 +431,6 @@ DCS In-game SRS Overlay</value>
   </data>
   <data name="HelpTab" xml:space="preserve">
     <value>Help</value>
-  </data>
-  <data name="HFEffectVolume" xml:space="preserve">
-    <value>HF Effect Volume</value>
   </data>
   <data name="HQEffect" xml:space="preserve">
     <value>Enable HAVEQUICK Effect</value>
@@ -1105,9 +1099,6 @@ Requires Tx or Rx Effects On</value>
   <data name="ToolTipTransponderMode4" xml:space="preserve">
     <value>Mode 4</value>
   </data>
-  <data name="UHFEffectVolume" xml:space="preserve">
-    <value>UHF Effect Volume</value>
-  </data>
   <data name="VAICOMTXInhibitEnabled" xml:space="preserve">
     <value>Allow VAICOM TX Inhibit</value>
   </data>
@@ -1134,9 +1125,6 @@ Requires Tx or Rx Effects On</value>
   </data>
   <data name="ValueUnknown" xml:space="preserve">
     <value>Unknown</value>
-  </data>
-  <data name="VHFEffectVolume" xml:space="preserve">
-    <value>VHF Effect Volume</value>
   </data>
   <data name="VOIPConnectionStatusLabel" xml:space="preserve">
     <value>VOIP</value>
@@ -1228,8 +1216,17 @@ Requires Tx or Rx Effects On</value>
   <data name="DisableExpansionRadios" xml:space="preserve">
     <value>Disable Expansion Radios</value>
   </data>
+  <data name="NoiseGainDB" xml:space="preserve">
+    <value>Noise Gain (dB)</value>
+  </data>
   <data name="ServerPresetsConfiguration" xml:space="preserve">
     <value>Channel Presets Configuration</value>
+  </data>
+  <data name="HFNoiseGainDB" xml:space="preserve">
+    <value>HF Noise Gain (dB)</value>
+  </data>
+  <data name="PerRadioModelEffects" xml:space="preserve">
+    <value>Enable Per Radio Model Effects</value>
   </data>
   <data name="RecordingFormat" xml:space="preserve">
     <value>Recording Format (requires restart)</value>
