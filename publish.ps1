@@ -1,3 +1,11 @@
+param(
+    [switch]$NoSign
+)
+
+if ($NoSign) {
+    Write-Warning "Signing has been disabled."
+}
+
 # Publish script for SRS projects
 $framework = "net8.0-windows"
 $outputPath = ".\install-build"
@@ -14,7 +22,7 @@ $commonParams = @(
 
 # Define the path to signtool.exe
 $signToolPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\signtool.exe"
-if (-not (Test-Path $signToolPath)) {
+if (-not $NoSign -and -not (Test-Path $signToolPath)) {
     Write-Error "SignTool.exe not found at $signToolPath. Please verify the path."
     exit 1
 }
@@ -150,6 +158,11 @@ Write-Host "Publishing complete! Check the $outputPath directory for the publish
 
 ##Now Sign
 Write-Host "Signing files"
+
+if ($NoSign) {
+    Write-Host "Skipping"
+    exit 0
+}
 
 # Define the root path to search for files to be signed
 # The script will recursively find all .dll and .exe files in this path and its subdirectories.
