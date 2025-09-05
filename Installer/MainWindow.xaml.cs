@@ -464,7 +464,7 @@ namespace Installer
             ProcessStartInfo procInfo = new ProcessStartInfo
             {
                 WorkingDirectory = path,
-                FileName = (path + "\\" + "sr-server.exe"),
+                FileName = (path + "\\Server\\" + "srs-server.exe"),
                 UseShellExecute = false
             };
             Process.Start(procInfo);
@@ -525,7 +525,8 @@ namespace Installer
                 DeleteDirectory(programPath + "\\AudioEffects");
                 DeleteDirectory(programPath + "\\zh-CN");
 
-                DeleteDirectory(programPath + "\\Client\\AudioEffects");
+                DeleteDirectory(programPath + "\\Client\\AudioEffects\\Ambient");
+                DeleteDirectory(programPath + "\\Client\\RadioModels");
                 DeleteDirectory(programPath + "\\Client\\runtimes");
                 DeleteFileIfExists(programPath + "\\Client\\awacs-radios.json");
                 DeleteFileIfExists(programPath + "\\Client\\clientlog.txt");
