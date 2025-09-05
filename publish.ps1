@@ -160,7 +160,7 @@ Write-Host "Publishing complete! Check the $outputPath directory for the publish
 Write-Host "Signing files"
 
 if ($NoSign) {
-    Write-Host "Skipping"
+    Write-Host "Skipped"
     exit 0
 }
 
