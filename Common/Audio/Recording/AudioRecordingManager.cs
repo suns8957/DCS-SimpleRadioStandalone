@@ -56,6 +56,7 @@ public class AudioRecordingManager
     }
 
     public IReadOnlyList<string> AvailableFormats { get; } = new List<string>() { "mp3", "opus" };
+
     public static AudioRecordingManager Instance
     {
         get

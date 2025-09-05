@@ -1237,4 +1237,7 @@ Requires Tx or Rx Effects On</value>
   <data name="PerRadioModelEffects" xml:space="preserve">
     <value>Enable Per Radio Model Effects</value>
   </data>
+  <data name="RecordingFormat" xml:space="preserve">
+    <value>Recording Format (requires restart)</value>
+  </data>
 </root>

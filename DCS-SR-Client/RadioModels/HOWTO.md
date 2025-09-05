@@ -59,7 +59,8 @@ If no q factor are specified, it's a first order pass.
 ```
 
 gain and threshold expressed in dB.
-Translating from DCS' presets, ratio = 1 / slope.
+Translating from DCS' presets, ratio = 1 / slope, or maybe 1 / (1 - slope).
+attack and release time are expressed in seconds.
 
 ### Saturation
 ```json
