@@ -38,6 +38,8 @@ jobs:
     - uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
     - name: Restore NuGet packages
