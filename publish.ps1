@@ -2,6 +2,17 @@ param(
     [switch]$NoSign
 )
 
+$MSBuildExe="msbuild"
+if ($null -eq (Get-Command $MSBuildExe -ErrorAction SilentlyContinue)) {
+    $MSBuildExe="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+    Write-Warning "MSBuild not in path, using $MSBuildExe"
+    
+    if ($null -eq (Get-Command $MSBuildExe -ErrorAction SilentlyContinue)) {
+        Writer-Error "Cannot find MSBuild (aborting)"
+        exit 1
+    }
+}
+
 if ($NoSign) {
     Write-Warning "Signing has been disabled."
 }
@@ -122,7 +133,7 @@ Write-Host "Building SRS-Lua-Wrapper..." -ForegroundColor Green
 Remove-Item "$outputPath\Scripts" -Recurse -ErrorAction SilentlyContinue
 Write-Host "Copy Scripts..." -ForegroundColor Green
 Copy-Item "./Scripts" -Destination "$outputPath\Scripts" -Recurse
-& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
+&  $MSBuildExe `
     ".\SRS-Lua-Wrapper\SRS-Lua-Wrapper.vcxproj" `
     /p:Configuration=Release `
     /p:Platform=x64 `
