@@ -85,9 +85,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             {
                 return new SimpleCompressorEffect(source)
                 {
-                    Attack = Attack,
+                    Attack = Attack * 1000,
                     MakeUpGain = MakeUp,
-                    Release = Release,
+                    Release = Release * 1000,
                     Threshold = Threshold,
                     Ratio = Ratio,
                     Enabled = true,
