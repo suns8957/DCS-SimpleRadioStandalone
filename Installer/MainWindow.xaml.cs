@@ -1189,7 +1189,7 @@ namespace Installer
                         dSecurity.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().Owner,
                             FileSystemRights.Modify,
                             InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                            PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
+                            PropagationFlags.None, AccessControlType.Allow));
                     }
 
                     if (WindowsIdentity.GetCurrent().User != null)
@@ -1197,7 +1197,7 @@ namespace Installer
                         dSecurity.AddAccessRule(new FileSystemAccessRule(WindowsIdentity.GetCurrent().User,
                             FileSystemRights.Modify,
                             InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                            PropagationFlags.NoPropagateInherit, AccessControlType.Allow));
+                            PropagationFlags.None, AccessControlType.Allow));
                     }
 
                     dir.SetAccessControl(dSecurity);
