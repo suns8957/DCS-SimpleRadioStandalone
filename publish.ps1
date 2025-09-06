@@ -53,7 +53,7 @@ Write-Host "Publishing DCS-SR-Client..." -ForegroundColor Green
 Remove-Item "$outputPath\Client" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./DCS-SR-Client/DCS-SR-Client.csproj"
 dotnet publish "./DCS-SR-Client/DCS-SR-Client.csproj" `
-    --framework "net9.0-windows10.0.22000.0" `
+    --framework "net9.0-windows10.0.22000" `
     --runtime win-x64 `
     --output "$outputPath\Client" `
     --self-contained false `
