@@ -18,7 +18,7 @@ if ($NoSign) {
 }
 
 # Publish script for SRS projects
-$framework = "net8.0-windows"
+$framework = "net9.0-windows"
 $outputPath = ".\install-build"
 
 # Common publish parameters
@@ -53,7 +53,7 @@ Write-Host "Publishing DCS-SR-Client..." -ForegroundColor Green
 Remove-Item "$outputPath\Client" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./DCS-SR-Client/DCS-SR-Client.csproj"
 dotnet publish "./DCS-SR-Client/DCS-SR-Client.csproj" `
-    --framework "net8.0-windows10.0.22000.0" `
+    --framework "net9.0-windows10.0.22000.0" `
     --runtime win-x64 `
     --output "$outputPath\Client" `
     --self-contained false `
@@ -82,7 +82,7 @@ Write-Host "Publishing ServerCommandLine for Windows..." -ForegroundColor Green
 Remove-Item "$outputPath\ServerCommandLine-Windows" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./ServerCommandLine\ServerCommandLine.csproj"
 dotnet publish "./ServerCommandLine\ServerCommandLine.csproj" `
-    --framework net8.0 `
+    --framework net9.0 `
     --runtime win-x64 `
     --output "$outputPath\ServerCommandLine-Windows" `
     --self-contained true `
@@ -94,7 +94,7 @@ Write-Host "Publishing ServerCommandLine for Linux..." -ForegroundColor Green
 Remove-Item "$outputPath\ServerCommandLine-Linux" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./ServerCommandLine\ServerCommandLine.csproj"
 dotnet publish "./ServerCommandLine\ServerCommandLine.csproj" `
-    --framework net8.0 `
+    --framework net9.0 `
     --runtime linux-x64 `
     --output "$outputPath\ServerCommandLine-Linux" `
     --self-contained true `
