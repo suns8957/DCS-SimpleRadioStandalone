@@ -1,5 +1,6 @@
 param(
-    [switch]$NoSign
+    [switch]$NoSign,
+    [switch]$Zip
 )
 
 $MSBuildExe="msbuild"
@@ -15,6 +16,10 @@ if ($null -eq (Get-Command $MSBuildExe -ErrorAction SilentlyContinue)) {
 
 if ($NoSign) {
     Write-Warning "Signing has been disabled."
+}
+
+if ($Zip) {
+    Write-Host "Zip archive will be created!" -ForegroundColor Green
 }
 
 # Publish script for SRS projects
@@ -240,4 +245,39 @@ if ($null -eq $filesToSign -or $filesToSign.Count -eq 0) {
             Write-Error "An error occurred while trying to run SignTool.exe for $filePath. Error: $($_.Exception.Message)"
         }
     }
+}
+
+if(!$Zip){
+    exit 0
+}
+
+### Zip
+
+Write-Host "Creating zip archive..." -ForegroundColor Green
+
+
+Write-Host "Removing old zip files from '$outputPath'..." -ForegroundColor Yellow
+Remove-Item -Path "$outputPath\*.zip" -ErrorAction SilentlyContinue
+
+
+$installerPath = "$outputPath\Installer.exe"
+if (Test-Path $installerPath) {
+    $version = (Get-Item -Path $installerPath).VersionInfo.ProductVersion
+    Write-Host "Found installer version: $version" -ForegroundColor Cyan
+} else {
+    Write-Error "Installer.exe not found at $installerPath. Cannot determine version."
+    exit 1
+}
+
+
+$zipFileName = "DCS-SimpleRadioStandalone-$version.zip"
+$zipFilePath = Join-Path -Path (Get-Item -Path $outputPath).FullName -ChildPath $zipFileName
+
+
+try {
+    Compress-Archive -Path "$outputPath\*" -DestinationPath $zipFilePath -Force
+    Write-Host "Successfully created zip file at: $zipFilePath" -ForegroundColor Green
+} catch {
+    Write-Error "Failed to create the zip archive. Error: $($_.Exception.Message)"
+    exit 1
 }
