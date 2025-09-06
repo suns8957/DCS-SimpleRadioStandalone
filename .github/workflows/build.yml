@@ -42,6 +42,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
+    - name: Restore NuGet packages
+      run: nuget restore
     - name: Publish
       run: ./publish.ps1 -NoSign
     - name: Archive
