@@ -1,3 +1,22 @@
+param(
+    [switch]$NoSign
+)
+
+$MSBuildExe="msbuild"
+if ($null -eq (Get-Command $MSBuildExe -ErrorAction SilentlyContinue)) {
+    $MSBuildExe="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+    Write-Warning "MSBuild not in path, using $MSBuildExe"
+    
+    if ($null -eq (Get-Command $MSBuildExe -ErrorAction SilentlyContinue)) {
+        Writer-Error "Cannot find MSBuild (aborting)"
+        exit 1
+    }
+}
+
+if ($NoSign) {
+    Write-Warning "Signing has been disabled."
+}
+
 # Publish script for SRS projects
 $framework = "net8.0-windows"
 $outputPath = ".\install-build"
@@ -14,7 +33,7 @@ $commonParams = @(
 
 # Define the path to signtool.exe
 $signToolPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\signtool.exe"
-if (-not (Test-Path $signToolPath)) {
+if (-not $NoSign -and -not (Test-Path $signToolPath)) {
     Write-Error "SignTool.exe not found at $signToolPath. Please verify the path."
     exit 1
 }
@@ -114,7 +133,7 @@ Write-Host "Building SRS-Lua-Wrapper..." -ForegroundColor Green
 Remove-Item "$outputPath\Scripts" -Recurse -ErrorAction SilentlyContinue
 Write-Host "Copy Scripts..." -ForegroundColor Green
 Copy-Item "./Scripts" -Destination "$outputPath\Scripts" -Recurse
-& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
+&  $MSBuildExe `
     ".\SRS-Lua-Wrapper\SRS-Lua-Wrapper.vcxproj" `
     /p:Configuration=Release `
     /p:Platform=x64 `
@@ -150,6 +169,11 @@ Write-Host "Publishing complete! Check the $outputPath directory for the publish
 
 ##Now Sign
 Write-Host "Signing files"
+
+if ($NoSign) {
+    Write-Host "Skipped"
+    exit 0
+}
 
 # Define the root path to search for files to be signed
 # The script will recursively find all .dll and .exe files in this path and its subdirectories.
