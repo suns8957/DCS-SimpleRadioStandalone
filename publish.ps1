@@ -23,7 +23,6 @@ if ($Zip) {
 }
 
 # Publish script for SRS projects
-$framework = "net9.0-windows"
 $outputPath = ".\install-build"
 
 # Common publish parameters
@@ -58,7 +57,6 @@ Write-Host "Publishing DCS-SR-Client..." -ForegroundColor Green
 Remove-Item "$outputPath\Client" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./DCS-SR-Client/DCS-SR-Client.csproj"
 dotnet publish "./DCS-SR-Client/DCS-SR-Client.csproj" `
-    --framework "net9.0-windows10.0.22000" `
     --runtime win-x64 `
     --output "$outputPath\Client" `
     --self-contained false `
@@ -73,7 +71,6 @@ Write-Host "Publishing Server..." -ForegroundColor Green
 Remove-Item "$outputPath\Server" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./Server/Server.csproj"
 dotnet publish "./Server/Server.csproj" `
-    --framework $framework `
     --runtime win-x64 `
     --output "$outputPath\Server" `
     --self-contained false `
@@ -87,7 +84,6 @@ Write-Host "Publishing ServerCommandLine for Windows..." -ForegroundColor Green
 Remove-Item "$outputPath\ServerCommandLine-Windows" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./ServerCommandLine\ServerCommandLine.csproj"
 dotnet publish "./ServerCommandLine\ServerCommandLine.csproj" `
-    --framework net9.0 `
     --runtime win-x64 `
     --output "$outputPath\ServerCommandLine-Windows" `
     --self-contained true `
@@ -99,7 +95,6 @@ Write-Host "Publishing ServerCommandLine for Linux..." -ForegroundColor Green
 Remove-Item "$outputPath\ServerCommandLine-Linux" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./ServerCommandLine\ServerCommandLine.csproj"
 dotnet publish "./ServerCommandLine\ServerCommandLine.csproj" `
-    --framework net9.0 `
     --runtime linux-x64 `
     --output "$outputPath\ServerCommandLine-Linux" `
     --self-contained true `
@@ -112,7 +107,6 @@ Write-Host "Publishing DCS-SR-ExternalAudio..." -ForegroundColor Green
 Remove-Item "$outputPath\ExternalAudio" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./DCS-SR-ExternalAudio\DCS-SR-ExternalAudio.csproj"
 dotnet publish "./DCS-SR-ExternalAudio\DCS-SR-ExternalAudio.csproj" `
-    --framework $framework `
     --runtime win-x64 `
     --output "$outputPath\ExternalAudio" `
     --self-contained false `
@@ -125,7 +119,6 @@ Write-Host "Publishing AutoUpdater..." -ForegroundColor Green
 Remove-Item "$outputPath\AutoUpdater" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./AutoUpdater\AutoUpdater.csproj"
 dotnet publish "./AutoUpdater\AutoUpdater.csproj" `
-    --framework $framework `
     --runtime win-x64 `
     --output "$outputPath\AutoUpdater" `
     --self-contained false `
@@ -152,7 +145,6 @@ Write-Host "Publishing Installer..." -ForegroundColor Green
 Remove-Item "$outputPath\Installer" -Recurse -ErrorAction SilentlyContinue
 dotnet clean "./Installer\Installer.csproj"
 dotnet publish "./Installer\Installer.csproj" `
-    --framework $framework `
     --runtime win-x64 `
     --output "$outputPath\Installer" `
     --self-contained false `
