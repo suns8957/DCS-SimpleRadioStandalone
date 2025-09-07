@@ -238,13 +238,14 @@ if ($NoSign) {
     }
 }
 
-if(!$Zip){
-    exit 0
-}
-
 ### Zip
 
 Write-Host "Creating zip archive..." -ForegroundColor Green
+
+if(!$Zip){
+    Write-Warning "Skipped."
+    exit 0
+}
 
 
 Write-Host "Removing old zip files from '$outputPath'..." -ForegroundColor Yellow
