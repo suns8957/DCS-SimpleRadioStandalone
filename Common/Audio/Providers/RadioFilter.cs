@@ -1,6 +1,7 @@
 ﻿using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Dsp;
 using NAudio.Wave;
+using System;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers;
 
@@ -33,8 +34,13 @@ public class RadioFilter : ISampleProvider
     public int Read(float[] buffer, int offset, int sampleCount)
     {
         var samplesRead = _source.Read(buffer, offset, sampleCount);
-        if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects) ||
-            samplesRead <= 0) return samplesRead;
+        // Get the wet/dry amount (effect strength) from settings
+        float radioEffectsAmount = Math.Clamp(
+            _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 2f);
+
+        // If slider is at 0, skip all processing
+        if (radioEffectsAmount <= 0.0001f || samplesRead <= 0)
+            return samplesRead;
 
         for (var n = 0; n < sampleCount; n++)
         {
@@ -49,21 +55,23 @@ public class RadioFilter : ISampleProvider
                 else if (audio < CLIPPING_MIN) audio = CLIPPING_MIN;
             }
 
+            float effected = audio;
             for (var i = 0; i < _filters.Length; i++)
             {
                 var filter = _filters[i];
-                audio = filter.Transform(audio);
+                effected = filter.Transform(effected);
 
-                if (double.IsNaN(audio))
-                    audio = buffer[offset + n];
+                if (double.IsNaN(effected))
+                    effected = audio;
             }
 
-            buffer[offset + n] = audio * BOOST;
+            // Wet/dry mix: blend original and effected signal
+            buffer[offset + n] = (audio * (1.0f - radioEffectsAmount) + effected * radioEffectsAmount) * BOOST;
         }
 
         //   Console.WriteLine("Read:"+samplesRead+" Time - " + _stopwatch.ElapsedMilliseconds);
         //     _stopwatch.Restart();
-//
+        //
         return samplesRead;
     }
 }
