@@ -66,7 +66,9 @@ public class RadioFilter : ISampleProvider
             }
 
             // Wet/dry mix: blend original and effected signal
-            buffer[offset + n] = (audio * (1.0f - radioEffectsAmount) + effected * radioEffectsAmount) * BOOST;
+            float dry = Math.Max(1.0f - radioEffectsAmount, 0.0f);
+            float wet = radioEffectsAmount;
+            buffer[offset + n] = (audio * dry + effected * wet) * BOOST;
         }
 
         //   Console.WriteLine("Read:"+samplesRead+" Time - " + _stopwatch.ElapsedMilliseconds);
