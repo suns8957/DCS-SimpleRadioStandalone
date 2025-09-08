@@ -1,0 +1,44 @@
+﻿name: Formatter
+
+on:
+  pull_request: 
+    types: [ closed ]
+
+jobs:
+  format-code:
+    if: github.event.pull_request.merged == true
+    name: Formatter
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          sparse-checkout: Scripts
+      
+      - name: Lua Formatter
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: 2.1.0
+          # CLI arguments
+          args: .
+      
+      # todo: add C# & XAML formatter
+      
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        id: auto-commit-action
+        with:
+          commit_author: '${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>'
+          commit_message: 'Apply automatic formatting changes'
+
+      - name: "Run if changes have been detected"
+        if: steps.auto-commit-action.outputs.changes_detected == 'true'
+        run: echo "Changes!"
+
+      - name: "Run if no changes have been detected"
+        if: steps.auto-commit-action.outputs.changes_detected == 'false'
+        run: echo "No Changes!"
