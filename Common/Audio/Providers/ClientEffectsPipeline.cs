@@ -22,7 +22,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private bool radioEffectsEnabled;
+        private float radioEffectsAmount = 1.0f; // Default to 1.0 (full effect)
         private bool perRadioModelEffect;
         private bool clippingEnabled;
 
@@ -117,19 +117,16 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             //only get settings every 3 seconds - and cache them - issues with performance
             long now = DateTime.Now.Ticks;
 
-            if (TimeSpan.FromTicks(now - lastRefresh).TotalSeconds > 3) //3 seconds since last refresh
+            if (TimeSpan.FromTicks(now - lastRefresh).TotalSeconds > 3)
             {
                 var profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
                 var serverSettings = SyncedServerSettings.Instance;
                 lastRefresh = now;
 
-                radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
-
                 perRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
-
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
-
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
+                radioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 2f);
             }
         }
 
@@ -174,21 +171,25 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
 
             ISampleProvider provider = new TransmissionProvider(workingBuffer, 0, count);
-            if (radioEffectsEnabled)
-            {
-                var model = perRadioModelEffect && modelName != null? RadioModels.GetValueOrDefault(modelName, Intercom) : Intercom;
-                provider = BuildRXPipeline(provider, model);
 
-                if (clippingEnabled)
-                {
-                    provider = new ClippingProvider(provider, -1f, 1f);
-                }
+            if (perRadioModelEffect && modelName != null)
+                provider = BuildRXPipeline(provider, RadioModels.GetValueOrDefault(modelName, Intercom));
+            else
+                provider = BuildRXPipeline(provider, Intercom);
+
+            if (clippingEnabled)
+                provider = new ClippingProvider(provider, -1f, 1f);
+
+            int samplesRead = provider.Read(mixBuffer, offset, count);
+
+            // Apply effect strength (wet/dry mix)
+            if (Math.Abs(radioEffectsAmount - 1.0f) > 0.0001f)
+            {
+                for (int i = offset; i < offset + samplesRead; i++)
+                    mixBuffer[i] *= radioEffectsAmount;
             }
 
-            var samplesRead = provider.Read(mixBuffer, offset, count);
-
             floatPool.Return(workingBuffer);
-
             return samplesRead;
         }
 

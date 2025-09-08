@@ -43,14 +43,13 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var sourceBuffer = floatPool.Rent(audioOut.Length);
             audioOut.CopyTo(sourceBuffer);
 
-
             ISampleProvider transmissionProvider = new TransmissionProvider(sourceBuffer, 0, audioOut.Length);
             transmissionProvider = new VolumeSampleProvider(transmissionProvider)
             {
                 Volume = transmission.Volume
             };
 
-            if (RadioEffectsEnabled)
+            if (RadioEffectsAmount > 0.0001f)
             {
                 if (IsIntercomLike(transmission.Modulation))
                 {
@@ -63,8 +62,21 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 }
             }
 
+            // Read processed samples
             transmissionProvider.Read(scratchBuffer, 0, audioOut.Length);
-            scratchBuffer.AsSpan(0, audioOut.Length).CopyTo(audioOut);
+
+            // Wet/dry mix: blend original and effected signal according to RadioEffectsAmount
+            if (RadioEffectsAmount < 0.9999f)
+            {
+                for (int i = 0; i < audioOut.Length; i++)
+                {
+                    audioOut[i] = audioOut[i] * (1.0f - RadioEffectsAmount) + scratchBuffer[i] * RadioEffectsAmount;
+                }
+            }
+            else
+            {
+                scratchBuffer.AsSpan(0, audioOut.Length).CopyTo(audioOut);
+            }
 
             floatPool.Return(sourceBuffer);
             floatPool.Return(scratchBuffer);
@@ -91,7 +103,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 voiceProvider = BuildBackgroundNoiseEffect(voiceProvider, radioModel, transmission);
             }
 
-            if (RadioEffectsEnabled)
+            // Only apply radio pipeline if effect amount > 0
+            if (RadioEffectsAmount > 0.0001f)
             {
                 voiceProvider = BuildRadioPipeline(voiceProvider, radioModel, transmission);
             }
@@ -261,7 +274,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             var profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
             PerRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
-            RadioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
+
+            // Use RadioEffectsAmount as float (0..2), clamp for safety
+            RadioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 2f);
+
             RadioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
             clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
             BackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect);
@@ -280,12 +296,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private long LastRefresh { get; set; }
 
         private bool PerRadioModelEffect { get; set; }
-        private bool RadioEffectsEnabled { get; set; }
+        private float RadioEffectsAmount { get; set; } = 1.0f;
         private bool RadioEncryptionEffect { get; set; }
         private bool BackgroundNoiseEffect { get; set; }
 
         private bool clippingEnabled = false;
-        private bool ClippingEnabled => RadioEffectsEnabled && clippingEnabled;
+        private bool ClippingEnabled => RadioEffectsAmount > 0.0001f && clippingEnabled;
         private float NoiseGainOffsetDB { get; set; } = 0f;
         private float HFNoiseGainOffsetDB { get; set; } = 0f;
 
