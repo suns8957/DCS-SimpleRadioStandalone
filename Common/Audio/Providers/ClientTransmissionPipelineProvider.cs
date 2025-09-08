@@ -68,6 +68,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             // Wet/dry mix: blend original and effected signal according to RadioEffectsAmount
             if (RadioEffectsAmount < 0.9999f)
             {
+                //pass mixing between dry (original) and wet (effected)
                 for (int i = 0; i < audioOut.Length; i++)
                 {
                     audioOut[i] = audioOut[i] * (1.0f - RadioEffectsAmount) + scratchBuffer[i] * RadioEffectsAmount;
@@ -75,7 +76,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
             else
             {
-                scratchBuffer.AsSpan(0, audioOut.Length).CopyTo(audioOut);
+                //pass fully wet (effected only)
+                for (int i = 0; i < audioOut.Length; i++)
+                {
+                    audioOut[i] = scratchBuffer[i] * RadioEffectsAmount;
+                }
             }
 
             floatPool.Return(sourceBuffer);
