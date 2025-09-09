@@ -592,9 +592,9 @@ DCS In-game SRS Overlay</value>
     <value>SRS Admin Privileges</value>
   </data>
   <data name="MsgBoxAdminText" xml:space="preserve">
-    <value>SRS Requires admin rights to be able to read keyboard input in the background. 
-
-If you do not use any keyboard binds you can disable SRS Admin Privileges. 
+    <value>SRS should NOT require admin rights unless you have a really specific setup that demands it.
+    
+    Are you SURE you NEED SRS to have admin rights?
 
 For this setting to take effect SRS must be restarted</value>
   </data>
