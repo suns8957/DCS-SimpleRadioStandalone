@@ -6213,7 +6213,7 @@ function SR.exportRadioMB339A(_data)
         mode2=-1,
         mode3 = iff_device:get_mode3_code(),
         -- Mode 4 - not available in real MB-339 but we have decided to include it for gameplay
-        mode4 = iff_device:is_mode4_working(),
+        mode4 = iff_device:is_mode4_working() > 0,
         control = 0,
         expansion = false
     }
