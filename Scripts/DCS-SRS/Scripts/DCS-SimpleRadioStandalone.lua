@@ -158,7 +158,7 @@ function SR.LoadModsPlugins()
     -- Load SRS Maintained Modules
     local SRSModulesPath = lfs.writedir() .. [[Mods\Services\DCS-SRS\Scripts\DCS-SRS-Modules]]
     for moduleFile in lfs.dir(SRSModulesPath) do
-        SR.LoadModule(SRSModulesPath .. [[\]] .. moduleFile, false)
+        SR.LoadModule(SRSModulesPath .. [[\]] .. moduleFile)
     end
 
     -- Check the 3 main Mods sub-folders
@@ -191,11 +191,11 @@ function SR.ModsPuginsRecursiveSearch(modsPath)
         modAutoloadPath = modsPath .. [[\]] .. modFolder .. [[\SRS\autoload.lua]]
 
         -- If the Mod declares an SRS autoload file we process it
-        SR.LoadModule(modAutoloadPath, true)
+        SR.LoadModule(modAutoloadPath)
     end
 end
 
-function SR.LoadModule(modulePath, notifySucess)
+function SR.LoadModule(modulePath)
     local mode, errmsg
     mode, errmsg = lfs.attributes(modulePath, "mode")
 
@@ -207,7 +207,7 @@ function SR.LoadModule(modulePath, notifySucess)
 
         if error then
             SR.error("Failed loading SRS Mod plugin due to an error in '" .. modulePath .. "'")
-        elseif notifySucess then
+        else
             SR.log("Loaded SRS Mod plugin '" .. modulePath .. "'")
         end
     end
