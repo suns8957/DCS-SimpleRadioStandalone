@@ -29,7 +29,7 @@ function exportRadioJF17(_data, SR)
     local ufcp = {}
 
     for line=3,6 do
-        ufcp[#ufcp + 1] = SR.getListIndicatorValue(line)["txt_win" .. (line - 2)]
+        ufcp[#ufcp + 1] = SR.getListIndicatorValue(line)["txt_win" .. (line - 2)] or ""
     end
 
     -- Check the last line to see if we're editing a radio (and which one!)
