@@ -780,7 +780,7 @@ function SR.tableShow(tbl, loc, indent, tableshow_tbls) --based on serialize_slm
         tableshow_tbls[tbl] = loc
 
         local tbl_str = {}
-
+    
         tbl_str[#tbl_str + 1] = indent .. '{\n'
 
         for ind,val in pairs(tbl) do -- serialize its fields
