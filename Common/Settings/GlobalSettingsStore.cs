@@ -288,9 +288,9 @@ public class GlobalSettingsStore
 
 
         { GlobalSettingsKeys.AGC.ToString(), "true" },
-        { GlobalSettingsKeys.AGCTarget.ToString(), "30000" },
+        { GlobalSettingsKeys.AGCTarget.ToString(), "12000" },
         { GlobalSettingsKeys.AGCDecrement.ToString(), "-60" },
-        { GlobalSettingsKeys.AGCLevelMax.ToString(), "68" },
+        { GlobalSettingsKeys.AGCLevelMax.ToString(), "40" },
 
         { GlobalSettingsKeys.Denoise.ToString(), "true" },
         { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
