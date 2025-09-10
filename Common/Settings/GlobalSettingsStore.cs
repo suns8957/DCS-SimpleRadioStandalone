@@ -365,6 +365,7 @@ public class GlobalSettingsStore
             }
 
             _configuration = Configuration.LoadFromFile(Path + ConfigFileName);
+            UpgradeSettings();
         }
         catch (FileNotFoundException)
         {
@@ -629,6 +630,26 @@ public class GlobalSettingsStore
             {
                 Logger.Error("Unable to save settings!");
             }
+        }
+    }
+
+    private void UpgradeSettings()
+    {
+        var loadedVersion = GetClientSettingInt(GlobalSettingsKeys.Version);
+        if (loadedVersion == 0)
+        {
+            // Update to V1:
+            // * Force enable AGC again.
+            // * Fix up the values.
+            SetClientSetting(GlobalSettingsKeys.AGC, true);
+            SetClientSetting(GlobalSettingsKeys.AGCLevelMax, 45);
+            SetClientSetting(GlobalSettingsKeys.AGCTarget, 12000);
+
+            // Upgrade done
+            SetClientSetting(GlobalSettingsKeys.Version, 1);
+
+            Save();
+            loadedVersion = 1;
         }
     }
 }
