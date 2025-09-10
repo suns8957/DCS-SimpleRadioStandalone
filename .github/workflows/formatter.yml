@@ -34,11 +34,3 @@ jobs:
         with:
           commit_author: '${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>'
           commit_message: 'Apply automatic formatting changes'
-
-      - name: "Run if changes have been detected"
-        if: steps.auto-commit-action.outputs.changes_detected == 'true'
-        run: echo "Changes!"
-
-      - name: "Run if no changes have been detected"
-        if: steps.auto-commit-action.outputs.changes_detected == 'false'
-        run: echo "No Changes!"
