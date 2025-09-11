@@ -4,6 +4,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using NLog;
 using System;
 using System.Buffers;
@@ -117,7 +118,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             //only get settings every 3 seconds - and cache them - issues with performance
             long now = DateTime.Now.Ticks;
 
-            if (TimeSpan.FromTicks(now - lastRefresh).TotalSeconds > 3)
+            if (TimeSpan.FromTicks(now - lastRefresh).TotalSeconds > 3) //3 seconds since last refresh
             {
                 var profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
                 var serverSettings = SyncedServerSettings.Instance;
@@ -126,7 +127,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 perRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
-                radioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 2f);
+                radioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 1f);
             }
         }
 
@@ -144,7 +145,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var workingBuffer = floatPool.Rent(count);
             var workingSpan = workingBuffer.AsSpan(0, count);
             workingSpan.Clear();
-            
+
             TransmissionSegment capturedFMSegment = null;
             foreach (var segment in segments)
             {
@@ -170,24 +171,25 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 Mix(workingSpan, capturedFMSegment.AudioSpan);
             }
 
-            ISampleProvider provider = new TransmissionProvider(workingBuffer, 0, count);
+            // Create dry and wet providers
+            var dryProvider = new TransmissionProvider(workingBuffer, 0, count);
+            var wetProvider = BuildRXPipeline(dryProvider, perRadioModelEffect && modelName != null
+                ? RadioModels.GetValueOrDefault(modelName, Intercom)
+                : Intercom);
 
-            if (perRadioModelEffect && modelName != null)
-                provider = BuildRXPipeline(provider, RadioModels.GetValueOrDefault(modelName, Intercom));
-            else
-                provider = BuildRXPipeline(provider, Intercom);
+            // Set up volume providers for wet/dry mix
+            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = 1.0f - radioEffectsAmount };
+            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = radioEffectsAmount };
 
-            if (clippingEnabled)
-                provider = new ClippingProvider(provider, -1f, 1f);
+            // Mix dry and wet
+            var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume });
 
-            int samplesRead = provider.Read(mixBuffer, offset, count);
+            // Wrap with ClippingProvider if needed
+            ISampleProvider finalProvider = mixer;
+            if (clippingEnabled && radioEffectsAmount > 0f)
+                finalProvider = new ClippingProvider(mixer, -1f, 1f);
 
-            // Apply effect strength (wet/dry mix)
-            if (Math.Abs(radioEffectsAmount - 1.0f) > 0.0001f)
-            {
-                for (int i = offset; i < offset + samplesRead; i++)
-                    mixBuffer[i] *= radioEffectsAmount;
-            }
+            int samplesRead = finalProvider.Read(mixBuffer, offset, count);
 
             floatPool.Return(workingBuffer);
             return samplesRead;

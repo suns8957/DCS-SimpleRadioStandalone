@@ -39,52 +39,54 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             // Copy to regular array for compatibility with ISampleProvider.
             var floatPool = ArrayPool<float>.Shared;
-            var scratchBuffer = floatPool.Rent(audioOut.Length);
             var sourceBuffer = floatPool.Rent(audioOut.Length);
             audioOut.CopyTo(sourceBuffer);
 
-            ISampleProvider transmissionProvider = new TransmissionProvider(sourceBuffer, 0, audioOut.Length);
-            transmissionProvider = new VolumeSampleProvider(transmissionProvider)
-            {
-                Volume = transmission.Volume
-            };
+            // Dry/original provider
+            var dryProvider = new TransmissionProvider(sourceBuffer, 0, audioOut.Length);
 
-            if (RadioEffectsAmount > 0.0001f)
+            // Wet/effected provider: must use a separate buffer to avoid double-reading
+            var wetSourceBuffer = floatPool.Rent(audioOut.Length);
+            audioOut.CopyTo(wetSourceBuffer);
+            ISampleProvider wetProvider = new TransmissionProvider(wetSourceBuffer, 0, audioOut.Length);
+            wetProvider = new VolumeSampleProvider(wetProvider) { Volume = transmission.Volume };
+
+            if (RadioEffectsAmount > 0f)
             {
                 if (IsIntercomLike(transmission.Modulation))
                 {
-                    transmissionProvider = BuildRadioPipeline(transmissionProvider, RadioModels.GetValueOrDefault("intercom", Intercom), transmission);
+                    wetProvider = BuildRadioPipeline(wetProvider, RadioModels.GetValueOrDefault("intercom", Intercom), transmission);
                 }
                 else
                 {
                     var preset = GetRadioModel(transmission, Arc210);
-                    transmissionProvider = BuildRadioEffectsChain(transmissionProvider, preset, transmission);
+                    wetProvider = BuildRadioEffectsChain(wetProvider, preset, transmission);
                 }
             }
 
-            // Read processed samples
-            transmissionProvider.Read(scratchBuffer, 0, audioOut.Length);
+            // Set up volume providers for wet/dry mix
+            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = Math.Max(1.0f - RadioEffectsAmount, 0.0f) };
+            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = RadioEffectsAmount };
 
-            // Wet/dry mix: blend original and effected signal according to RadioEffectsAmount
-            if (RadioEffectsAmount < 0.9999f)
+            // Mix dry and wet
+            var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume })
             {
-                //pass mixing between dry (original) and wet (effected)
-                for (int i = 0; i < audioOut.Length; i++)
-                {
-                    audioOut[i] = audioOut[i] * (1.0f - RadioEffectsAmount) + scratchBuffer[i] * RadioEffectsAmount;
-                }
+                ReadFully = true
+            };
+
+            var tempBuffer = floatPool.Rent(audioOut.Length);
+            try
+            {
+                int samplesRead = mixer.Read(tempBuffer, 0, audioOut.Length);
+                tempBuffer.AsSpan(0, samplesRead).CopyTo(audioOut);
             }
-            else
+            finally
             {
-                //pass fully wet (effected only)
-                for (int i = 0; i < audioOut.Length; i++)
-                {
-                    audioOut[i] = scratchBuffer[i] * RadioEffectsAmount;
-                }
+                floatPool.Return(tempBuffer);
             }
 
             floatPool.Return(sourceBuffer);
-            floatPool.Return(scratchBuffer);
+            floatPool.Return(wetSourceBuffer);
         }
 
         private static bool IsIntercomLike(Modulation modulation)
@@ -280,8 +282,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
             PerRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
 
-            // Use RadioEffectsAmount as float (0..2), clamp for safety
-            RadioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 2f);
+            // Use RadioEffectsAmount as float (0..1), clamp for safety
+            RadioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 1f);
 
             RadioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
             clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
