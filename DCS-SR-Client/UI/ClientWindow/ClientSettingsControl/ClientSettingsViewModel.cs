@@ -831,12 +831,12 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         get
         {
             float value = _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount);
-            value = Math.Clamp(value, 0f, 2f);
-            return value * 100f; // 0.0–2.0 → 0–200%
+            value = Math.Clamp(value, 0f, 1f);
+            return value * 100f; // 0.0–1.0 → 0–100%
         }
         set
         {
-            float clamped = Math.Clamp(value, 0f, 200f) / 100f; // 0–200% → 0.0–2.0
+            float clamped = Math.Clamp(value, 0f, 100f) / 100f; // 0–100% → 0.0–1.0
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount, clamped);
             NotifyPropertyChanged();
         }
