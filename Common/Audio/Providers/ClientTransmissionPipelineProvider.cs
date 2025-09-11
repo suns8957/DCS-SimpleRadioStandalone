@@ -51,7 +51,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             ISampleProvider wetProvider = new TransmissionProvider(wetSourceBuffer, 0, audioOut.Length);
             wetProvider = new VolumeSampleProvider(wetProvider) { Volume = transmission.Volume };
 
-            if (RadioEffectsAmount > 0f)
+            if (RadioEffectsRatio > 0f)
             {
                 if (IsIntercomLike(transmission.Modulation))
                 {
@@ -65,8 +65,8 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
 
             // Set up volume providers for wet/dry mix
-            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = Math.Max(1.0f - RadioEffectsAmount, 0.0f) };
-            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = RadioEffectsAmount };
+            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = Math.Max(1.0f - RadioEffectsRatio, 0.0f) };
+            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = RadioEffectsRatio };
 
             // Mix dry and wet
             var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume })
@@ -111,7 +111,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
 
             // Only apply radio pipeline if effect amount > 0
-            if (RadioEffectsAmount > 0.0001f)
+            if (RadioEffectsRatio > 0f)
             {
                 voiceProvider = BuildRadioPipeline(voiceProvider, radioModel, transmission);
             }
@@ -283,7 +283,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             PerRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
 
             // Use RadioEffectsAmount as float (0..1), clamp for safety
-            RadioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 1f);
+            RadioEffectsRatio = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsRatio), 0f, 1f);
 
             RadioEncryptionEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
             clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
@@ -303,12 +303,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         private long LastRefresh { get; set; }
 
         private bool PerRadioModelEffect { get; set; }
-        private float RadioEffectsAmount { get; set; } = 1.0f;
+        private float RadioEffectsRatio { get; set; } = 1.0f;
         private bool RadioEncryptionEffect { get; set; }
         private bool BackgroundNoiseEffect { get; set; }
 
         private bool clippingEnabled = false;
-        private bool ClippingEnabled => RadioEffectsAmount > 0.0001f && clippingEnabled;
+        private bool ClippingEnabled => RadioEffectsRatio > 0f && clippingEnabled;
         private float NoiseGainOffsetDB { get; set; } = 0f;
         private float HFNoiseGainOffsetDB { get; set; } = 0f;
 

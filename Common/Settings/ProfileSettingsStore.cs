@@ -26,7 +26,7 @@ public enum ProfileSettingsKeys
     Radio10Channel,
     IntercomChannel,
 
-    RadioEffectsAmount,
+    RadioEffectsRatio,
     RadioEncryptionEffects, //Radio Encryption effects
     RadioEffectsClipping,
     NATOTone,
@@ -87,7 +87,7 @@ public class ProfileSettingsStore
 
     public static readonly Dictionary<string, string> DefaultSettingsProfileSettings = new()
     {
-        { ProfileSettingsKeys.RadioEffectsAmount.ToString(), "1.0" },
+        { ProfileSettingsKeys.RadioEffectsRatio.ToString(), "1.0" },
         { ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false" },
 
         { ProfileSettingsKeys.RadioEncryptionEffects.ToString(), "true" },

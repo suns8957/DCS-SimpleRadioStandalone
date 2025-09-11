@@ -826,18 +826,18 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
     }
 
     // Add the new float property for the slider (0-100%)
-    public float RadioSoundEffectsAmount
+    public float RadioSoundEffectsRatio
     {
         get
         {
-            float value = _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount);
+            float value = _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsRatio);
             value = Math.Clamp(value, 0f, 1f);
             return value * 100f; // 0.0–1.0 → 0–100%
         }
         set
         {
             float clamped = Math.Clamp(value, 0f, 100f) / 100f; // 0–100% → 0.0–1.0
-            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount, clamped);
+            _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.RadioEffectsRatio, clamped);
             NotifyPropertyChanged();
         }
     }
@@ -1165,7 +1165,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
         NotifyPropertyChanged(nameof(SelectedIntercomEndTransmitEffect));
         NotifyPropertyChanged(nameof(RadioEncryptionEffectsToggle));
         NotifyPropertyChanged(nameof(RadioMIDSToggle));
-        NotifyPropertyChanged(nameof(RadioSoundEffectsAmount));
+        NotifyPropertyChanged(nameof(RadioSoundEffectsRatio));
         NotifyPropertyChanged(nameof(RadioSoundEffectsClipping));
         NotifyPropertyChanged(nameof(NATORadioToneToggle));
         NotifyPropertyChanged(nameof(NATORadioToneVolume));

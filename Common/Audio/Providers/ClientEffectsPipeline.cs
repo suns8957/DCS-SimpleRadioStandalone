@@ -23,7 +23,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private float radioEffectsAmount = 1.0f; // Default to 1.0 (full effect)
+        private float radioEffectRatio = 1.0f; // Default to 1.0 (full effect)
         private bool perRadioModelEffect;
         private bool clippingEnabled;
 
@@ -127,7 +127,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 perRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
-                radioEffectsAmount = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsAmount), 0f, 1f);
+                radioEffectRatio = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsRatio), 0f, 1f);
             }
         }
 
@@ -178,15 +178,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 : Intercom);
 
             // Set up volume providers for wet/dry mix
-            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = 1.0f - radioEffectsAmount };
-            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = radioEffectsAmount };
+            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = 1.0f - radioEffectRatio };
+            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = radioEffectRatio };
 
             // Mix dry and wet
             var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume });
 
             // Wrap with ClippingProvider if needed
             ISampleProvider finalProvider = mixer;
-            if (clippingEnabled && radioEffectsAmount > 0f)
+            if (clippingEnabled && radioEffectRatio > 0f)
                 finalProvider = new ClippingProvider(mixer, -1f, 1f);
 
             int samplesRead = finalProvider.Read(mixBuffer, offset, count);
