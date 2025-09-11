@@ -250,7 +250,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             }
             if (PerRadioModelEffect && guid != null && ConnectedClientsSingleton.Instance.Clients.TryGetValue(guid, out sender))
             {
-                if (sender != null)
+                if (sender != null && sender.RadioInfo != null && sender.RadioInfo.radios != null)
                 {
                     // Try to find which radio the transmission is coming from.
                     // "best match".
