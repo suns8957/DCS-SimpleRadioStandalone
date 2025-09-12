@@ -87,7 +87,7 @@ public class ProfileSettingsStore
 
     public static readonly Dictionary<string, string> DefaultSettingsProfileSettings = new()
     {
-        { ProfileSettingsKeys.RadioEffectsRatio.ToString(), "1.0" },
+        { ProfileSettingsKeys.RadioEffectsRatio.ToString(), "0.5" },
         { ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false" },
 
         { ProfileSettingsKeys.RadioEncryptionEffects.ToString(), "true" },
