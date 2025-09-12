@@ -1089,6 +1089,7 @@
                             <clientSettingsControl:BackgroundEffectVolumeControl
                                     Grid.Row="8"
                                     Grid.Column="1"
+                                    MaximumPercentage="100"
                                     VolumeValue="{Binding RadioSoundEffectsRatio, Mode=TwoWay}" />
 
                             <Label Grid.Row="9"
