@@ -119,7 +119,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 var desiredName = perRadioModelEffect && modelName != null ? modelName: string.Empty;
                 if (!RxRadioModels.TryGetValue(desiredName, out var radioModel))
                 {
-                    radioModel = RadioModelFactory.Instance.LoadRxOrDefaultRadio(desiredName);
+                    radioModel = RadioModelFactory.Instance.LoadRxOrDefaultIntercom(desiredName);
                     RxRadioModels.Add(desiredName, radioModel);
                 }
 

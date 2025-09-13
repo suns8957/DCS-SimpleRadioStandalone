@@ -271,12 +271,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             return null;
         }
 
-        public RxRadioModel LoadRxOrDefaultRadio(string name)
+        public RxRadioModel LoadRxOrDefaultIntercom(string name)
         {
             var model = LoadRxRadio(name);
             if (model == null)
             {
-                model = new(DefaultRadioModels.BuildArc210());
+                model = new(DefaultRadioModels.BuildIntercom());
             }
 
             return model;
