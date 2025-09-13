@@ -39,11 +39,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
 
             // Copy to regular array for compatibility with ISampleProvider.
             var floatPool = ArrayPool<float>.Shared;
-            var sourceBuffer = floatPool.Rent(audioOut.Length);
-            audioOut.CopyTo(sourceBuffer);
+            var drySourceBuffer = floatPool.Rent(audioOut.Length);
+            audioOut.CopyTo(drySourceBuffer);
 
             // Dry/original provider
-            var dryProvider = new TransmissionProvider(sourceBuffer, 0, audioOut.Length);
+            var dryProvider = new TransmissionProvider(drySourceBuffer, 0, audioOut.Length);
 
             // Wet/effected provider: must use a separate buffer to avoid double-reading
             var wetSourceBuffer = floatPool.Rent(audioOut.Length);
@@ -85,7 +85,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 floatPool.Return(tempBuffer);
             }
 
-            floatPool.Return(sourceBuffer);
+            floatPool.Return(drySourceBuffer);
             floatPool.Return(wetSourceBuffer);
         }
 
