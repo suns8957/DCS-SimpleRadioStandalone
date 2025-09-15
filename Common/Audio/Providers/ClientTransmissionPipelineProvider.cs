@@ -59,7 +59,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 }
                 else
                 {
-                    var preset = GetRadioModel(transmission, Arc210);
+                    var preset = GetRadioModel(transmission, Arc210); // Default ARC-210 - todo: model as client current radio
                     wetProvider = BuildRadioEffectsChain(wetProvider, preset, transmission);
                 }
             }
@@ -69,20 +69,17 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = RadioEffectsRatio };
 
             // Mix dry and wet
-            var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume })
-            {
-                ReadFully = true
-            };
+            var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume });
 
-            var tempBuffer = floatPool.Rent(audioOut.Length);
+            var mixerBuffer = floatPool.Rent(audioOut.Length);
             try
             {
-                int samplesRead = mixer.Read(tempBuffer, 0, audioOut.Length);
-                tempBuffer.AsSpan(0, samplesRead).CopyTo(audioOut);
+                int samplesRead = mixer.Read(mixerBuffer, 0, audioOut.Length);
+                mixerBuffer.AsSpan(0, samplesRead).CopyTo(audioOut);
             }
             finally
             {
-                floatPool.Return(tempBuffer);
+                floatPool.Return(mixerBuffer);
             }
 
             floatPool.Return(drySourceBuffer);
