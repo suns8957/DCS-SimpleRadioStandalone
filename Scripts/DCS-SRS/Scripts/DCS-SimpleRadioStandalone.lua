@@ -7862,6 +7862,7 @@ SR.exporters["AV8BNA"] = SR.exportRadioAV8BNA
 SR.exporters["AJS37"] = SR.exportRadioAJS37
 SR.exporters["A-10A"] = SR.exportRadioA10A
 SR.exporters["UH-60L"] = SR.exportRadioUH60L
+SR.exporters["UH-60L_DAP"] = SR.exportRadioUH60L --ANDR0ID Added
 SR.exporters["MH-60R"] = SR.exportRadioUH60L
 SR.exporters["SH60B"] = SR.exportRadioSH60B
 SR.exporters["AH-64D_BLK_II"] = SR.exportRadioAH64D
