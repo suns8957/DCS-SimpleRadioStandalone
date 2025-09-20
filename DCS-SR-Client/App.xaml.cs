@@ -36,14 +36,18 @@ public partial class App : Application
         System.Windows.Forms.Application.EnableVisualStyles();
 
         // Common ones to use are -lang:en-us , -lang:zh , -lang:zh-cn , -lang:fr
-        var args = Environment.GetCommandLineArgs();
-        string lang = args.First(x => x.StartsWith("-lang:")).Substring(6);
-        if (!string.IsNullOrEmpty(lang))
+        try
         {
-            Logger.Warn($"Command Line Set Language Code : {lang}");
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo(lang);
-        }
-        
+            string lang = Environment.GetCommandLineArgs().FirstOrDefault(x => x.StartsWith("-lang:")).Substring(6);
+            if (!string.IsNullOrEmpty(lang))
+            {
+                Logger.Warn($"Command Line Set Language Code : {lang}");
+                Thread.CurrentThread.CurrentUICulture = new CultureInfo(lang);
+            }
+        } catch (CultureNotFoundException e){ Logger.Error(e.Message); }
+        catch { /* ignored */ }
+
+
         SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
         AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
