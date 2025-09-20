@@ -1,9 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
@@ -31,7 +34,16 @@ public partial class App : Application
     public App()
     {
         System.Windows.Forms.Application.EnableVisualStyles();
-        //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+
+        // Common ones to use are -lang:en-us , -lang:zh , -lang:zh-cn , -lang:fr
+        var args = Environment.GetCommandLineArgs();
+        string lang = args.First(x => x.StartsWith("-lang:")).Substring(6);
+        if (!string.IsNullOrEmpty(lang))
+        {
+            Logger.Warn($"Command Line Set Language Code : {lang}");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(lang);
+        }
+        
         SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
         AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
