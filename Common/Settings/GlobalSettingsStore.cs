@@ -308,7 +308,7 @@ public class GlobalSettingsStore
         { GlobalSettingsKeys.DisableWindowVisibilityCheck.ToString(), "false" },
         { GlobalSettingsKeys.PlayConnectionSounds.ToString(), "true" },
 
-        { GlobalSettingsKeys.RequireAdmin.ToString(), "true" },
+        { GlobalSettingsKeys.RequireAdmin.ToString(), "false" },
 
         { GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(), "false" },
 
