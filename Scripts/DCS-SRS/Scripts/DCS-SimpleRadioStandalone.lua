@@ -7348,7 +7348,7 @@ function SR.exportRadioC130J30(_data)
         mode2=-1,
         mode3=-1,
         mode4=-1,
-        control=0,
+        control=1,
         expansion=false,
     }
 
@@ -7363,63 +7363,114 @@ function SR.exportRadioC130J30(_data)
     _data.radios[1].name = "Intercom"
     _data.radios[1].freq = 100.0
     _data.radios[1].modulation = 2 --Special intercom modulation
+    --_data.radios[1].volMode = 0
 
     _data.radios[2].name = "UHF1"
-    _data.radios[2].freq = SR.getRadioFrequency(UHF1_devid)
-    _data.radios[2].modulation = SR.getRadioModulation(UHF1_devid)
+    _data.radios[2].freq = SR.getRadioFrequency(UHF1_devid) or 0
+    _data.radios[2].modulation = SR.getRadioModulation(UHF1_devid) or 3
+    --_data.radios[2].volMode = 0
 
     _data.radios[3].name = "UHF2"
-    _data.radios[3].freq = SR.getRadioFrequency(UHF2_devid)
-    _data.radios[3].modulation = SR.getRadioModulation(UHF2_devid)
+    _data.radios[3].freq = SR.getRadioFrequency(UHF2_devid) or 0
+    _data.radios[3].modulation = SR.getRadioModulation(UHF2_devid) or 3
+    --_data.radios[3].volMode = 0
 
     _data.radios[4].name = "VHF1"
-    _data.radios[4].freq = SR.getRadioFrequency(VHF1_devid)
-    _data.radios[4].modulation = SR.getRadioModulation(VHF1_devid)
+    _data.radios[4].freq = SR.getRadioFrequency(VHF1_devid) or 0
+    _data.radios[4].modulation = SR.getRadioModulation(VHF1_devid) or 3
+    --_data.radios[4].volMode = 0
 
     _data.radios[5].name = "VHF2"
-    _data.radios[5].freq = SR.getRadioFrequency(VHF2_devid)
-    _data.radios[5].modulation = SR.getRadioModulation(VHF2_devid)
+    _data.radios[5].freq = SR.getRadioFrequency(VHF2_devid) or 0
+    _data.radios[5].modulation = SR.getRadioModulation(VHF2_devid) or 3
+    --_data.radios[5].volMode = 0
 
     _data.radios[6].name = "HF1"
-    _data.radios[6].freq = SR.getRadioFrequency(HF1_devid)
-    _data.radios[6].modulation = SR.getRadioModulation(HF1_devid)
+    _data.radios[6].freq = SR.getRadioFrequency(HF1_devid) or 0
+    _data.radios[6].modulation = SR.getRadioModulation(HF1_devid) or 3
+    --_data.radios[6].volMode = 0
 
     _data.radios[7] = {}
     _data.radios[7].name = "HF2"
-    _data.radios[7].freq = SR.getRadioFrequency(HF2_devid)
-    _data.radios[7].modulation = SR.getRadioModulation(HF2_devid)
+    _data.radios[7].freq = SR.getRadioFrequency(HF2_devid) or 0
+    _data.radios[7].modulation = SR.getRadioModulation(HF2_devid) or 3
+    --_data.radios[7].volMode = 0
 
-    -- Not implemented yet - but hard coding it for now
+    -- Not implemented yet - but hard coding to a SATCOM device for now
     _data.radios[8] = {}
     _data.radios[8].name = "SAT"
     _data.radios[8].freq = 269.0 * 1000000 --SR.getRadioFrequency(SAT_devid)
-    _data.radios[8].modulation = 0 --SR.getRadioModulation(SAT_devid)
+    _data.radios[8].modulation = 5 --SR.getRadioModulation(SAT_devid)
+    _data.radios[8].freqMin = 240.0 * 1000000
+    _data.radios[8].freqMax = 320.0 * 1000000
+    _data.radios[8].freqMode = 1
+    --_data.radios[8].volMode = 0
 
     _data.radios[9] = {}
     _data.radios[9].name = "PVT"
     _data.radios[9].freq = 100.5
     _data.radios[9].modulation = 2
+    --_data.radios[9].volMode = 0
 
     local _seat = SR.lastKnownSeat -- from 0: P/CP/LM/OBS/LMF
 
-    -- Default left seat assignments
-    local _masterVolumeId = 1355
-    local _ICSVolumeId = { 204, 205 } -- PULL, VOLUME
-    local _UHF1VolumeId = { 222, 223 }
-    local _UHF2VolumeId = { 224, 225 }
-    local _VHF1VolumeId = { 212, 213 }
-    local _VHF2VolumeId = { 214, 215 }
-    local _HF1VolumeId = { 206, 207 }
-    local _HF2VolumeId = { 208, 209 }
-    local _SATVolumeId = { 216, 217 } -- Using the SATCOM knob
-    local _PVTVolumeId = { 218, 219 }
+    -- Button definitions
+    local _masterVolumeId, _ICSVolumeId, _UHF1VolumeId, _UHF2VolumeId, _VHF1VolumeId, _VHF2VolumeId, _HF1VolumeId, _HF2VolumeId, _SATVolumeId, _PVTVolumeId
+    local _TXSelectorId, _ICSSelectorId, _PTTRockerId
 
-    local _TXSelectorId = 294
-    local _ICSSelectorId = 293
+    local function handleCockpitButtons()
+        local _masterVolume = SR.getRadioVolume(0, _masterVolumeId, { 0.0, 1.0})
+        _data.radios[1].volume = SR.getRadioVolume(0, _ICSVolumeId[1], { 0.0, 1.0 }) * SR.getRadioVolume(0, _ICSVolumeId[2], { 0.0, 1.0 }) * _masterVolume -- PULL * ROTARY * MASTER
+        _data.radios[2].volume = SR.getRadioVolume(0, _UHF1VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _UHF1VolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[3].volume = SR.getRadioVolume(0, _UHF2VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _UHF2VolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[4].volume = SR.getRadioVolume(0, _VHF1VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _VHF1VolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[5].volume = SR.getRadioVolume(0, _VHF2VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _VHF2VolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[6].volume = SR.getRadioVolume(0, _HF1VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _HF1VolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[7].volume = SR.getRadioVolume(0, _HF2VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _HF2VolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[8].volume = SR.getRadioVolume(0, _SATVolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _SATVolumeId[2], { 0.0, 1.0 }) * _masterVolume
+        _data.radios[9].volume = SR.getRadioVolume(0, _PVTVolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _PVTVolumeId[2], { 0.0, 1.0 }) * _masterVolume
 
-    local _PTTRockerId = 291
+        local _ICSPosition = SR.getSelectorPosition(_ICSSelectorId, 1/3)
+        if _ICSPosition > 1 then
+            _data.intercomHotMic = true
+        else
+            _data.intercomHotMic = false
+        end
 
-    if _seat == 1 then
+        -- INT:1 -> PVT:9
+        local _TXPosition = tonumber(string.format("%.0f", SR.getButtonPosition(_TXSelectorId) / (1/9))) + 1
+
+        local _PTTRockerPosition = SR.getButtonPosition(_PTTRockerId)
+        if _PTTRockerPosition == 1 then -- Radio rocker
+            _data.selected = _TXPosition
+            _data.ptt = true
+        elseif _PTTRockerPosition == -1 then -- ICS rocker
+            _data.selected = 0
+            _data.ptt = true
+        else
+            _data.selected = _TXPosition
+            _data.ptt = false
+        end
+    end
+
+    if _seat == 0 then -- Left Seat
+        _masterVolumeId = 1355
+        _ICSVolumeId = { 204, 205 } -- PULL, VOLUME
+        _UHF1VolumeId = { 222, 223 }
+        _UHF2VolumeId = { 224, 225 }
+        _VHF1VolumeId = { 212, 213 }
+        _VHF2VolumeId = { 214, 215 }
+        _HF1VolumeId = { 206, 207 }
+        _HF2VolumeId = { 208, 209 }
+        _SATVolumeId = { 216, 217 } -- Using the SATCOM knob
+        _PVTVolumeId = { 218, 219 }
+
+        _TXSelectorId = 294
+        _ICSSelectorId = 293
+        _PTTRockerId = 291
+
+        handleCockpitButtons()
+    elseif _seat == 1 then -- Right Seat
         _masterVolumeId = 1358 
         _ICSVolumeId = { 226, 227 }
         _UHF1VolumeId = { 244, 245 }
@@ -7435,7 +7486,9 @@ function SR.exportRadioC130J30(_data)
         _ICSSelectorId = 295
 
          _PTTRockerId = 292
-    elseif _seat >= 2 then
+
+         handleCockpitButtons()
+    elseif _seat == 2 then -- Aug Seat
         _masterVolumeId = 1361 
         _ICSVolumeId = { 268, 269 }
         _UHF1VolumeId = { 286, 287 }
@@ -7451,39 +7504,13 @@ function SR.exportRadioC130J30(_data)
         _ICSSelectorId = 297
 
         _PTTRockerId = 290
-    end
 
-    local _masterVolume = SR.getRadioVolume(0, _masterVolumeId, { 0.0, 1.0})
-    _data.radios[1].volume = SR.getRadioVolume(0, _ICSVolumeId[1], { 0.0, 1.0 }) * SR.getRadioVolume(0, _ICSVolumeId[2], { 0.0, 1.0 }) * _masterVolume -- PULL * ROTARY * MASTER
-    _data.radios[2].volume = SR.getRadioVolume(0, _UHF1VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _UHF1VolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[3].volume = SR.getRadioVolume(0, _UHF2VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _UHF2VolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[4].volume = SR.getRadioVolume(0, _VHF1VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _VHF1VolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[5].volume = SR.getRadioVolume(0, _VHF2VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _VHF2VolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[6].volume = SR.getRadioVolume(0, _HF1VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _HF1VolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[7].volume = SR.getRadioVolume(0, _HF2VolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _HF2VolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[8].volume = SR.getRadioVolume(0, _SATVolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _SATVolumeId[2], { 0.0, 1.0 }) * _masterVolume
-    _data.radios[9].volume = SR.getRadioVolume(0, _PVTVolumeId[1], { 0.0, 1.0 }, false) * SR.getRadioVolume(0, _PVTVolumeId[2], { 0.0, 1.0 }) * _masterVolume
-
-    local _ICSPosition = SR.getSelectorPosition(_ICSSelectorId, 1/3)
-    if _ICSPosition > 1 then
-        _data.intercomHotMic = true
-    else
-        _data.intercomHotMic = false
-    end
-
-    -- INT:1 -> PVT:9
-    local _TXPosition = tonumber(string.format("%.0f", SR.getButtonPosition(_TXSelectorId) / (1/9))) + 1
-
-    local _PTTRockerPosition = SR.getButtonPosition(_PTTRockerId)
-    if _PTTRockerPosition == 1 then -- Radio rocker
-        _data.selected = _TXPosition
-        _data.ptt = true
-    elseif _PTTRockerPosition == -1 then -- ICS rocker
-        _data.selected = 0
-        _data.ptt = true
-    else
-        _data.selected = _TXPosition
-        _data.ptt = false
+        handleCockpitButtons()
+    else -- All other seats use the radio overlay to control their comms
+        _data.control = 0
+        for _, _radio in pairs(_data.radios) do
+            _radio.volMode = 1
+        end
     end
 
     -- DCS only supports 2 engines in export, so we have to do it ourselves.
@@ -7496,10 +7523,10 @@ function SR.exportRadioC130J30(_data)
     -- Combine engines together and duck by 0.8
     local _ambVolume = (((_eng1RPM + _eng2RPM + _eng3RPM + _eng4RPM) / 10) * 0.8) -- 0.8 is a magic number
     SR.log(string.format("Engine RPM: %f %f %f %f", _eng1RPM, _eng2RPM, _eng3RPM, _eng4RPM))
-    
+
     if _ambVolume > 0.01 then -- Engines On
         -- (0..1 * 0.2)
-        _ambVolume = _ambVolume + (_rampPos * 0.2)
+        _ambVolume = _ambVolume * ((_rampPos * 0.70) + 1)
     end
 
     SR.log(string.format("Ambient Volume: %f", _ambVolume))
