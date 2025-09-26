@@ -342,13 +342,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Threshold = -23,
                     },
 
-                    new CompressorEffect()
+                    new SidechainCompressorEffect()
                     {
                         Attack = 0.01f,
                         MakeUp = 6,
                         Release = 0.2f,
                         Threshold = -33,
-                        Ratio = 1.18f
+                        Ratio = 1.18f,
+                        SidechainEffect = new FiltersEffect
+                        {
+                            Filters = new[]
+                            {
+                                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 709),
+                            }
+                        }
                     },
                     new FiltersEffect()
                     {
@@ -419,13 +426,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Threshold = -33,
                     },
 
-                    new CompressorEffect
+                    new SidechainCompressorEffect
                     {
                         Attack = 0.01f,
                         MakeUp = -1,
                         Release = 0.2f,
                         Threshold = -17,
-                        Ratio = 1.18f
+                        Ratio = 1.18f,
+                        SidechainEffect = new FiltersEffect
+                        {
+                            Filters = new[]
+                            {
+                                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 709),
+                            }
+                        }
                     },
 
                     new FiltersEffect
