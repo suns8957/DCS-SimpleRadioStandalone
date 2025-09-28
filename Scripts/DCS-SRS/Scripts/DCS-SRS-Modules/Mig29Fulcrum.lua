@@ -1,4 +1,4 @@
-function SR.exportRadioMiG29Fulcrum(_data, SR)
+function exportRadioMiG29Fulcrum(_data, SR)
 
     _data.radios[2].name = "R-862"
     _data.radios[2].freq = SR.getRadioFrequency(51)
