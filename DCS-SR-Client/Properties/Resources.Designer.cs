@@ -1029,6 +1029,70 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incoming Audio Automatic Gain Control.
+        /// </summary>
+        public static string IncomingAudioAGC {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max Gain (dB).
+        /// </summary>
+        public static string IncomingAudioAGCMaxDB {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCMaxDB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Amount of volume &apos;boost&apos; the incoming audio gets. Recommended: 40dB.
+        /// </summary>
+        public static string IncomingAudioAGCMaxDBToolTip {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCMaxDBToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target Level (&quot;loudness&quot;).
+        /// </summary>
+        public static string IncomingAudioAGCTargetLevel {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCTargetLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How much amplitude the incoming audio will occupy.
+        ///Recommended: 20000.
+        /// </summary>
+        public static string IncomingAudioAGCTargetLevelToolTip {
+            get {
+                return ResourceManager.GetString("IncomingAUdioAGCTargetLevelToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microphone Noise Suppression .
+        /// </summary>
+        public static string IncomingAudioDenoise {
+            get {
+                return ResourceManager.GetString("IncomingAudioDenoise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incoming Audio.
+        /// </summary>
+        public static string IncomingAudioHeader {
+            get {
+                return ResourceManager.GetString("IncomingAudioHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Awacs Toggle.
         /// </summary>
         public static string InputAwacsOverlay {
@@ -1471,7 +1535,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to How much amplitude your voice will occupy.
-        ///Recommended: 8000.
+        ///Recommended: 15000.
         /// </summary>
         public static string MicAGCTargetLevelToolTip {
             get {
@@ -1480,7 +1544,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microphone Noise Suppression .
+        ///   Looks up a localized string similar to Incoming Audio Noise Suppression .
         /// </summary>
         public static string MicDenoise {
             get {

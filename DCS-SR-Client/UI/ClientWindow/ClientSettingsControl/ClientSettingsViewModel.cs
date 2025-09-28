@@ -468,7 +468,7 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
             NotifyPropertyChanged();
         }
     }
-
+#region Automatic Gain Control (Microphone)
     public bool MicAGC
     {
         get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AGC);
@@ -508,6 +508,48 @@ public class ClientSettingsViewModel : PropertyChangedBaseClass, IHandle<NewUnit
             NotifyPropertyChanged();
         }
     }
+    #endregion Automatic Gain Control (Microphone)
+    #region Automatic Gain Control (Microphone)
+    public bool IncomingAudioAGC
+    {
+        get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.IncomingAudioAGC);
+        set
+        {
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.IncomingAudioAGC, value);
+            NotifyPropertyChanged();
+        }
+    }
+
+    public int IncomingAudioAGCMaxDB
+    {
+        get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.IncomingAudioAGCLevelMax);
+        set
+        {
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.IncomingAudioAGCLevelMax, value);
+            NotifyPropertyChanged();
+        }
+    }
+
+    public int IncomingAudioAGCTarget
+    {
+        get => _globalSettings.GetClientSettingInt(GlobalSettingsKeys.IncomingAudioAGCTarget);
+        set
+        {
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.IncomingAudioAGCTarget, value);
+            NotifyPropertyChanged();
+        }
+    }
+
+    public bool IncomingAudioDenoise
+    {
+        get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.IncomingAudioDenoise);
+        set
+        {
+            _globalSettings.SetClientSetting(GlobalSettingsKeys.IncomingAudioDenoise, value);
+            NotifyPropertyChanged();
+        }
+    }
+#endregion Automatic Gain Control (IncomingAudio)
 
     public bool PlayConnectionSounds
     {
