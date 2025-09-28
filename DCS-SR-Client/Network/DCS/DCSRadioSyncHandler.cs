@@ -784,7 +784,7 @@ public class DCSRadioSyncHandler : IHandle<EAMConnectedMessage>, IHandle<EAMDisc
                 radio.freqMax = customRadio.freqMax;
                 radio.secFreq = customRadio.secFreq;
                 radio.modulation = customRadio.modulation;
-                radio.name = radio.name;
+                radio.name = customRadio.name;
                 radio.freqMode = (DCSRadio.FreqMode) customRadio.freqMode;
                 radio.encMode = (DCSRadio.EncryptionMode) customRadio.encMode;
                 radio.volMode = (DCSRadio.VolumeMode) customRadio.volMode;
