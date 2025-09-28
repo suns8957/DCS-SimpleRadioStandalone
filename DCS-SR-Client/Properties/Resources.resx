@@ -573,7 +573,13 @@ DCS In-game SRS Overlay</value>
   <data name="MicAGC" xml:space="preserve">
     <value>Microphone Automatic Gain Control</value>
   </data>
+  <data name="IncomingAudioAGC" xml:space="preserve">
+    <value>Incoming Audio Automatic Gain Control</value>
+  </data>
   <data name="MicDenoise" xml:space="preserve">
+    <value>Incoming Audio Noise Suppression </value>
+  </data>
+  <data name="IncomingAudioDenoise" xml:space="preserve">
     <value>Microphone Noise Suppression </value>
   </data>
   <data name="MicLabel" xml:space="preserve">
@@ -581,6 +587,9 @@ DCS In-game SRS Overlay</value>
   </data>
   <data name="MicrophoneHeader" xml:space="preserve">
     <value>Microphone</value>
+  </data>
+  <data name="IncomingAudioHeader" xml:space="preserve">
+    <value>Incoming Audio</value>
   </data>
   <data name="Minimisetotray" xml:space="preserve">
     <value>Minimise to tray</value>
@@ -1253,14 +1262,28 @@ Requires Tx or Rx Effects On</value>
     <value>Max Gain (dB)</value>
     <comment>Automatic Control Maximum gain</comment>
   </data>
+  <data name="IncomingAudioAGCMaxDB" xml:space="preserve">
+    <value>Max Gain (dB)</value>
+    <comment>Automatic Control Maximum gain</comment>
+  </data>
   <data name="MicAGCTargetLevel" xml:space="preserve">
+    <value>Target Level ("loudness")</value>
+  </data>
+  <data name="IncomingAudioAGCTargetLevel" xml:space="preserve">
     <value>Target Level ("loudness")</value>
   </data>
   <data name="MicAGCMaxDBToolTip" xml:space="preserve">
     <value>Amount of volume 'boost' your voice gets. Recommended: 40dB</value>
   </data>
+  <data name="IncomingAudioAGCMaxDBToolTip" xml:space="preserve">
+    <value>Amount of volume 'boost' the incoming audio gets. Recommended: 40dB</value>
+  </data>
   <data name="MicAGCTargetLevelToolTip" xml:space="preserve">
     <value>How much amplitude your voice will occupy.
-Recommended: 8000</value>
+Recommended: 15000</value>
+  </data>
+  <data name="IncomingAudioAGCTargetLevelToolTip" xml:space="preserve">
+    <value>How much amplitude the incoming audio will occupy.
+Recommended: 20000</value>
   </data>
 </root>
