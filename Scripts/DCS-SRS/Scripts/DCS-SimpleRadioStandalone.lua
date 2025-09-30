@@ -909,4 +909,4 @@ end
 -- Load mods' SRS plugins
 SR.LoadModsPlugins()
 
-SR.log("Loaded SimpleRadio Standalone Export version: 2.3.0.3")
+SR.log("Loaded SimpleRadio Standalone Export version: 2.3.2.0")
