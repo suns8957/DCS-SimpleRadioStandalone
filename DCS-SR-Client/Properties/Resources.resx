@@ -577,10 +577,10 @@ DCS In-game SRS Overlay</value>
     <value>Incoming Audio Automatic Gain Control</value>
   </data>
   <data name="MicDenoise" xml:space="preserve">
-    <value>Incoming Audio Noise Suppression </value>
+    <value>Microphone Noise Suppression </value>
   </data>
   <data name="IncomingAudioDenoise" xml:space="preserve">
-    <value>Microphone Noise Suppression </value>
+    <value>Noise Suppression </value>
   </data>
   <data name="MicLabel" xml:space="preserve">
     <value>Microphone</value>
