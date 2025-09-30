@@ -1070,12 +1070,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         /// </summary>
         public static string IncomingAudioAGCTargetLevelToolTip {
             get {
-                return ResourceManager.GetString("IncomingAUdioAGCTargetLevelToolTip", resourceCulture);
+                return ResourceManager.GetString("IncomingAudioAGCTargetLevelToolTip", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microphone Noise Suppression .
+        ///   Looks up a localized string similar to Noise Suppression .
         /// </summary>
         public static string IncomingAudioDenoise {
             get {
@@ -1544,7 +1544,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incoming Audio Noise Suppression .
+        ///   Looks up a localized string similar to Microphone Noise Suppression .
         /// </summary>
         public static string MicDenoise {
             get {
@@ -2531,7 +2531,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wet/Dry Radio Voice Effect Slider.
+        ///   Looks up a localized string similar to Dry/Wet Radio Voice Effect Slider.
         /// </summary>
         public static string RadioSoundEffects {
             get {
