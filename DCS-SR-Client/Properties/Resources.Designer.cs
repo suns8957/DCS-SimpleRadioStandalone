@@ -2531,7 +2531,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wet/Dry Radio Voice Effect Slider.
+        ///   Looks up a localized string similar to Dry/Wet Radio Voice Effect Slider.
         /// </summary>
         public static string RadioSoundEffects {
             get {
