@@ -152,7 +152,12 @@ function exportRadioC130J30(_data, SR)
          _PTTRockerId = 292
 
          handleCockpitButtons()
-    elseif _seat == 2 then -- Aug Seat
+    elseif _seat == 2 then -- Load Master
+        _data.control = 0
+        for _, _radio in pairs(_data.radios) do
+            _radio.volMode = 1
+        end
+    elseif _seat == 3 then -- Aug Seat
         _masterVolumeId = 1361 
         _ICSVolumeId = { 268, 269 }
         _UHF1VolumeId = { 286, 287 }
@@ -170,7 +175,7 @@ function exportRadioC130J30(_data, SR)
         _PTTRockerId = 290
 
         handleCockpitButtons()
-    else -- All other seats use the radio overlay to control their comms
+    elseif _seat == 4 then -- Load Master Front
         _data.control = 0
         for _, _radio in pairs(_data.radios) do
             _radio.volMode = 1
