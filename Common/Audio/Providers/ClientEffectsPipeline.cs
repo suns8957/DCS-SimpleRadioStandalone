@@ -4,6 +4,7 @@ using Ciribob.DCS.SimpleRadio.Standalone.Common.Network.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Common.Settings.Setting;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using NLog;
 using System;
 using System.Buffers;
@@ -22,7 +23,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private bool radioEffectsEnabled;
+        private float radioEffectRatio = 1.0f; // Default to 1.0 (full effect)
         private bool perRadioModelEffect;
         private bool clippingEnabled;
 
@@ -49,69 +50,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
         public ClientEffectsPipeline()
         {
             RefreshSettings();
-            LoadRadioModels();
         }
 
-        private class RadioModel
-        {
-            public DeferredSourceProvider RxSource { get; } = new DeferredSourceProvider();
-
-            public ISampleProvider RxEffectProvider { get; set; }
-
-            public RadioModel(Models.Dto.RadioModel dtoPreset)
-            {
-                RxEffectProvider = dtoPreset.RxEffect.ToSampleProvider(RxSource);
-            }
-        }
-
-        private IReadOnlyDictionary<string, RadioModel> RadioModels;
-
-        private readonly RadioModel Arc210 = new RadioModel(DefaultRadioModels.BuildArc210());
-        private readonly RadioModel Intercom = new RadioModel(DefaultRadioModels.BuildIntercom());
-        private void LoadRadioModels()
-        {
-            var modelsFolders = new List<string> { ModelsFolder, ModelsCustomFolder };
-            var loadedModels = new Dictionary<string, RadioModel>();
-
-            var deserializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // "propertyName" (starts lowercase)
-                AllowTrailingCommas = true, // 
-                ReadCommentHandling = JsonCommentHandling.Skip, // Allow comments but ignore them.
-            };
-
-
-            foreach (var modelsFolder in modelsFolders)
-            {
-                try
-                {
-                    var models = Directory.EnumerateFiles(modelsFolder, "*.json");
-                    foreach (var modelFile in models)
-                    {
-                        var modelName = Path.GetFileNameWithoutExtension(modelFile).ToLowerInvariant();
-                        using (var jsonFile = File.OpenRead(modelFile))
-                        {
-                            try
-                            {
-                                var loadedModel = JsonSerializer.Deserialize<Models.Dto.RadioModel>(jsonFile, deserializerOptions);
-                                loadedModels[modelName] = new RadioModel(loadedModel);
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Error($"Unable to parse radio preset file {modelFile}", ex);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error($"Unable to parse radio preset files {modelsFolder}", ex);
-                }
-            }
-                
-            RadioModels = loadedModels.ToFrozenDictionary();
-        }
-
+        private IDictionary<string, RxRadioModel> RxRadioModels { get; } = new Dictionary<string, RxRadioModel>();
         private void RefreshSettings()
         {
             //only get settings every 3 seconds - and cache them - issues with performance
@@ -123,17 +64,14 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 var serverSettings = SyncedServerSettings.Instance;
                 lastRefresh = now;
 
-                radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
-
                 perRadioModelEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.PerRadioModelEffects);
-
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
-
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
+                radioEffectRatio = Math.Clamp(profileSettings.GetClientSettingFloat(ProfileSettingsKeys.RadioEffectsRatio), 0f, 1f);
             }
         }
 
-        private ISampleProvider BuildRXPipeline(ISampleProvider voiceProvider, RadioModel radioModel)
+        private ISampleProvider BuildRXPipeline(ISampleProvider voiceProvider, RxRadioModel radioModel)
         {
             radioModel.RxSource.Source = voiceProvider;
             voiceProvider = radioModel.RxEffectProvider;
@@ -147,7 +85,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
             var workingBuffer = floatPool.Rent(count);
             var workingSpan = workingBuffer.AsSpan(0, count);
             workingSpan.Clear();
-            
+
             TransmissionSegment capturedFMSegment = null;
             foreach (var segment in segments)
             {
@@ -173,22 +111,33 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Providers
                 Mix(workingSpan, capturedFMSegment.AudioSpan);
             }
 
-            ISampleProvider provider = new TransmissionProvider(workingBuffer, 0, count);
-            if (radioEffectsEnabled)
+            //Get desire RadioModel
+            var desiredName = perRadioModelEffect && modelName != null ? modelName : string.Empty;
+            if (!RxRadioModels.TryGetValue(desiredName, out var radioModel))
             {
-                var model = perRadioModelEffect && modelName != null? RadioModels.GetValueOrDefault(modelName, Intercom) : Intercom;
-                provider = BuildRXPipeline(provider, model);
-
-                if (clippingEnabled)
-                {
-                    provider = new ClippingProvider(provider, -1f, 1f);
-                }
+                radioModel = RadioModelFactory.Instance.LoadRxOrDefaultIntercom(desiredName);
+                RxRadioModels.Add(desiredName, radioModel);
             }
+          
+            // Create dry and wet providers
+            var dryProvider = new TransmissionProvider(workingBuffer, 0, count);
+            var wetProvider = BuildRXPipeline(dryProvider, radioModel);
 
-            var samplesRead = provider.Read(mixBuffer, offset, count);
+            // Set up volume providers for wet/dry mix
+            var dryVolume = new VolumeSampleProvider(dryProvider) { Volume = 1.0f - radioEffectRatio };
+            var wetVolume = new VolumeSampleProvider(wetProvider) { Volume = radioEffectRatio };
+
+            // Mix dry and wet
+            var mixer = new MixingSampleProvider(new[] { dryVolume, wetVolume });
+
+            // Wrap with ClippingProvider if needed
+            ISampleProvider finalProvider = mixer;
+            if (clippingEnabled && radioEffectRatio > 0f)
+                finalProvider = new ClippingProvider(mixer, -1f, 1f);
+
+            int samplesRead = finalProvider.Read(mixBuffer, offset, count);
 
             floatPool.Return(workingBuffer);
-
             return samplesRead;
         }
 

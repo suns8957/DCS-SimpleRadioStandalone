@@ -1029,6 +1029,70 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incoming Audio Automatic Gain Control.
+        /// </summary>
+        public static string IncomingAudioAGC {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max Gain (dB).
+        /// </summary>
+        public static string IncomingAudioAGCMaxDB {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCMaxDB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Amount of volume &apos;boost&apos; the incoming audio gets. Recommended: 40dB.
+        /// </summary>
+        public static string IncomingAudioAGCMaxDBToolTip {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCMaxDBToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target Level (&quot;loudness&quot;).
+        /// </summary>
+        public static string IncomingAudioAGCTargetLevel {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCTargetLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How much amplitude the incoming audio will occupy.
+        ///Recommended: 20000.
+        /// </summary>
+        public static string IncomingAudioAGCTargetLevelToolTip {
+            get {
+                return ResourceManager.GetString("IncomingAudioAGCTargetLevelToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Noise Suppression .
+        /// </summary>
+        public static string IncomingAudioDenoise {
+            get {
+                return ResourceManager.GetString("IncomingAudioDenoise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incoming Audio.
+        /// </summary>
+        public static string IncomingAudioHeader {
+            get {
+                return ResourceManager.GetString("IncomingAudioHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Awacs Toggle.
         /// </summary>
         public static string InputAwacsOverlay {
@@ -1471,7 +1535,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to How much amplitude your voice will occupy.
-        ///Recommended: 8000.
+        ///Recommended: 15000.
         /// </summary>
         public static string MicAGCTargetLevelToolTip {
             get {
@@ -1534,9 +1598,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SRS Requires admin rights to be able to read keyboard input in the background. 
-        ///
-        ///If you do not use any keyboard binds you can disable SRS Admin Privileges. 
+        ///   Looks up a localized string similar to SRS should NOT require admin rights unless you have a really specific setup that demands it.
+        ///    
+        ///    Are you SURE you NEED SRS to have admin rights?
         ///
         ///For this setting to take effect SRS must be restarted.
         /// </summary>
@@ -1862,6 +1926,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AM.
+        /// </summary>
+        public static string OverlayAM {
+            get {
+                return ResourceManager.GetString("OverlayAM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available in Cockpit.
         /// </summary>
         public static string OverlayAvailableCockpit {
@@ -1961,11 +2034,29 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to FM.
+        /// </summary>
+        public static string OverlayFM {
+            get {
+                return ResourceManager.GetString("OverlayFM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to HOTAS Controls.
         /// </summary>
         public static string OverlayHotasControls {
             get {
                 return ResourceManager.GetString("OverlayHotasControls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HQ.
+        /// </summary>
+        public static string OverlayHQ {
+            get {
+                return ResourceManager.GetString("OverlayHQ", resourceCulture);
             }
         }
         
@@ -1988,7 +2079,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MIDS.
+        ///   Looks up a localized string similar to DL.
         /// </summary>
         public static string OverlayMIDS {
             get {
@@ -2056,6 +2147,15 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         public static string OverlayRadioTab {
             get {
                 return ResourceManager.GetString("OverlayRadioTab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SG.
+        /// </summary>
+        public static string OverlaySG {
+            get {
+                return ResourceManager.GetString("OverlaySG", resourceCulture);
             }
         }
         
@@ -2431,7 +2531,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable Radio Voice Effect.
+        ///   Looks up a localized string similar to Dry/Wet Radio Voice Effect Slider.
         /// </summary>
         public static string RadioSoundEffects {
             get {
@@ -2440,7 +2540,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable Clipping Effect (Requires Radio effects on!).
+        ///   Looks up a localized string similar to Enable Clipping Effect (Requires Radio Effect &gt; 0%).
         /// </summary>
         public static string RadioSoundEffectsClipping {
             get {

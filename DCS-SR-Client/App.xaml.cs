@@ -1,9 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
@@ -30,7 +33,21 @@ public partial class App : Application
 
     public App()
     {
-        //Thread.CurrentThread.CurrentUICulture = new CultureInfo("zh-CN");
+        System.Windows.Forms.Application.EnableVisualStyles();
+
+        // Common ones to use are -lang:en-us , -lang:zh , -lang:zh-cn , -lang:fr
+        try
+        {
+            string lang = Environment.GetCommandLineArgs().FirstOrDefault(x => x.StartsWith("-lang:")).Substring(6);
+            if (!string.IsNullOrEmpty(lang))
+            {
+                Logger.Warn($"Command Line Set Language Code : {lang}");
+                Thread.CurrentThread.CurrentUICulture = new CultureInfo(lang);
+            }
+        } catch (CultureNotFoundException e){ Logger.Error(e.Message); }
+        catch { /* ignored */ }
+
+
         SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
         AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
@@ -167,7 +184,7 @@ public partial class App : Application
                 catch (Win32Exception)
                 {
                     MessageBox.Show(
-                        "SRS Requires admin rights to be able to read keyboard input in the background. \n\nIf you do not use any keyboard binds for SRS and want to stop this message - Disable Require Admin Rights in SRS Settings\n\nSRS will continue without admin rights but keyboard binds will not work!",
+                        "SRS could not restart with elevated privilages.\n\nUnless you have a very specific need you should disable the Require Admin option in the settings.",
                         "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             });

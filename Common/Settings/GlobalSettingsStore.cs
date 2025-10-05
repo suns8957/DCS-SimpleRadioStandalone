@@ -54,6 +54,13 @@ public enum GlobalSettingsKeys
 
     Denoise,
     DenoiseAttenuation,
+    IncomingAudioAGC,
+    IncomingAudioAGCTarget,
+    IncomingAudioAGCDecrement,
+    IncomingAudioAGCLevelMax,
+    
+    IncomingAudioDenoise,
+    IncomingAudioDenoiseAttenuation,
 
     LastSeenName,
 
@@ -299,6 +306,14 @@ public class GlobalSettingsStore
         { GlobalSettingsKeys.Denoise.ToString(), "true" },
         { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
 
+        { GlobalSettingsKeys.IncomingAudioAGC.ToString(), "true" },
+        { GlobalSettingsKeys.IncomingAudioAGCTarget.ToString(), "14000" },
+        { GlobalSettingsKeys.IncomingAudioAGCDecrement.ToString(), "-60" },
+        { GlobalSettingsKeys.IncomingAudioAGCLevelMax.ToString(), "40" },
+                             
+        { GlobalSettingsKeys.IncomingAudioDenoise.ToString(), "true" },
+        { GlobalSettingsKeys.IncomingAudioDenoiseAttenuation.ToString(), "-30" },
+
         { GlobalSettingsKeys.LastSeenName.ToString(), "" },
 
         { GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false" },
@@ -308,7 +323,7 @@ public class GlobalSettingsStore
         { GlobalSettingsKeys.DisableWindowVisibilityCheck.ToString(), "false" },
         { GlobalSettingsKeys.PlayConnectionSounds.ToString(), "true" },
 
-        { GlobalSettingsKeys.RequireAdmin.ToString(), "true" },
+        { GlobalSettingsKeys.RequireAdmin.ToString(), "false" },
 
         { GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(), "false" },
 

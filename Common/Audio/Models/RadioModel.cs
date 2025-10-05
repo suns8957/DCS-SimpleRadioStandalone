@@ -4,7 +4,12 @@ using NAudio.Dsp;
 using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NLog;
 using System;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
@@ -16,6 +21,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         [JsonDerivedType(typeof(SaturationEffect), typeDiscriminator: "saturation")]
         [JsonDerivedType(typeof(CompressorEffect), typeDiscriminator: "compressor")]
+        [JsonDerivedType(typeof(SidechainCompressorEffect), typeDiscriminator: "sidechainCompressor")]
         [JsonDerivedType(typeof(GainEffect), typeDiscriminator: "gain")]
 
         [JsonDerivedType(typeof(CVSDEffect), typeDiscriminator: "cvsd")]
@@ -95,6 +101,34 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
             }
         };
 
+        internal class SidechainCompressorEffect : IEffect
+        {
+            public required float Attack { get; set; }
+            public required float MakeUp { get; set; }
+            public required float Release { get; set; }
+            public required float Threshold { get; set; }
+            public required float Ratio { get; set; }
+            public required IEffect SidechainEffect {  get; set; }
+
+            public override ISampleProvider ToSampleProvider(ISampleProvider source)
+            {
+                return new SidechainCompressorProvider
+                {
+                    Compressor = new Dsp.SidechainCompressor(Attack * 1000, Release * 1000, source.WaveFormat.SampleRate)
+                    {
+                        MakeUpGain = MakeUp,
+                        Threshold = Threshold,
+                        Ratio = Ratio,
+                    },
+                    SignalProvider = source,
+                    SidechainProvider = SidechainEffect.ToSampleProvider(new NoopSampleProvider()
+                    {
+                        WaveFormat = source.WaveFormat
+                    })
+                };
+            }
+        }
+
         internal class GainEffect : IEffect
         {
             public required float Gain {  get; set; }
@@ -118,17 +152,175 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
         };
     }
+
+
+    internal class TxRadioModel
+    {
+        public DeferredSourceProvider TxSource { get; } = new DeferredSourceProvider();
+
+        public ISampleProvider TxEffectProvider { get; set; }
+
+        public ISampleProvider EncryptionProvider { get; set; }
+
+        public float NoiseGain { get; set; }
+
+        public TxRadioModel(Models.Dto.RadioModel dtoPreset)
+        {
+            TxEffectProvider = dtoPreset.TxEffect.ToSampleProvider(TxSource);
+
+            if (dtoPreset.EncryptionEffect != null)
+            {
+                EncryptionProvider = dtoPreset.EncryptionEffect.ToSampleProvider(TxEffectProvider);
+            }
+
+            NoiseGain = dtoPreset.NoiseGain;
+        }
+    }
+
+    internal class RxRadioModel
+    {
+        public DeferredSourceProvider RxSource { get; } = new DeferredSourceProvider();
+
+        public ISampleProvider RxEffectProvider { get; set; }
+
+        public RxRadioModel(Models.Dto.RadioModel dtoPreset)
+        {
+            RxEffectProvider = dtoPreset.RxEffect.ToSampleProvider(RxSource);
+        }
+    }
+
+    internal class RadioModelFactory
+    {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private IReadOnlyDictionary<string, RadioModel> RadioModelTemplates { get; set; }
+        private string ModelsFolder
+        {
+            get
+            {
+                return Path.Combine(Directory.GetCurrentDirectory(), "RadioModels");
+            }
+        }
+
+        private string ModelsCustomFolder
+        {
+            get
+            {
+                return Path.Combine(Directory.GetCurrentDirectory(), "RadioModelsCustom");
+            }
+        }
+
+        public static RadioModelFactory Instance = new();
+
+        private RadioModelFactory()
+        {
+            LoadTemplates();
+        }
+        private void LoadTemplates()
+        {
+            var modelsFolders = new List<string> { ModelsFolder, ModelsCustomFolder };
+            var loadedTemplates = new Dictionary<string, RadioModel>();
+
+            var deserializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // "propertyName" (starts lowercase)
+                AllowTrailingCommas = true, // 
+                ReadCommentHandling = JsonCommentHandling.Skip, // Allow comments but ignore them.
+            };
+
+
+            foreach (var modelsFolder in modelsFolders)
+            {
+                try
+                {
+                    var models = Directory.EnumerateFiles(modelsFolder, "*.json");
+                    foreach (var modelFile in models)
+                    {
+                        var modelName = Path.GetFileNameWithoutExtension(modelFile).ToLowerInvariant();
+                        using (var jsonFile = File.OpenRead(modelFile))
+                        {
+                            try
+                            {
+                                loadedTemplates[modelName] = JsonSerializer.Deserialize<RadioModel>(jsonFile, deserializerOptions);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error($"Unable to parse radio preset file {modelFile}", ex);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Unable to parse radio preset files {modelsFolder}", ex);
+                }
+            }
+
+            RadioModelTemplates = loadedTemplates.ToFrozenDictionary();
+        }
+
+        public TxRadioModel LoadTxRadio(string name)
+        {
+            if (RadioModelTemplates.TryGetValue(name, out var template))
+            {
+                return new(template);
+            }
+
+            return null;
+        }
+
+        public TxRadioModel LoadTxOrDefaultRadio(string name)
+        {
+            var model = LoadTxRadio(name);
+            if (model == null)
+            {
+                model = new(DefaultRadioModels.BuildArc210());
+            }
+
+            return model;
+        }
+
+        public TxRadioModel LoadTxOrDefaultIntercom(string name)
+        {
+            var model = LoadTxRadio(name);
+            if (model == null)
+            {
+                model = new(DefaultRadioModels.BuildIntercom());
+            }
+
+            return model;
+        }
+
+        public RxRadioModel LoadRxRadio(string name)
+        {
+            if (RadioModelTemplates.TryGetValue(name, out var template))
+            {
+                return new(template);
+            }
+
+            return null;
+        }
+
+        public RxRadioModel LoadRxOrDefaultIntercom(string name)
+        {
+            var model = LoadRxRadio(name);
+            if (model == null)
+            {
+                model = new(DefaultRadioModels.BuildIntercom());
+            }
+
+            return model;
+        }
+    }
+
     internal class DefaultRadioModels
     {
         // ARC-210 as default radio FX.
-        public static Dto.RadioModel BuildArc210()
+        public static Dto.RadioModel BuildArc210() => new()
         {
-            return new()
+            Version = 1,
+            TxEffect = new ChainEffect()
             {
-                Version = 1,
-                TxEffect = new ChainEffect()
-                {
-                    Effects = new IEffect[]
+                Effects = new IEffect[]
                 {
                     new FiltersEffect()
                     {
@@ -153,13 +345,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Threshold = -23,
                     },
 
-                    new CompressorEffect()
+                    new SidechainCompressorEffect()
                     {
                         Attack = 0.01f,
                         MakeUp = 6,
                         Release = 0.2f,
                         Threshold = -33,
-                        Ratio = 1.18f
+                        Ratio = 1.18f,
+                        SidechainEffect = new FiltersEffect
+                        {
+                            Filters = new[]
+                            {
+                                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 709),
+                            }
+                        }
                     },
                     new FiltersEffect()
                     {
@@ -182,29 +381,26 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
 
                 }
 
-                },
+            },
 
-                RxEffect = new FiltersEffect()
-                {
-                    Filters = new Dsp.IFilter[]
+            RxEffect = new FiltersEffect()
+            {
+                Filters = new Dsp.IFilter[]
                 {
                     Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
                     Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
                 },
-                },
+            },
 
-                NoiseGain = -33,
-            };
-        }
+            NoiseGain = -33,
+        };
 
-        public static Dto.RadioModel BuildIntercom()
+        public static Dto.RadioModel BuildIntercom() => new()
         {
-            return new()
+            Version = 1,
+            TxEffect = new ChainEffect()
             {
-                Version = 1,
-                TxEffect = new ChainEffect()
-                {
-                    Effects = new IEffect[]
+                Effects = new IEffect[]
                 {
                     new FiltersEffect()
                     {
@@ -233,13 +429,20 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Threshold = -33,
                     },
 
-                    new CompressorEffect
+                    new SidechainCompressorEffect
                     {
                         Attack = 0.01f,
                         MakeUp = -1,
                         Release = 0.2f,
                         Threshold = -17,
-                        Ratio = 1.18f
+                        Ratio = 1.18f,
+                        SidechainEffect = new FiltersEffect
+                        {
+                            Filters = new[]
+                            {
+                                Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 709),
+                            }
+                        }
                     },
 
                     new FiltersEffect
@@ -262,19 +465,18 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Common.Audio.Models
                         Gain = 8,
                     }
                 }
-                },
+            },
 
-                RxEffect = new FiltersEffect()
-                {
-                    Filters = new[]
+            RxEffect = new FiltersEffect()
+            {
+                Filters = new[]
                 {
                     Dsp.FirstOrderFilter.HighPass(Constants.OUTPUT_SAMPLE_RATE, 270),
                     Dsp.FirstOrderFilter.LowPass(Constants.OUTPUT_SAMPLE_RATE, 4500)
                 },
-                },
+            },
 
-                NoiseGain = -60,
-            };
-        }
+            NoiseGain = -60,
+        };
     };
 }
